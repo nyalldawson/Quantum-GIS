@@ -56,7 +56,8 @@ class CORE_EXPORT QgsComposerItem: public QObject, public QGraphicsRectItem
       ComposerTable,
       ComposerAttributeTable,
       ComposerTextTable,
-      ComposerFrame
+      ComposerFrame,
+      ComposerOverviewRays
     };
 
     /**Describes the action (move or resize in different directon) to be done during mouse move*/
@@ -103,6 +104,21 @@ class CORE_EXPORT QgsComposerItem: public QObject, public QGraphicsRectItem
 
     /** return correct graphics item type. Added in v1.7 */
     virtual int type() const { return ComposerItem; }
+    
+    /** Whether this item is a cosmetic item or not
+     * @returns true if item is a cosmetic item, which cannot be interacted with but is still drawn with the composition
+     * @note introduced in 2.1
+     * @see setCosmetic
+     */
+    bool isCosmetic() const {return mCosmetic;}
+
+    /** Set whether this item is a cosmetic item, which cannot be interacted with but is still drawn with the composition
+     * @param cosmetic true if item is cosmetic
+     * @returns nothing
+     * @note introduced in 2.1
+     * @see isComestic
+     */
+    void setCosmetic( bool cosmetic );
 
     /** \brief Set selected, selected item should be highlighted */
     virtual void setSelected( bool s );
@@ -323,6 +339,9 @@ class CORE_EXPORT QgsComposerItem: public QObject, public QGraphicsRectItem
     QGraphicsRectItem* mBoundingResizeRectangle;
     QGraphicsLineItem* mHAlignSnapItem;
     QGraphicsLineItem* mVAlignSnapItem;
+    
+    /**True if item is a cosmetic item, which cannot be clicked or interacted with, but is still drawn and included in outputs*/
+    bool mCosmetic;
 
     /**True if item fram needs to be painted*/
     bool mFrame;

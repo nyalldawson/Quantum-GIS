@@ -28,6 +28,7 @@
 #include "qgsscalecalculator.h"
 #include "qgsvectorlayer.h"
 #include "qgspallabeling.h"
+#include "qgsoverviewrays.h"
 
 #include "qgslabel.h"
 #include "qgslabelattributes.h"
@@ -49,13 +50,14 @@ QgsComposerMap::QgsComposerMap( QgsComposition *composition, int x, int y, int w
     mTopGridAnnotationPosition( OutsideMapFrame ), mBottomGridAnnotationPosition( OutsideMapFrame ), mAnnotationFrameDistance( 1.0 ),
     mLeftGridAnnotationDirection( Horizontal ), mRightGridAnnotationDirection( Horizontal ), mTopGridAnnotationDirection( Horizontal ),
     mBottomGridAnnotationDirection( Horizontal ), mGridFrameStyle( NoGridFrame ),  mGridFrameWidth( 2.0 ),
-    mCrossLength( 3 ), mMapCanvas( 0 ), mDrawCanvasItems( true )
+    mCrossLength( 3 ), mMapCanvas( 0 ), mDrawCanvasItems( true ), mOverviewRays( 0 )
 {
   mComposition = composition;
   mOverviewFrameMapSymbol = 0;
   mGridLineSymbol = 0;
   createDefaultOverviewFrameSymbol();
   createDefaultGridLineSymbol();
+  createOverviewRays();  
 
   mId = 0;
   assignFreeId();
@@ -95,11 +97,12 @@ QgsComposerMap::QgsComposerMap( QgsComposition *composition )
     mTopGridAnnotationPosition( OutsideMapFrame ), mBottomGridAnnotationPosition( OutsideMapFrame ), mAnnotationFrameDistance( 1.0 ),
     mLeftGridAnnotationDirection( Horizontal ), mRightGridAnnotationDirection( Horizontal ), mTopGridAnnotationDirection( Horizontal ),
     mBottomGridAnnotationDirection( Horizontal ), mGridFrameStyle( NoGridFrame ), mGridFrameWidth( 2.0 ), mCrossLength( 3 ),
-    mMapCanvas( 0 ), mDrawCanvasItems( true )
+    mMapCanvas( 0 ), mDrawCanvasItems( true ), mOverviewRays( 0 )
 {
   mOverviewFrameMapSymbol = 0;
   mGridLineSymbol = 0;
   createDefaultOverviewFrameSymbol();
+  createOverviewRays();
 
   //Offset
   mXOffset = 0.0;
@@ -116,6 +119,13 @@ QgsComposerMap::QgsComposerMap( QgsComposition *composition )
   setToolTip( tr( "Map %1" ).arg( mId ) );
 
   initGridAnnotationFormatFromProject();
+}
+
+void QgsComposerMap::createOverviewRays()
+{ 
+  mOverviewRays = new QgsOverviewRays( mComposition );
+  mOverviewRays->setZValue( 100 );
+  mComposition->addItem( mOverviewRays );
 }
 
 void QgsComposerMap::extentCenteredOnOverview( QgsRectangle& extent ) const
@@ -144,6 +154,9 @@ QgsComposerMap::~QgsComposerMap()
 {
   delete mOverviewFrameMapSymbol;
   delete mGridLineSymbol;
+    
+  mComposition->removeItem( mOverviewRays );
+  delete mOverviewRays;
 }
 
 /* This function is called by paint() and cache() to render the map.  It does not override any functions
@@ -1855,6 +1868,7 @@ void QgsComposerMap::setOverviewFrameMap( int mapId )
     if ( map )
     {
       QObject::disconnect( map, SIGNAL( extentChanged() ), this, SLOT( repaint() ) );
+      QObject::disconnect( map, SIGNAL( extentChanged() ), mOverviewRays, SLOT( updateRays() ) );      
     }
   }
   mOverviewFrameMapId = mapId;
@@ -1864,6 +1878,8 @@ void QgsComposerMap::setOverviewFrameMap( int mapId )
     if ( map )
     {
       QObject::connect( map, SIGNAL( extentChanged() ), this, SLOT( repaint() ) );
+      QObject::connect( map, SIGNAL( extentChanged() ), mOverviewRays, SLOT( updateRays() ) );
+      mOverviewRays->setExtentsMap( map );
     }
   }
   update();
@@ -2250,6 +2266,8 @@ void QgsComposerMap::drawOverviewMapExtent( QPainter* p )
   double height = intersectRect.height() / thisExtent.height() * rect().height();
   intersectPolygon << QPointF( x, y ) << QPointF( x + width, y ) << QPointF( x + width, y + height ) << QPointF( x, y + height ) << QPointF( x, y );
 
+  mOverviewRays->setOverviewRect( QRectF( mapToScene( x, y), QSizeF( width, height ) ) );
+  
   QList<QPolygonF> rings; //empty list
   if ( !mOverviewInverted )
   {

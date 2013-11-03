@@ -153,6 +153,7 @@ SET(QGIS_CORE_SRCS
   composer/qgslegendmodel.cpp
   composer/qgscomposerlegend.cpp
   composer/qgscomposerlegendstyle.cpp
+  composer/qgsoverviewrays.cpp
   composer/qgspaperitem.cpp
   composer/qgsscalebarstyle.cpp
   composer/qgsdoubleboxscalebarstyle.cpp
@@ -337,7 +338,8 @@ SET(QGIS_CORE_MOC_HDRS
   composer/qgscomposereffect.h
   composer/qgsatlascomposition.h
   composer/qgscomposition.h
-
+  composer/qgsoverviewrays.h
+  
   composer/qgslegendmodel.h
   raster/qgsrasterlayer.h
   raster/qgsrasterdataprovider.h
@@ -471,6 +473,7 @@ SET(QGIS_CORE_HDRS
   composer/qgsaddremovemultiframecommand.h
   composer/qgsdoubleboxscalebarstyle.h
   composer/qgscomposertable.h
+  composer/qgsoverviewrays.h  
   composer/qgspaperitem.h
   composer/qgsticksscalebarstyle.h
   composer/qgscomposerlegendstyle.h

@@ -49,6 +49,7 @@ QgsComposerItem::QgsComposerItem( QgsComposition* composition, bool manageZValue
     , mBoundingResizeRectangle( 0 )
     , mHAlignSnapItem( 0 )
     , mVAlignSnapItem( 0 )
+    , mCosmetic( false )
     , mFrame( false )
     , mBackground( true )
     , mBackgroundColor( QColor( 255, 255, 255, 255 ) )
@@ -72,6 +73,7 @@ QgsComposerItem::QgsComposerItem( qreal x, qreal y, qreal width, qreal height, Q
     , mBoundingResizeRectangle( 0 )
     , mHAlignSnapItem( 0 )
     , mVAlignSnapItem( 0 )
+    , mCosmetic( false )
     , mFrame( false )
     , mBackground( true )
     , mBackgroundColor( QColor( 255, 255, 255, 255 ) )
@@ -128,6 +130,13 @@ void QgsComposerItem::setSelected( bool s )
   QGraphicsRectItem::setSelected( s );
   update(); //to draw selection boxes
 }
+
+void QgsComposerItem::setCosmetic( bool cosmetic )
+{
+  mCosmetic = cosmetic;  
+  setFlag( QGraphicsItem::ItemIsSelectable, !mCosmetic );
+}
+
 
 bool QgsComposerItem::writeSettings( void )  { return true; }
 

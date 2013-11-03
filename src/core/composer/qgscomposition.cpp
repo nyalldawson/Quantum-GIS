@@ -215,12 +215,12 @@ void QgsComposition::setStatusMessage( const QString & message )
   emit statusMsgChanged( message );
 }
 
-QgsComposerItem* QgsComposition::composerItemAt( const QPointF & position )
+QgsComposerItem* QgsComposition::composerItemAt( const QPointF & position, bool ignoreCosmeticItems )
 {
-  return composerItemAt( position, 0 );
+  return composerItemAt( position, 0, ignoreCosmeticItems );
 }
 
-QgsComposerItem* QgsComposition::composerItemAt( const QPointF & position, const QgsComposerItem* belowItem )
+QgsComposerItem* QgsComposition::composerItemAt( const QPointF & position, const QgsComposerItem* belowItem, bool ignoreCosmeticItems )
 {
   //get a list of items which intersect the specified position, in descending z order
   QList<QGraphicsItem*> itemList;
@@ -234,6 +234,11 @@ QgsComposerItem* QgsComposition::composerItemAt( const QPointF & position, const
     QgsPaperItem* paperItem = dynamic_cast<QgsPaperItem*>( *itemIt );
     if ( composerItem && !paperItem )
     {
+      if ( ignoreCosmeticItems && composerItem->isCosmetic() )
+      {
+        //ignore cosmetic items
+        continue;
+      }
       // If we are not checking for a an item below a specified item, or if we've
       // already found that item, then we've found our target
       if ( ! belowItem || foundBelowItem )

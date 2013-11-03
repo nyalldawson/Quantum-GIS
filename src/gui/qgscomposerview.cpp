@@ -111,7 +111,7 @@ void QgsComposerView::mousePressEvent( QMouseEvent* e )
   //lock/unlock position of item with right click
   if ( e->button() == Qt::RightButton )
   {
-    QgsComposerItem* selectedItem = composition()->composerItemAt( scenePoint );
+    QgsComposerItem* selectedItem = composition()->composerItemAt( scenePoint, true );
     if ( selectedItem )
     {
       bool lock = selectedItem->positionLock() ? false : true;
@@ -170,19 +170,19 @@ void QgsComposerView::mousePressEvent( QMouseEvent* e )
       if ( previousSelectedItem )
       {
         //select highest item just below previously selected item at position of event
-        selectedItem = composition()->composerItemAt( scenePoint, previousSelectedItem );
+        selectedItem = composition()->composerItemAt( scenePoint, previousSelectedItem, true );
 
         //if we didn't find a lower item we'll use the top-most as fall-back
         //this duplicates mapinfo/illustrator/etc behaviour where ctrl-clicks are "cyclic"
         if ( !selectedItem )
         {
-          selectedItem = composition()->composerItemAt( scenePoint );
+          selectedItem = composition()->composerItemAt( scenePoint, true );
         }
       }
       else
       {
-        //select topmost item at position of event
-        selectedItem = composition()->composerItemAt( scenePoint );
+        //select topmost item at position of event, ignoring cosmetic items
+        selectedItem = composition()->composerItemAt( scenePoint, true );
       }
 
       if ( !selectedItem )
@@ -271,7 +271,7 @@ void QgsComposerView::mousePressEvent( QMouseEvent* e )
       for ( ; itemIter != itemsAtCursorPos.end(); ++itemIter )
       {
         QgsComposerItem* item = dynamic_cast<QgsComposerItem *>(( *itemIter ) );
-        if ( item )
+        if ( item && !item->isCosmetic() )
         {
           //we've found the highest QgsComposerItem
           mMoveContentStartPos = scenePoint;
@@ -490,7 +490,7 @@ void QgsComposerView::endMarqueeSelect( QMouseEvent* e )
     QgsPaperItem* paperItem = dynamic_cast<QgsPaperItem*>( *itemIt );
     if ( mypItem && !paperItem )
     {
-      if ( !mypItem->positionLock() )
+      if ( !mypItem->positionLock() && !mypItem->isCosmetic() )
       {
         if ( subtractingSelection )
         {
@@ -985,7 +985,7 @@ void QgsComposerView::selectAll()
     QgsPaperItem* paperItem = dynamic_cast<QgsPaperItem*>( *itemIt );
     if ( mypItem && !paperItem )
     {
-      if ( !mypItem->positionLock() )
+      if ( !mypItem->positionLock() && !mypItem->isCosmetic() )
       {
         mypItem->setSelected( true );
       }
@@ -1026,9 +1026,8 @@ void QgsComposerView::selectInvert()
     if ( mypItem && !paperItem )
     {
       //flip selected state for items (and deselect any locked items)
-      if ( mypItem->selected() || mypItem->positionLock() )
+      if ( mypItem->selected() || mypItem->positionLock() || mypItem->isCosmetic()  )
       {
-
         mypItem->setSelected( false );
       }
       else
@@ -1232,7 +1231,7 @@ void QgsComposerView::wheelEvent( QWheelEvent* event )
 
     QPointF scenePoint = mapToScene( event->pos() );
     //select topmost item at position of event
-    QgsComposerItem* theItem = composition()->composerItemAt( scenePoint );
+    QgsComposerItem* theItem = composition()->composerItemAt( scenePoint, true );
     if ( theItem )
     {
       if ( theItem->isSelected() )

@@ -33,6 +33,7 @@ class QPainter;
 class QgsFillSymbolV2;
 class QgsLineSymbolV2;
 class QgsVectorLayer;
+class QgsOverviewRays;
 
 /** \ingroup MapComposer
  *  \class QgsComposerMap
@@ -478,6 +479,8 @@ class CORE_EXPORT QgsComposerMap : public QgsComposerItem
     QGraphicsView* mMapCanvas;
     /**True if annotation items, rubber band, etc. from the main canvas should be displayed*/
     bool mDrawCanvasItems;
+    
+    QgsOverviewRays * mOverviewRays;
 
     /**Draws the map grid*/
     void drawGrid( QPainter* p );
@@ -536,6 +539,8 @@ class CORE_EXPORT QgsComposerMap : public QgsComposerItem
     void createDefaultGridLineSymbol();
     void initGridAnnotationFormatFromProject();
 
+    void createOverviewRays();
+    
     /**
      * Returns the extent, centered on the overview frame
      */

@@ -167,12 +167,12 @@ class CORE_EXPORT QgsComposition : public QGraphicsScene
     QUndoStack* undoStack() { return &mUndoStack; }
 
     /**Returns the topmost composer item. Ignores mPaperItem*/
-    QgsComposerItem* composerItemAt( const QPointF & position );
+    QgsComposerItem* composerItemAt( const QPointF & position, bool ignoreCosmeticItems = false );
 
     /**Returns the highest composer item at a specified position which is below a specified item. Ignores mPaperItem
       @note Added in QGIS 2.1
     */
-    QgsComposerItem* composerItemAt( const QPointF & position, const QgsComposerItem* belowItem );
+    QgsComposerItem* composerItemAt( const QPointF & position, const QgsComposerItem* belowItem, bool ignoreCosmeticItems = false );
 
     /** Returns the page number (0-bsaed) given a coordinate */
     int pageNumberAt( const QPointF& position ) const;
