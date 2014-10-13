@@ -21,16 +21,7 @@
     <bool>true</bool>
    </property>
    <layout class="QGridLayout" name="gridLayout">
-    <property name="leftMargin">
-     <number>0</number>
-    </property>
-    <property name="topMargin">
-     <number>0</number>
-    </property>
-    <property name="rightMargin">
-     <number>0</number>
-    </property>
-    <property name="bottomMargin">
+    <property name="margin">
      <number>0</number>
     </property>
     <item row="0" column="0">
@@ -167,6 +158,7 @@
    <addaction name="mActionAtlasPrev"/>
    <addaction name="mActionAtlasNext"/>
    <addaction name="mActionAtlasLast"/>
+   <addaction name="mActionAtlasEdit"/>
    <addaction name="mActionPrintAtlas"/>
    <addaction name="mActionAtlasSettings"/>
   </widget>
@@ -1010,6 +1002,18 @@
    </property>
    <property name="text">
     <string>Atlas &amp;Settings</string>
+   </property>
+  </action>
+  <action name="mActionAtlasEdit">
+   <property name="icon">
+    <iconset resource="../../images/images.qrc">
+     <normaloff>:/images/themes/default/mActionToggleEditing.svg</normaloff>:/images/themes/default/mActionToggleEditing.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Toggle Edit Mode</string>
+   </property>
+   <property name="toolTip">
+    <string>Toggle edit mode for atlas</string>
    </property>
   </action>
  </widget>

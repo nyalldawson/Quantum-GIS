@@ -133,6 +133,36 @@ void QgsComposerObject::setDataDefinedProperty( const QgsComposerObject::DataDef
   }
 }
 
+bool QgsComposerObject::editDataDefinedProperty( const QgsComposerObject::DataDefinedProperty property, const QVariant &value )
+{
+  if ( property == QgsComposerObject::AllProperties || property == QgsComposerObject::NoProperty )
+  {
+    //bad property requested
+    return false;
+  }
+
+  QgsDataDefined* dd = dataDefinedProperty( property );
+  if ( !dd )
+  {
+    //bad property requested
+    return false;
+  }
+
+  if ( !dd->isActive() )
+  {
+    //disabled property
+    return false;
+  }
+
+  if ( dd->useExpression() )
+  {
+    //expression based property
+    return false;
+  }
+
+  return mComposition->atlasComposition().editFeature( dd->field(), value );
+}
+
 void QgsComposerObject::repaint()
 {
   //nothing to do in base class for now

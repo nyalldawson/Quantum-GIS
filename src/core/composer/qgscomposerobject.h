@@ -122,6 +122,8 @@ class CORE_EXPORT QgsComposerObject: public QObject
     */
     void setDataDefinedProperty( const DataDefinedProperty property, const bool active, const bool useExpression, const QString &expression, const QString &field );
 
+    bool editDataDefinedProperty( const DataDefinedProperty property, const QVariant& value );
+
   public slots:
 
     /**Triggers a redraw for the item*/

@@ -192,6 +192,7 @@ QgsComposer::QgsComposer( QgisApp *qgis, const QString& title )
   mActionShowRulers->setCheckable( true );
 
   mActionAtlasPreview->setCheckable( true );
+  mActionAtlasEdit->setCheckable( true );
 
 #ifdef Q_WS_MAC
   mActionQuit->setText( tr( "Close" ) );
@@ -378,6 +379,8 @@ QgsComposer::QgsComposer( QgisApp *qgis, const QString& title )
   atlasMenu->addAction( mActionAtlasPrev );
   atlasMenu->addAction( mActionAtlasNext );
   atlasMenu->addAction( mActionAtlasLast );
+  atlasMenu->addSeparator();
+  atlasMenu->addAction( mActionAtlasEdit );
   atlasMenu->addSeparator();
   atlasMenu->addAction( mActionPrintAtlas );
   atlasMenu->addAction( mActionExportAtlasAsImage );
@@ -595,6 +598,8 @@ QgsComposer::QgsComposer( QgisApp *qgis, const QString& title )
   mActionAtlasLast->setEnabled( false );
   mActionAtlasNext->setEnabled( false );
   mActionAtlasPrev->setEnabled( false );
+  mActionAtlasEdit->setEnabled( false );
+  mActionAtlasEdit->setChecked( false );
   mActionPrintAtlas->setEnabled( false );
   mActionExportAtlasAsImage->setEnabled( false );
   mActionExportAtlasAsSVG->setEnabled( false );
@@ -936,6 +941,10 @@ void QgsComposer::toggleAtlasControls( bool atlasEnabled )
   mActionAtlasLast->setEnabled( false );
   mActionAtlasNext->setEnabled( false );
   mActionAtlasPrev->setEnabled( false );
+  mActionAtlasEdit->blockSignals( true );
+  mActionAtlasEdit->setEnabled( false );
+  mActionAtlasEdit->setChecked( false );
+  mActionAtlasEdit->blockSignals( false );
   mActionAtlasPreview->blockSignals( false );
   mActionAtlasPreview->setEnabled( atlasEnabled );
   mActionPrintAtlas->setEnabled( atlasEnabled );
@@ -970,6 +979,11 @@ void QgsComposer::on_mActionAtlasPreview_triggered( bool checked )
   mActionAtlasLast->setEnabled( checked );
   mActionAtlasNext->setEnabled( checked );
   mActionAtlasPrev->setEnabled( checked );
+  mActionAtlasEdit->blockSignals( true );
+  mActionAtlasEdit->setEnabled( checked );
+  mActionAtlasEdit->setChecked( false );
+  mActionAtlasEdit->blockSignals( false );
+
 
   if ( checked )
   {
@@ -990,6 +1004,7 @@ void QgsComposer::on_mActionAtlasPreview_triggered( bool checked )
     mActionAtlasLast->setEnabled( false );
     mActionAtlasNext->setEnabled( false );
     mActionAtlasPrev->setEnabled( false );
+    mActionAtlasEdit->setEnabled( false );
     mActionAtlasPreview->blockSignals( false );
     mStatusAtlasLabel->setText( QString() );
     return;
@@ -1066,6 +1081,22 @@ void QgsComposer::on_mActionAtlasLast_triggered()
   loadAtlasPredefinedScalesFromProject();
   atlasMap->lastFeature();
   emit( atlasPreviewFeatureChanged() );
+}
+
+void QgsComposer::on_mActionAtlasEdit_triggered( bool checked )
+{
+  QgsAtlasComposition* atlasMap = &mComposition->atlasComposition();
+  if ( !atlasMap->enabled() )
+  {
+    return;
+  }
+
+  if ( mComposition->atlasMode() != QgsComposition::PreviewAtlas )
+  {
+    return;
+  }
+
+  atlasMap->setEditEnabled( checked );
 }
 
 QgsMapCanvas *QgsComposer::mapCanvas( void )
@@ -3582,6 +3613,10 @@ void QgsComposer::setAtlasFeature( QgsMapLayer* layer, const QgsFeature& feat )
     mActionAtlasLast->setEnabled( true );
     mActionAtlasNext->setEnabled( true );
     mActionAtlasPrev->setEnabled( true );
+    mActionAtlasEdit->blockSignals( true );
+    mActionAtlasEdit->setEnabled( true );
+    mActionAtlasEdit->setChecked( false );
+    mActionAtlasEdit->blockSignals( false );
   }
 
   //bring composer window to foreground

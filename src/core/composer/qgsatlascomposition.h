@@ -42,6 +42,7 @@ class CORE_EXPORT QgsAtlasComposition : public QObject
 {
     Q_OBJECT
   public:
+
     QgsAtlasComposition( QgsComposition* composition );
     ~QgsAtlasComposition();
 
@@ -249,6 +250,20 @@ class CORE_EXPORT QgsAtlasComposition : public QObject
     /** Recalculates the bounds of an atlas driven map */
     void prepareMap( QgsComposerMap* map );
 
+    /**Returns whether editing is enabled for the atlas
+     * @returns true if atlas is in edit mode
+     * @see setEditEnabled
+     */
+    bool editEnabled() const { return mEditEnabled; }
+
+    /**Sets whether editing is enabled for the atlas
+     * @param enabled set to true to enable edit mode
+     * @see editEnabled
+     */
+    bool setEditEnabled( const bool enabled );
+
+    bool editFeature( QString field, const QVariant& newValue );
+
   public slots:
 
     /**Refreshes the current atlas feature, by refetching its attributes from the vector layer provider
@@ -312,15 +327,45 @@ class CORE_EXPORT QgsAtlasComposition : public QObject
     // current atlas feature number
     int mCurrentFeatureNo;
 
-  public:
+    /**True if editing mode is enabled*/
+    bool mEditEnabled;
+
     typedef QMap< QgsFeatureId, QVariant > SorterKeys;
 
-  private slots:
-    void removeLayers( QStringList layers );
+    //
+    // Private class only used for the sorting of features
+    class FieldSorter
+    {
+      public:
+        FieldSorter( QgsAtlasComposition::SorterKeys& keys, bool ascending = true ) : mKeys( keys ), mAscending( ascending ) {}
 
-  private:
+        bool operator()( const QgsFeatureId& id1, const QgsFeatureId& id2 )
+        {
+          bool result = true;
+
+          if ( mKeys[ id1 ].type() == QVariant::Int )
+          {
+            result = mKeys[ id1 ].toInt() < mKeys[ id2 ].toInt();
+          }
+          else if ( mKeys[ id1 ].type() == QVariant::Double )
+          {
+            result = mKeys[ id1 ].toDouble() < mKeys[ id2 ].toDouble();
+          }
+          else if ( mKeys[ id1 ].type() == QVariant::String )
+          {
+            result = ( QString::localeAwareCompare( mKeys[ id1 ].toString(), mKeys[ id2 ].toString() ) < 0 );
+          }
+
+          return mAscending ? result : !result;
+        }
+      private:
+        QgsAtlasComposition::SorterKeys& mKeys;
+        bool mAscending;
+    };
+
     // value of field that is used for ordering of features
     SorterKeys mFeatureKeys;
+
     // key (attribute index) used for ordering
     QString mSortKeyAttributeName;
 
@@ -350,6 +395,10 @@ class CORE_EXPORT QgsAtlasComposition : public QObject
 
     //list of predefined scales
     QVector<qreal> mPredefinedScales;
+
+  private slots:
+
+    void removeLayers( QStringList layers );
 };
 
 #endif

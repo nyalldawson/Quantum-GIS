@@ -884,7 +884,7 @@ void QgsComposerItem::setBlendMode( const QPainter::CompositionMode blendMode )
 
 void QgsComposerItem::refreshBlendMode()
 {
-  QPainter::CompositionMode blendMode = mBlendMode;
+    QPainter::CompositionMode blendMode = mBlendMode;
 
   //data defined blend mode set?
   QVariant exprVal;
@@ -904,6 +904,13 @@ void QgsComposerItem::refreshBlendMode()
 void QgsComposerItem::setTransparency( const int transparency )
 {
   mTransparency = transparency;
+
+  //save data defined transparency?
+  if ( mComposition && mComposition->atlasComposition().editEnabled() )
+  {
+    editDataDefinedProperty( QgsComposerObject::Transparency, QVariant( transparency ) );
+  }
+
   refreshTransparency( true );
 }
 

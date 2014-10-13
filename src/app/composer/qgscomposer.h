@@ -345,6 +345,9 @@ class QgsComposer: public QMainWindow, private Ui::QgsComposerBase
     //!Last atlas feature
     void on_mActionAtlasLast_triggered();
 
+    //!Toggle atlas edit
+    void on_mActionAtlasEdit_triggered( bool checked );
+
     //! Print the atlas
     void on_mActionPrintAtlas_triggered();
 

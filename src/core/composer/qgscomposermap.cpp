@@ -877,6 +877,13 @@ void QgsComposerMap::setNewScale( double scaleDenominator, bool forceUpdate )
     mExtent.scale( scaleRatio );
   }
 
+  //save scale?
+  if ( mComposition && mComposition->atlasComposition().editEnabled() )
+  {
+    int scaleNew = scale();
+    editDataDefinedProperty( QgsComposerObject::MapScale, QVariant( scaleNew ) );
+  }
+
   mCacheUpdated = false;
   if ( forceUpdate )
   {

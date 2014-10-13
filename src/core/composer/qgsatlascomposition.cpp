@@ -28,15 +28,21 @@
 #include "qgsproject.h"
 #include "qgsmessagelog.h"
 
-QgsAtlasComposition::QgsAtlasComposition( QgsComposition* composition ) :
-    mComposition( composition ),
-    mEnabled( false ),
-    mHideCoverage( false ), mFilenamePattern( "'output_'||$feature" ),
-    mCoverageLayer( 0 ), mSingleFile( false ),
-    mSortFeatures( false ), mSortAscending( true ), mCurrentFeatureNo( 0 ),
-    mFilterFeatures( false ), mFeatureFilter( "" ),
-    mFilenameParserError( QString() ),
-    mFilterParserError( QString() )
+QgsAtlasComposition::QgsAtlasComposition( QgsComposition* composition )
+    : mComposition( composition )
+    , mEnabled( false )
+    , mHideCoverage( false )
+    , mFilenamePattern( "'output_'||$feature" )
+    , mCoverageLayer( 0 )
+    , mSingleFile( false )
+    , mSortFeatures( false )
+    , mSortAscending( true )
+    , mCurrentFeatureNo( 0 )
+    , mEditEnabled( false )
+    , mFilterFeatures( false )
+    , mFeatureFilter( "" )
+    , mFilenameParserError( QString() )
+    , mFilterParserError( QString() )
 {
 
   // declare special columns with a default value
@@ -167,37 +173,6 @@ void QgsAtlasComposition::setSortKeyAttributeIndex( int idx )
   }
   mSortKeyAttributeName = "";
 }
-
-//
-// Private class only used for the sorting of features
-class FieldSorter
-{
-  public:
-    FieldSorter( QgsAtlasComposition::SorterKeys& keys, bool ascending = true ) : mKeys( keys ), mAscending( ascending ) {}
-
-    bool operator()( const QgsFeatureId& id1, const QgsFeatureId& id2 )
-    {
-      bool result = true;
-
-      if ( mKeys[ id1 ].type() == QVariant::Int )
-      {
-        result = mKeys[ id1 ].toInt() < mKeys[ id2 ].toInt();
-      }
-      else if ( mKeys[ id1 ].type() == QVariant::Double )
-      {
-        result = mKeys[ id1 ].toDouble() < mKeys[ id2 ].toDouble();
-      }
-      else if ( mKeys[ id1 ].type() == QVariant::String )
-      {
-        result = ( QString::localeAwareCompare( mKeys[ id1 ].toString(), mKeys[ id2 ].toString() ) < 0 );
-      }
-
-      return mAscending ? result : !result;
-    }
-  private:
-    QgsAtlasComposition::SorterKeys& mKeys;
-    bool mAscending;
-};
 
 int QgsAtlasComposition::updateFeatures()
 {
@@ -621,6 +596,60 @@ void QgsAtlasComposition::prepareMap( QgsComposerMap* map )
 
   // set the new extent (and render)
   map->setNewAtlasFeatureExtent( newExtent );
+}
+
+bool QgsAtlasComposition::setEditEnabled( const bool enabled )
+{
+  if ( !mCoverageLayer )
+  {
+    return false;
+  }
+  if ( enabled )
+  {
+
+      //check read only
+    mEditEnabled = true;//mCoverageLayer->startEditing();
+    return mEditEnabled;
+  }
+  else
+  {
+    if ( mEditEnabled )
+    {
+    //  mCoverageLayer->commitChanges();
+    }
+    mEditEnabled = false;
+    return true;
+  }
+}
+
+bool QgsAtlasComposition::editFeature( QString field, const QVariant &newValue )
+{
+  if ( !mEnabled || !mEditEnabled || !mCoverageLayer )
+  {
+    return false;
+  }
+
+  //coverage layer editable?
+  //if ( !mCoverageLayer->read() )
+  //{
+  //  return false;
+  //}
+
+  QgsVectorDataProvider* provider = mCoverageLayer->dataProvider();
+  if ( !provider )
+  {
+    return false;
+  }
+
+  int fieldNumber = mCoverageLayer->pendingFields().indexFromName( field );
+
+  QgsChangedAttributesMap changeMap;
+  QgsAttributeMap changeAttributeMap;
+  changeAttributeMap.insert( fieldNumber, newValue );
+  changeMap.insert( mCurrentFeature.id(), changeAttributeMap );
+
+  mCurrentFeature.setAttribute(fieldNumber,newValue);
+  return provider->changeAttributeValues( changeMap );
 }
 
 const QString& QgsAtlasComposition::currentFilename() const
