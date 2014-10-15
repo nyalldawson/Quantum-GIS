@@ -1,4 +1,4 @@
-/***************************************************************************
+﻿/***************************************************************************
  qgslinesymbollayerv2.cpp
  ---------------------
  begin                : November 2009
@@ -1455,6 +1455,335 @@ double QgsMarkerLineSymbolLayerV2::estimateMaxBleed() const
 {
   return ( mMarker->size() / 2.0 ) + mOffset;
 }
+
+
+
+//
+// QgsImageLineSymbolLayerV2
+//
+
+QgsImageLineSymbolLayerV2::QgsImageLineSymbolLayerV2()
+    : mOffset( 0.0 )
+    , mOffsetUnit( QgsSymbolV2::MM )
+    , mImageThickness( 0.0 )
+    , mLineImage( 0 )
+{
+
+}
+
+QgsImageLineSymbolLayerV2::~QgsImageLineSymbolLayerV2()
+{
+  delete mLineImage;
+}
+
+QgsSymbolLayerV2 *QgsImageLineSymbolLayerV2::create( const QgsStringMap &properties )
+{
+  QgsImageLineSymbolLayerV2* l = new QgsImageLineSymbolLayerV2();
+
+  if ( properties.contains( "offset" ) )
+    l->setOffset( properties["offset"].toDouble() );
+  if ( properties.contains( "offset_unit" ) )
+    l->setOffsetUnit( QgsSymbolLayerV2Utils::decodeOutputUnit( properties["offset_unit"] ) );
+  if ( properties.contains( "offset_map_unit_scale" ) )
+    l->setOffsetMapUnitScale( QgsSymbolLayerV2Utils::decodeMapUnitScale( properties["offset_map_unit_scale"] ) );
+
+  return l;
+}
+
+QString QgsImageLineSymbolLayerV2::layerType() const
+{
+  return "ImageLine";
+}
+
+void QgsImageLineSymbolLayerV2::startRender( QgsSymbolV2RenderContext &context )
+{
+  Q_UNUSED( context );
+
+  mLineImage = new QImage( QString( "bitmap.png" ) );
+
+
+  double imageHeight = mLineImage->height();
+  double imageWidth = mLineImage->width();
+  mImageThickness = imageHeight; //60
+
+  mImagePoly.clear();
+  mImagePoly << QPointF( 0, 0 ) << QPointF( imageWidth, 0 ) << QPointF( imageWidth, imageHeight ) << QPointF( 0, imageHeight );
+
+
+}
+
+void QgsImageLineSymbolLayerV2::stopRender( QgsSymbolV2RenderContext &context )
+{
+  Q_UNUSED( context );
+}
+
+void QgsImageLineSymbolLayerV2::renderPolyline( const QPolygonF &points, QgsSymbolV2RenderContext &context )
+{
+  QPainter* p = context.renderContext().painter();
+  if ( !p )
+  {
+    return;
+  }
+
+  double halfImageWidth = mImageThickness / 2.0;
+
+  double startDelta = 0.0;
+  double endDelta = 0.0;
+  double startBendDelta = 0.0;
+  double endBendDelta = 0.0;
+
+  QLineF currentSegment;
+  QLineF prevSegment;
+  QLineF nextSegment;
+  double currentAngle = 0.0;
+  double nextAngle = 0.0;
+
+
+  //loop through vertices
+  int pointIdx = 0;
+  int pointCount = points.count();
+  for ( ; pointIdx < pointCount - 1 ; ++pointIdx )
+  {
+    //update segments
+    prevSegment = currentSegment;
+    if ( pointIdx == 0 && pointIdx < pointCount - 1 )
+    {
+      currentSegment.setP1( points.at( pointIdx ) );
+      currentSegment.setP2( points.at( pointIdx + 1 ) );
+    }
+    else if ( pointIdx != pointCount - 1 )
+    {
+      //not at last vertex
+      currentSegment = nextSegment;
+    }
+    if ( pointIdx != pointCount - 2 )
+    {
+      //not at second last vertex
+      nextSegment.setP1( points.at( pointIdx + 1 ) );
+      nextSegment.setP2( points.at( pointIdx + 2 ) );
+    }
+
+    //update angles
+    currentAngle = nextAngle;
+    if ( pointIdx != pointCount - 2 )
+    {
+      nextAngle = DEG2RAD( fmod( currentSegment.angleTo( nextSegment ) + 180.0, 360.0 ) );
+    }
+
+
+    startDelta = endDelta;
+    startBendDelta = endBendDelta;
+
+    if ( pointIdx != pointCount - 2 )
+    {
+      //not at second last vertex
+      //TODO - handle tan = 0, tan undefined
+      endDelta = qAbs( halfImageWidth / tan( nextAngle / 2.0 ) );
+      endBendDelta = endDelta + mImageThickness / 4.0;
+    }
+    else
+    {
+      endDelta = 0.0;
+      endBendDelta = 0.0;
+    }
+
+    if ( endBendDelta + startBendDelta >= currentSegment.length() )
+    {
+      //TODO !!
+      continue;
+    }
+
+    //calculate start and end points of straight line segment
+    QLineF v = currentSegment.unitVector();
+    QPointF innerPointStart( currentSegment.x1() + v.dx() * startDelta, currentSegment.y1() + v.dy() * startDelta );
+    QPointF bendPointStart( currentSegment.x1() + v.dx() * startBendDelta, currentSegment.y1() + v.dy() * startBendDelta );
+    QPointF innerPointEnd( currentSegment.x2() - v.dx() * endDelta, currentSegment.y2() - v.dy() * endDelta );
+    QPointF bendPointEnd( currentSegment.x2() - v.dx() * endBendDelta, currentSegment.y2() - v.dy() * endBendDelta );
+
+    //debug
+    //p->setPen( Qt::black );
+    //p->drawLine( QLineF( innerPointStart, innerPointEnd ) );
+
+    //convert line segment to a rectangular buffer of image width
+    double theta = atan2( innerPointEnd.y() - innerPointStart.y(), innerPointEnd.x() - innerPointStart.x() );
+    QPointF p1( bendPointStart.x() - sin( theta ) * halfImageWidth, bendPointStart.y() + cos( theta ) * halfImageWidth );
+    QPointF cornerPointStart( innerPointStart.x() + ( currentAngle > M_PI ? 1 : -1 ) * sin( theta ) * halfImageWidth,
+                              innerPointStart.y() + ( currentAngle > M_PI ? -1 : 1 ) * cos( theta ) * halfImageWidth );
+    QPointF p2( bendPointEnd.x() - sin( theta ) * halfImageWidth, bendPointEnd.y() + cos( theta ) * halfImageWidth );
+    QPointF cornerPointEnd( innerPointEnd.x() + ( nextAngle > M_PI ? 1 : -1 ) *  sin( theta ) * halfImageWidth,
+                            innerPointEnd.y() + ( nextAngle > M_PI ? -1 : 1 ) * cos( theta ) * halfImageWidth );
+    //QPointF p3( innerPointEnd.x() + sin( theta ) * halfImageWidth, innerPointEnd.y() - cos( theta ) * halfImageWidth );
+    QPointF p3( bendPointEnd.x() + sin( theta ) * halfImageWidth, bendPointEnd.y() - cos( theta ) * halfImageWidth );
+    //QPointF p4( innerPointStart.x() + sin( theta ) * halfImageWidth, innerPointStart.y() - cos( theta ) * halfImageWidth );
+    QPointF p4( bendPointStart.x() + sin( theta ) * halfImageWidth, bendPointStart.y() - cos( theta ) * halfImageWidth );
+    QPolygonF imageBounds;
+    imageBounds << p1 << p2 << p3 << p4;
+
+    //debug
+    //p->setPen( Qt::red );
+    //p->drawPolyline( imageBounds );
+
+    //calculate inner "elbow" point
+    QLineF elbow( cornerPointEnd, p3 );
+    elbow.setAngle( elbow.angle() + theta );
+    QPointF midPoint(( elbow.p2().x() + p3.x() ) / 2.0, ( elbow.p2().y() + p3.y() ) / 2.0 );
+    QPointF jointPoint(( midPoint.x() + cornerPointEnd.x() ) / 2.0, ( midPoint.y() + cornerPointEnd.y() ) / 2.0 );
+
+
+    //calculate triangular start cap
+    QPolygonF startTriangle;
+    if ( !qgsDoubleNear( currentAngle, 0.0 ) && !qgsDoubleNear( currentAngle, M_PI ) )
+    {
+      if ( currentAngle > M_PI )
+      {
+        QLineF cap( cornerPointStart, currentSegment.p1() );
+        cap.setLength( cap.length() + halfImageWidth );
+        startTriangle << p1 << cap.p2() << cornerPointStart << p4;
+      }
+      else
+      {
+        QLineF cap( cornerPointStart, currentSegment.p1() );
+        cap.setLength( cap.length() + halfImageWidth );
+        startTriangle << p1 << cornerPointStart << cap.p2() << p4;
+      }
+      //p->setPen( Qt::cyan );
+      //p->drawPolygon( startTriangle );
+    }
+
+    //calculate triangular end cap
+    QPolygonF endTriangle;
+    if ( !qgsDoubleNear( nextAngle, 0.0 ) && !qgsDoubleNear( nextAngle, M_PI ) )
+    {
+      if ( nextAngle > M_PI )
+      {
+        QLineF cap( cornerPointEnd, currentSegment.p2() );
+        cap.setLength( cap.length() + halfImageWidth );
+        endTriangle << p2  << cap.p2() << cornerPointEnd << p3;
+        // endTriangle << p2  << cap.p2()<< midPoint << p3;
+      }
+      else
+      {
+        QLineF cap( cornerPointEnd, currentSegment.p2() );
+        cap.setLength( cap.length() + halfImageWidth );
+        endTriangle << p2 << cornerPointEnd << cap.p2() << p3;
+        //endTriangle << p2 << midPoint << cap.p2() << p3;
+      }
+      //p->setPen( Qt::magenta );
+      //p->drawPolygon( endTriangle );
+    }
+
+    //make transforms
+    QTransform straightTransform;
+    if ( QTransform::quadToQuad( mImagePoly, imageBounds, straightTransform ) )
+    {
+      QRectF segmentBounds = imageBounds.boundingRect();
+      p->translate( segmentBounds.x(), segmentBounds.y() );
+      p->drawImage( 0, 0, mLineImage->transformed( straightTransform, Qt::SmoothTransformation ) );
+      p->translate( -segmentBounds.x(), -segmentBounds.y() );
+    }
+    if ( !startTriangle.isEmpty() )
+    {
+      QTransform startTransform;
+      if ( QTransform::quadToQuad( mImagePoly, startTriangle, startTransform ) )
+      {
+        QRectF capBounds = startTriangle.boundingRect();
+        p->translate( capBounds.x(), capBounds.y() );
+        p->drawImage( 0, 0, mLineImage->transformed( startTransform, Qt::SmoothTransformation ) );
+        p->translate( -capBounds.x(), -capBounds.y() );
+      }
+    }
+    if ( !endTriangle.isEmpty() )
+    {
+      QTransform endTransform;
+      if ( QTransform::quadToQuad( mImagePoly, endTriangle, endTransform ) )
+      {
+        QRectF capBounds = endTriangle.boundingRect();
+        p->translate( capBounds.x(), capBounds.y() );
+        p->drawImage( 0, 0, mLineImage->transformed( endTransform, Qt::SmoothTransformation ) );
+        p->translate( -capBounds.x(), -capBounds.y() );
+      }
+    }
+  }
+
+
+
+  return;
+
+  double offset = mOffset;
+
+  p->setPen( context.selected() ? mSelPen : mPen );
+
+  if ( qgsDoubleNear( offset, 0 ) )
+  {
+    p->drawPolyline( points );
+  }
+  else
+  {
+    double scaledOffset = offset * QgsSymbolLayerV2Utils::lineWidthScaleFactor( context.renderContext(), mOffsetUnit, mOffsetMapUnitScale );
+    QList<QPolygonF> mline = ::offsetLine( points, scaledOffset, context.feature() ? context.feature()->geometry()->type() : QGis::Line );
+    for ( int part = 0; part < mline.count(); ++part )
+      p->drawPolyline( mline[ part ] );
+  }
+}
+
+QgsStringMap QgsImageLineSymbolLayerV2::properties() const
+{
+  QgsStringMap map;
+  map["offset"] = QString::number( mOffset );
+  map["offset_unit"] = QgsSymbolLayerV2Utils::encodeOutputUnit( mOffsetUnit );
+  map["offset_map_unit_scale"] = QgsSymbolLayerV2Utils::encodeMapUnitScale( mOffsetMapUnitScale );
+  return map;
+}
+
+QgsSymbolLayerV2 *QgsImageLineSymbolLayerV2::clone() const
+{
+  QgsImageLineSymbolLayerV2* l = new QgsImageLineSymbolLayerV2();
+  l->setOffsetUnit( mOffsetUnit );
+  l->setOffsetMapUnitScale( mOffsetMapUnitScale );
+  l->setOffset( mOffset );
+  return l;
+}
+
+void QgsImageLineSymbolLayerV2::setOutputUnit( QgsSymbolV2::OutputUnit unit )
+{
+  QgsLineSymbolLayerV2::setOutputUnit( unit );
+  mWidthUnit = unit;
+  mOffsetUnit = unit;
+}
+
+QgsSymbolV2::OutputUnit QgsImageLineSymbolLayerV2::outputUnit() const
+{
+  QgsSymbolV2::OutputUnit unit = QgsLineSymbolLayerV2::outputUnit();
+  if ( mWidthUnit != unit || mOffsetUnit != unit )
+  {
+    return QgsSymbolV2::Mixed;
+  }
+  return unit;
+}
+
+void QgsImageLineSymbolLayerV2::setMapUnitScale( const QgsMapUnitScale &scale )
+{
+  QgsLineSymbolLayerV2::setMapUnitScale( scale );
+  mWidthMapUnitScale = scale;
+  mOffsetMapUnitScale = scale;
+}
+
+QgsMapUnitScale QgsImageLineSymbolLayerV2::mapUnitScale() const
+{
+  if ( QgsLineSymbolLayerV2::mapUnitScale() == mWidthMapUnitScale &&
+       mWidthMapUnitScale == mOffsetMapUnitScale )
+  {
+    return mWidthMapUnitScale;
+  }
+  return QgsMapUnitScale();
+}
+
+double QgsImageLineSymbolLayerV2::estimateMaxBleed() const
+{
+  return ( mWidth / 2.0 ) + mOffset;
+}
+
+
 
 
 

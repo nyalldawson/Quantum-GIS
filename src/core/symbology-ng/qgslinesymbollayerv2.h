@@ -308,6 +308,66 @@ class CORE_EXPORT QgsMarkerLineSymbolLayerV2 : public QgsLineSymbolLayerV2
     void renderOffsetVertexAlongLine( const QPolygonF& points, int vertex, double distance , QgsSymbolV2RenderContext &context );
 };
 
+
+//
+//QgsImageLineSymbolLayerV2
+//
+
+class CORE_EXPORT QgsImageLineSymbolLayerV2 : public QgsLineSymbolLayerV2
+{
+  public:
+    QgsImageLineSymbolLayerV2();
+    virtual ~QgsImageLineSymbolLayerV2();
+
+    // static stuff
+
+    static QgsSymbolLayerV2* create( const QgsStringMap& properties = QgsStringMap() );
+
+    // implemented from base classes
+
+    QString layerType() const;
+
+    void startRender( QgsSymbolV2RenderContext& context );
+
+    void stopRender( QgsSymbolV2RenderContext& context );
+
+    void renderPolyline( const QPolygonF& points, QgsSymbolV2RenderContext& context );
+
+    QgsStringMap properties() const;
+
+    QgsSymbolLayerV2* clone() const;
+
+    void setOutputUnit( QgsSymbolV2::OutputUnit unit );
+    QgsSymbolV2::OutputUnit outputUnit() const;
+
+    void setMapUnitScale( const QgsMapUnitScale &scale );
+    QgsMapUnitScale mapUnitScale() const;
+
+    double estimateMaxBleed() const;
+
+    // new stuff
+    double offset() const { return mOffset; }
+    void setOffset( double offset ) { mOffset = offset; }
+
+    void setOffsetUnit( QgsSymbolV2::OutputUnit unit ) { mOffsetUnit = unit; }
+    QgsSymbolV2::OutputUnit offsetUnit() const { return mOffsetUnit; }
+
+    void setOffsetMapUnitScale( const QgsMapUnitScale& scale ) { mOffsetMapUnitScale = scale; }
+    const QgsMapUnitScale& offsetMapUnitScale() const { return mOffsetMapUnitScale; }
+
+  protected:
+
+    QPen mPen;
+    QPen mSelPen;
+    double mOffset;
+    QgsSymbolV2::OutputUnit mOffsetUnit;
+    QgsMapUnitScale mOffsetMapUnitScale;
+    QPolygonF mImagePoly;
+    double mImageThickness;
+    QImage* mLineImage;
+
+};
+
 #endif
 
 
