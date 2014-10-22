@@ -210,6 +210,8 @@ class GUI_EXPORT QgsDataDefinedButton: public QToolButton
      */
     void checkCheckedWidgets( bool check );
 
+    void setFieldValueIsEditable( const bool isEditable );
+
   signals:
     /**
      * Emitted when data definition or expression is changed
@@ -273,12 +275,15 @@ class GUI_EXPORT QgsDataDefinedButton: public QToolButton
     QString mUsageInfo;
     QString mCurrentDefinition;
 
+    bool mFieldValueIsEditable;
+
     static QIcon mIconDataDefine;
     static QIcon mIconDataDefineOn;
     static QIcon mIconDataDefineError;
     static QIcon mIconDataDefineExpression;
     static QIcon mIconDataDefineExpressionOn;
     static QIcon mIconDataDefineExpressionError;
+    static QIcon mIconDataDefineEdit;
 
   private slots:
     void aboutToShowMenu();

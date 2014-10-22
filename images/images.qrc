@@ -301,6 +301,7 @@
         <file>themes/default/mIconConnect.png</file>
         <file>themes/default/mIconCritical.png</file>
         <file>themes/default/mIconDataDefine.svg</file>
+        <file>themes/default/mIconDataDefineEdit.svg</file>
         <file>themes/default/mIconDataDefineError.svg</file>
         <file>themes/default/mIconDataDefineOn.svg</file>
         <file>themes/default/mIconDataDefineExpression.svg</file>

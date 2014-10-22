@@ -34,6 +34,7 @@ QIcon QgsDataDefinedButton::mIconDataDefineError;
 QIcon QgsDataDefinedButton::mIconDataDefineExpression;
 QIcon QgsDataDefinedButton::mIconDataDefineExpressionOn;
 QIcon QgsDataDefinedButton::mIconDataDefineExpressionError;
+QIcon QgsDataDefinedButton::mIconDataDefineEdit;
 
 QgsDataDefinedButton::QgsDataDefinedButton( QWidget* parent,
     const QgsVectorLayer* vl,
@@ -41,6 +42,7 @@ QgsDataDefinedButton::QgsDataDefinedButton( QWidget* parent,
     DataTypes datatypes,
     QString description )
     : QToolButton( parent )
+    , mFieldValueIsEditable( false )
 {
   // set up static icons
   if ( mIconDataDefine.isNull() )
@@ -51,6 +53,7 @@ QgsDataDefinedButton::QgsDataDefinedButton( QWidget* parent,
     mIconDataDefineExpression = QgsApplication::getThemeIcon( "/mIconDataDefineExpression.svg" );
     mIconDataDefineExpressionOn = QgsApplication::getThemeIcon( "/mIconDataDefineExpressionOn.svg" );
     mIconDataDefineExpressionError = QgsApplication::getThemeIcon( "/mIconDataDefineExpressionError.svg" );
+    mIconDataDefineEdit = QgsApplication::getThemeIcon( "/mIconDataDefineEdit.svg" );
   }
 
   setFocusPolicy( Qt::StrongFocus );
@@ -455,6 +458,10 @@ void QgsDataDefinedButton::updateGui()
       deftip = tr( "'%1' field missing" ).arg( getField() );
       newDef = "";
     }
+    else if ( isActive() && mFieldValueIsEditable )
+    {
+      icon = mIconDataDefineEdit;
+    }
   }
 
   setIcon( icon );
@@ -597,6 +604,17 @@ void QgsDataDefinedButton::checkCheckedWidgets( bool check )
       grpbx->setChecked( true );
     }
   }
+}
+
+void QgsDataDefinedButton::setFieldValueIsEditable( const bool isEditable )
+{
+  if ( isEditable == mFieldValueIsEditable )
+  {
+    return;
+  }
+
+  mFieldValueIsEditable = isEditable;
+  updateGui();
 }
 
 QString QgsDataDefinedButton::trString()
