@@ -30,6 +30,11 @@ class QgsComposerHtmlWidget: public QgsComposerItemBaseWidget, private Ui::QgsCo
     QgsComposerHtmlWidget( QgsComposerHtml* html, QgsComposerFrame* frame );
     ~QgsComposerHtmlWidget();
 
+  public slots:
+
+    /**Initializes data defined buttons to current atlas coverage layer*/
+    void populateDataDefinedButtons();
+
   private slots:
     void on_mUrlLineEdit_editingFinished();
     void on_mFileToolButton_clicked();
@@ -57,16 +62,15 @@ class QgsComposerHtmlWidget: public QgsComposerItemBaseWidget, private Ui::QgsCo
 
     QgsComposerItem::DataDefinedProperty ddPropertyForWidget( QgsDataDefinedButton *widget );
 
-  protected slots:
-    /**Initializes data defined buttons to current atlas coverage layer*/
-    void populateDataDefinedButtons();
-
   private:
     QgsComposerHtmlWidget();
     void blockSignals( bool block );
 
     QgsComposerHtml* mHtml;
     QgsComposerFrame* mFrame;
+
+    QgsComposerItemWidget* mItemWidget;
+
     QgsCodeEditorHTML *mHtmlEditor;
     QgsCodeEditorCSS *mStylesheetEditor;
 };

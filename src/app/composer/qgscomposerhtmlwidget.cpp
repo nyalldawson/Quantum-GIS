@@ -29,6 +29,7 @@ QgsComposerHtmlWidget::QgsComposerHtmlWidget( QgsComposerHtml* html, QgsComposer
     : QgsComposerItemBaseWidget( 0, html )
     , mHtml( html )
     , mFrame( frame )
+    , mItemWidget( 0 )
 {
   setupUi( this );
 
@@ -53,29 +54,20 @@ QgsComposerHtmlWidget::QgsComposerHtmlWidget( QgsComposerHtml* html, QgsComposer
   if ( mHtml )
   {
     QObject::connect( mHtml, SIGNAL( changed() ), this, SLOT( setGuiElementValues() ) );
-
-    QgsAtlasComposition* atlas = atlasComposition();
-    if ( atlas )
-    {
-      // repopulate data defined buttons if atlas layer changes
-      connect( atlas, SIGNAL( coverageLayerChanged( QgsVectorLayer* ) ),
-               this, SLOT( populateDataDefinedButtons() ) );
-      connect( atlas, SIGNAL( toggled( bool ) ), this, SLOT( populateDataDefinedButtons() ) );
-    }
   }
 
   //embed widget for general options
   if ( mFrame )
   {
     //add widget for general composer item properties
-    QgsComposerItemWidget* itemPropertiesWidget = new QgsComposerItemWidget( this, mFrame );
-    mainLayout->addWidget( itemPropertiesWidget );
+    mItemWidget = new QgsComposerItemWidget( this, mFrame );
+    mainLayout->addWidget( mItemWidget );
   }
 
   //connections for data defined buttons
-  connect( mUrlDDBtn, SIGNAL( dataDefinedChanged( const QString& ) ), this, SLOT( updateDataDefinedProperty() ) );
-  connect( mUrlDDBtn, SIGNAL( dataDefinedActivated( bool ) ), this, SLOT( updateDataDefinedProperty() ) );
-  connect( mUrlDDBtn, SIGNAL( dataDefinedActivated( bool ) ), mUrlLineEdit, SLOT( setDisabled( bool ) ) );
+  connectDataDefinedSignals();
+  //TODO - fix
+  //  connect( mUrlDDBtn, SIGNAL( dataDefinedActivated( bool ) ), mUrlLineEdit, SLOT( setDisabled( bool ) ) );
 
 }
 
@@ -492,4 +484,9 @@ void QgsComposerHtmlWidget::populateDataDefinedButtons()
 
   //unblock signals from data defined buttons
   mUrlDDBtn->blockSignals( false );
+
+  if ( mItemWidget )
+  {
+    mItemWidget->populateDataDefinedButtons();
+  }
 }

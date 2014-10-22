@@ -162,6 +162,8 @@ class QgsComposerMapWidget: public QgsComposerItemBaseWidget, private Ui::QgsCom
   private:
     QgsComposerMap* mComposerMap;
 
+    QgsComposerItemWidget* mItemWidget;
+
     /**Sets extent of composer map from line edits*/
     void updateComposerExtentFromGui();
 

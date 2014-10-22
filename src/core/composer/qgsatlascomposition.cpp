@@ -280,6 +280,12 @@ void QgsAtlasComposition::endRender()
     return;
   }
 
+  if ( mEditEnabled )
+  {
+    //turn off edit mode
+    setEditEnabled( false );
+  }
+
   emit featureChanged( 0 );
 
   updateAtlasMaps();
@@ -607,17 +613,19 @@ bool QgsAtlasComposition::setEditEnabled( const bool enabled )
   if ( enabled )
   {
 
-      //check read only
+    //check read only
     mEditEnabled = true;//mCoverageLayer->startEditing();
+    emit editToggled( true );
     return mEditEnabled;
   }
   else
   {
     if ( mEditEnabled )
     {
-    //  mCoverageLayer->commitChanges();
+      //  mCoverageLayer->commitChanges();
     }
     mEditEnabled = false;
+    emit editToggled( false );
     return true;
   }
 }
@@ -648,7 +656,7 @@ bool QgsAtlasComposition::editFeature( QString field, const QVariant &newValue )
   changeAttributeMap.insert( fieldNumber, newValue );
   changeMap.insert( mCurrentFeature.id(), changeAttributeMap );
 
-  mCurrentFeature.setAttribute(fieldNumber,newValue);
+  mCurrentFeature.setAttribute( fieldNumber, newValue );
   return provider->changeAttributeValues( changeMap );
 }
 

@@ -32,13 +32,17 @@
 #include <QSettings>
 #include <QSvgRenderer>
 
-QgsComposerPictureWidget::QgsComposerPictureWidget( QgsComposerPicture* picture ): QgsComposerItemBaseWidget( 0, picture ), mPicture( picture ), mPreviewsLoaded( false )
+QgsComposerPictureWidget::QgsComposerPictureWidget( QgsComposerPicture* picture )
+    : QgsComposerItemBaseWidget( 0, picture )
+    , mItemWidget( 0 )
+    , mPicture( picture )
+    , mPreviewsLoaded( false )
 {
   setupUi( this );
 
   //add widget for general composer item properties
-  QgsComposerItemWidget* itemPropertiesWidget = new QgsComposerItemWidget( this, picture );
-  mainLayout->addWidget( itemPropertiesWidget );
+  mItemWidget = new QgsComposerItemWidget( this, picture );
+  mainLayout->addWidget( mItemWidget );
 
   setGuiElementValues();
   mPreviewsLoadingLabel->hide();
@@ -53,19 +57,10 @@ QgsComposerPictureWidget::QgsComposerPictureWidget( QgsComposerPicture* picture 
   connect( mPicture, SIGNAL( itemChanged() ), this, SLOT( setGuiElementValues() ) );
   connect( mPicture, SIGNAL( pictureRotationChanged( double ) ), this, SLOT( setPicRotationSpinValue( double ) ) );
 
-  QgsAtlasComposition* atlas = atlasComposition();
-  if ( atlas )
-  {
-    // repopulate data defined buttons if atlas layer changes
-    connect( atlas, SIGNAL( coverageLayerChanged( QgsVectorLayer* ) ),
-             this, SLOT( populateDataDefinedButtons() ) );
-    connect( atlas, SIGNAL( toggled( bool ) ), this, SLOT( populateDataDefinedButtons() ) );
-  }
-
   //connections for data defined buttons
-  connect( mSourceDDBtn, SIGNAL( dataDefinedChanged( const QString& ) ), this, SLOT( updateDataDefinedProperty() ) );
-  connect( mSourceDDBtn, SIGNAL( dataDefinedActivated( bool ) ), this, SLOT( updateDataDefinedProperty() ) );
-  connect( mSourceDDBtn, SIGNAL( dataDefinedActivated( bool ) ), mPictureLineEdit, SLOT( setDisabled( bool ) ) );
+  connectDataDefinedSignals();
+//TODO - fix
+  //  connect( mSourceDDBtn, SIGNAL( dataDefinedActivated( bool ) ), mPictureLineEdit, SLOT( setDisabled( bool ) ) );
 }
 
 QgsComposerPictureWidget::~QgsComposerPictureWidget()
@@ -625,9 +620,12 @@ void QgsComposerPictureWidget::populateDataDefinedButtons()
                       QgsDataDefinedButton::AnyType, QgsDataDefinedButton::anyStringDesc() );
 
   //initial state of controls - disable related controls when dd buttons are active
-  mPictureLineEdit->setEnabled( !mSourceDDBtn->isActive() );
+  //TODO - FIX
+//  mPictureLineEdit->setEnabled( !mSourceDDBtn->isActive() );
 
   //unblock signals from data defined buttons
   mSourceDDBtn->blockSignals( false );
+
+  mItemWidget->populateDataDefinedButtons();
 }
 

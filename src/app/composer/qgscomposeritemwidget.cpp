@@ -105,6 +105,37 @@ QgsVectorLayer* QgsComposerItemBaseWidget::atlasCoverageLayer() const
   return 0;
 }
 
+void QgsComposerItemBaseWidget::connectDataDefinedSignals()
+{
+  QgsAtlasComposition* atlas = atlasComposition();
+  if ( atlas )
+  {
+    // repopulate data defined buttons if atlas properties change
+    connect( atlas, SIGNAL( coverageLayerChanged( QgsVectorLayer* ) ),
+             this, SLOT( populateDataDefinedButtons() ) );
+    connect( atlas, SIGNAL( toggled( bool ) ), this, SLOT( populateDataDefinedButtons() ) );
+    connect( atlas, SIGNAL( editToggled( bool ) ), this, SLOT( atlasEditToggled( bool ) ) );
+  }
+
+  //connect data defined buttons
+  QList<QgsDataDefinedButton *> ddButtons = findChildren<QgsDataDefinedButton *>();
+  foreach ( QgsDataDefinedButton *button, ddButtons )
+  {
+    connect( button, SIGNAL( dataDefinedChanged( const QString& ) ), this, SLOT( updateDataDefinedProperty() ) );
+    connect( button, SIGNAL( dataDefinedActivated( bool ) ), this, SLOT( updateDataDefinedProperty() ) );
+  }
+}
+
+void QgsComposerItemBaseWidget::atlasEditToggled( bool editEnabled )
+{
+  //set edit mode for all data defined buttons
+  QList<QgsDataDefinedButton *> ddButtons = findChildren<QgsDataDefinedButton *>();
+
+  foreach ( QgsDataDefinedButton *button, ddButtons )
+  {
+    button->setFieldValueIsEditable( editEnabled );
+  }
+}
 
 //QgsComposerItemWidget
 
@@ -134,40 +165,7 @@ QgsComposerItemWidget::QgsComposerItemWidget( QWidget* parent, QgsComposerItem* 
   connect( mTransparencySlider, SIGNAL( valueChanged( int ) ), mTransparencySpnBx, SLOT( setValue( int ) ) );
   connect( mTransparencySpnBx, SIGNAL( valueChanged( int ) ), mTransparencySlider, SLOT( setValue( int ) ) );
 
-  //connect atlas signals to data defined buttons
-  QgsAtlasComposition* atlas = atlasComposition();
-  if ( atlas )
-  {
-    //repopulate data defined buttons if atlas layer changes
-    connect( atlas, SIGNAL( coverageLayerChanged( QgsVectorLayer* ) ),
-             this, SLOT( populateDataDefinedButtons() ) );
-    connect( atlas, SIGNAL( toggled( bool ) ), this, SLOT( populateDataDefinedButtons() ) );
-  }
-
-  //connect data defined buttons
-  connect( mXPositionDDBtn, SIGNAL( dataDefinedChanged( const QString& ) ), this, SLOT( updateDataDefinedProperty() ) );
-  connect( mXPositionDDBtn, SIGNAL( dataDefinedActivated( bool ) ), this, SLOT( updateDataDefinedProperty() ) );
-
-  connect( mYPositionDDBtn, SIGNAL( dataDefinedChanged( const QString& ) ), this, SLOT( updateDataDefinedProperty() ) );
-  connect( mYPositionDDBtn, SIGNAL( dataDefinedActivated( bool ) ), this, SLOT( updateDataDefinedProperty() ) );
-
-  connect( mWidthDDBtn, SIGNAL( dataDefinedChanged( const QString& ) ), this, SLOT( updateDataDefinedProperty() ) );
-  connect( mWidthDDBtn, SIGNAL( dataDefinedActivated( bool ) ), this, SLOT( updateDataDefinedProperty() ) );
-
-  connect( mHeightDDBtn, SIGNAL( dataDefinedChanged( const QString& ) ), this, SLOT( updateDataDefinedProperty() ) );
-  connect( mHeightDDBtn, SIGNAL( dataDefinedActivated( bool ) ), this, SLOT( updateDataDefinedProperty() ) );
-
-  connect( mItemRotationDDBtn, SIGNAL( dataDefinedChanged( const QString& ) ), this, SLOT( updateDataDefinedProperty() ) );
-  connect( mItemRotationDDBtn, SIGNAL( dataDefinedActivated( bool ) ), this, SLOT( updateDataDefinedProperty() ) );
-
-  connect( mTransparencyDDBtn, SIGNAL( dataDefinedChanged( const QString& ) ), this, SLOT( updateDataDefinedProperty() ) );
-  connect( mTransparencyDDBtn, SIGNAL( dataDefinedActivated( bool ) ), this, SLOT( updateDataDefinedProperty() ) );
-
-  connect( mBlendModeDDBtn, SIGNAL( dataDefinedChanged( const QString& ) ), this, SLOT( updateDataDefinedProperty() ) );
-  connect( mBlendModeDDBtn, SIGNAL( dataDefinedActivated( bool ) ), this, SLOT( updateDataDefinedProperty() ) );
-
-  connect( mExcludePrintsDDBtn, SIGNAL( dataDefinedChanged( const QString& ) ), this, SLOT( updateDataDefinedProperty() ) );
-  connect( mExcludePrintsDDBtn, SIGNAL( dataDefinedActivated( bool ) ), this, SLOT( updateDataDefinedProperty() ) );
+  //connectDataDefinedSignals();
 }
 
 QgsComposerItemWidget::QgsComposerItemWidget(): QgsComposerItemBaseWidget( 0, 0 )

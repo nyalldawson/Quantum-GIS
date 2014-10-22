@@ -283,6 +283,8 @@ class CORE_EXPORT QgsAtlasComposition : public QObject
     /** emitted when atlas is enabled or disabled */
     void toggled( bool );
 
+    void editToggled( bool );
+
     /**Is emitted when the atlas has an updated status bar message for the composer window*/
     void statusMsgChanged( QString message );
 

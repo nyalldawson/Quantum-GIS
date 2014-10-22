@@ -42,15 +42,18 @@
 #include <QFontDialog>
 #include <QMessageBox>
 
-QgsComposerMapWidget::QgsComposerMapWidget( QgsComposerMap* composerMap ): QgsComposerItemBaseWidget( 0, composerMap ), mComposerMap( composerMap )
+QgsComposerMapWidget::QgsComposerMapWidget( QgsComposerMap* composerMap )
+    : QgsComposerItemBaseWidget( 0, composerMap )
+    , mComposerMap( composerMap )
+    , mItemWidget( 0 )
 {
   setupUi( this );
 
   mLabel->setText( tr( "Map %1" ).arg( composerMap->id() ) );
 
   //add widget for general composer item properties
-  QgsComposerItemWidget* itemPropertiesWidget = new QgsComposerItemWidget( this, composerMap );
-  mainLayout->addWidget( itemPropertiesWidget );
+  mItemWidget = new QgsComposerItemWidget( this, composerMap );
+  mainLayout->addWidget( mItemWidget );
 
   mScaleLineEdit->setValidator( new QDoubleValidator( mScaleLineEdit ) );
 
@@ -131,14 +134,10 @@ QgsComposerMapWidget::QgsComposerMapWidget( QgsComposerMap* composerMap ): QgsCo
       connect( atlas, SIGNAL( coverageLayerChanged( QgsVectorLayer* ) ),
                this, SLOT( atlasLayerChanged( QgsVectorLayer* ) ) );
       connect( atlas, SIGNAL( toggled( bool ) ), this, SLOT( compositionAtlasToggled( bool ) ) );
-
-      // repopulate data defined buttons if atlas layer changes
-      connect( atlas, SIGNAL( coverageLayerChanged( QgsVectorLayer* ) ),
-               this, SLOT( populateDataDefinedButtons() ) );
-      connect( atlas, SIGNAL( toggled( bool ) ), this, SLOT( populateDataDefinedButtons() ) );
     }
   }
 
+#if 0
   //connections for data defined buttons
   connect( mScaleDDBtn, SIGNAL( dataDefinedChanged( const QString& ) ), this, SLOT( updateDataDefinedProperty() ) );
   connect( mScaleDDBtn, SIGNAL( dataDefinedActivated( bool ) ), this, SLOT( updateDataDefinedProperty() ) );
@@ -160,6 +159,9 @@ QgsComposerMapWidget::QgsComposerMapWidget( QgsComposerMap* composerMap ): QgsCo
 
   connect( mAtlasMarginDDBtn, SIGNAL( dataDefinedChanged( const QString& ) ), this, SLOT( updateDataDefinedProperty() ) );
   connect( mAtlasMarginDDBtn, SIGNAL( dataDefinedActivated( bool ) ), this, SLOT( updateDataDefinedProperty() ) );
+#endif
+
+  connectDataDefinedSignals();
 
   updateGuiElements();
   loadGridEntries();
@@ -208,6 +210,8 @@ void QgsComposerMapWidget::populateDataDefinedButtons()
   mXMaxDDBtn->blockSignals( false );
   mYMaxDDBtn->blockSignals( false );
   mAtlasMarginDDBtn->blockSignals( false );
+
+  mItemWidget->populateDataDefinedButtons();
 }
 
 QgsComposerObject::DataDefinedProperty QgsComposerMapWidget::ddPropertyForWidget( QgsDataDefinedButton* widget )

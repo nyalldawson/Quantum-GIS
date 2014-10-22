@@ -50,15 +50,14 @@ class QgsComposerPictureWidget: public QgsComposerItemBaseWidget, private Ui::Qg
     void on_mResizeModeComboBox_currentIndexChanged( int index );
     void on_mAnchorPointComboBox_currentIndexChanged( int index );
 
+    /**Initializes data defined buttons to current atlas coverage layer*/
+    void populateDataDefinedButtons();
+
   protected:
     void showEvent( QShowEvent * event );
     void resizeEvent( QResizeEvent * event );
 
     QgsComposerObject::DataDefinedProperty ddPropertyForWidget( QgsDataDefinedButton *widget );
-
-  protected slots:
-    /**Initializes data defined buttons to current atlas coverage layer*/
-    void populateDataDefinedButtons();
 
   private slots:
     /**Sets the GUI elements to the values of mPicture*/
@@ -75,6 +74,9 @@ class QgsComposerPictureWidget: public QgsComposerItemBaseWidget, private Ui::Qg
 
   private:
     QgsComposerPicture* mPicture;
+
+    QgsComposerItemWidget* mItemWidget;
+
     /** Whether the picture selection previews have been loaded
      * @note added in 1.9
      */
