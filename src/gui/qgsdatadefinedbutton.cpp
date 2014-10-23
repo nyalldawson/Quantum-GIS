@@ -108,20 +108,27 @@ void QgsDataDefinedButton::init( const QgsVectorLayer* vl,
 {
   mVectorLayer = vl;
   // construct default property if none or incorrect passed in
+  bool active = false;
   if ( !datadefined )
   {
     mProperty.insert( "active", "0" );
+    active = false;
     mProperty.insert( "useexpr", "0" );
     mProperty.insert( "expression", "" );
     mProperty.insert( "field", "" );
   }
   else
   {
-    mProperty.insert( "active", datadefined->isActive() ? "1" : "0" );
+    active = datadefined->isActive();
+    mProperty.insert( "active", active ? "1" : "0" );
     mProperty.insert( "useexpr", datadefined->useExpression() ? "1" : "0" );
     mProperty.insert( "expression", datadefined->expressionString() );
     mProperty.insert( "field", datadefined->field() );
   }
+
+  //update registered widgets
+  disableEnabledWidgets( active );
+  checkCheckedWidgets( active );
 
   mDataTypes = datatypes;
   mFieldNameList.clear();
