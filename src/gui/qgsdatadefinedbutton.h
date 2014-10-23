@@ -212,6 +212,9 @@ class GUI_EXPORT QgsDataDefinedButton: public QToolButton
 
     void setFieldValueIsEditable( const bool isEditable );
 
+    //clears current field
+    void clearField();
+
   signals:
     /**
      * Emitted when data definition or expression is changed
@@ -261,6 +264,7 @@ class GUI_EXPORT QgsDataDefinedButton: public QToolButton
     QMenu* mFieldsMenu;
 
     QAction* mActionActive;
+    QAction* mActionClearField;
     QAction* mActionDescription;
     QAction* mActionExpDialog;
     QAction* mActionExpression;

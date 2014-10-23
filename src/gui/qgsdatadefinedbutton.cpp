@@ -80,13 +80,14 @@ QgsDataDefinedButton::QgsDataDefinedButton( QWidget* parent,
   f.setBold( true );
   mActionActive->setFont( f );
 
+  mActionClearField = new QAction( this );
   mActionDescription = new QAction( tr( "Description..." ), this );
 
   mActionExpDialog = new QAction( tr( "Edit..." ), this );
   mActionExpression = 0;
   mActionPasteExpr = new QAction( tr( "Paste" ), this );
   mActionCopyExpr = new QAction( tr( "Copy" ), this );
-  mActionClearExpr = new QAction( tr( "Clear" ), this );
+  mActionClearExpr = new QAction( tr( "Clear expression" ), this );
 
   // set up sibling widget connections
   connect( this, SIGNAL( dataDefinedActivated( bool ) ), this, SLOT( disableEnabledWidgets( bool ) ) );
@@ -267,7 +268,11 @@ void QgsDataDefinedButton::aboutToShowMenu()
     fieldTitleAct->setEnabled( false );
 
     mDefineMenu->addAction( mActionDataTypes );
-
+    if ( hasField )
+    {
+      mActionClearField->setText( tr( "Clear field (%1)" ).arg( getField() ) );
+      mDefineMenu->addAction( mActionClearField );
+    }
     mFieldsMenu->clear();
 
     if ( mFieldNameList.size() > 0 )
@@ -340,6 +345,10 @@ void QgsDataDefinedButton::menuActionTriggered( QAction* action )
   {
     setActive( mActionActive->data().toBool() );
     updateGui();
+  }
+  else if ( action == mActionClearField )
+  {
+    clearField();
   }
   else if ( action == mActionDescription )
   {
@@ -621,6 +630,16 @@ void QgsDataDefinedButton::setFieldValueIsEditable( const bool isEditable )
   }
 
   mFieldValueIsEditable = isEditable;
+  updateGui();
+}
+
+void QgsDataDefinedButton::clearField()
+{
+  if ( !useExpression() && !getField().isEmpty() )
+  {
+    disableEnabledWidgets( false );
+  }
+  mProperty.insert( "field", "" );
   updateGui();
 }
 
