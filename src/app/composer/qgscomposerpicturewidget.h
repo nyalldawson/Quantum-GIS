@@ -38,6 +38,8 @@ class QgsComposerPictureWidget: public QgsComposerItemBaseWidget, private Ui::Qg
     /**Add the icons of the standard directories to the preview*/
     void addStandardDirectoriesToPreview();
 
+    QgsComposerObject::DataDefinedProperty ddPropertyForWidget( QgsDataDefinedButton *widget );
+
   public slots:
     void on_mPictureBrowseButton_clicked();
     void on_mPictureLineEdit_editingFinished();
@@ -56,8 +58,6 @@ class QgsComposerPictureWidget: public QgsComposerItemBaseWidget, private Ui::Qg
   protected:
     void showEvent( QShowEvent * event );
     void resizeEvent( QResizeEvent * event );
-
-    QgsComposerObject::DataDefinedProperty ddPropertyForWidget( QgsDataDefinedButton *widget );
 
   private slots:
     /**Sets the GUI elements to the values of mPicture*/

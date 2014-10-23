@@ -465,7 +465,7 @@ QgsComposerItem::DataDefinedProperty QgsComposerHtmlWidget::ddPropertyForWidget(
   {
     return QgsComposerItem::SourceUrl;
   }
-  return QgsComposerItem::NoProperty;
+  return mItemWidget->ddPropertyForWidget( widget );
 }
 
 void QgsComposerHtmlWidget::populateDataDefinedButtons()

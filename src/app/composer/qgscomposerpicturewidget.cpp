@@ -609,7 +609,7 @@ QgsComposerObject::DataDefinedProperty QgsComposerPictureWidget::ddPropertyForWi
     return QgsComposerObject::PictureSource;
   }
 
-  return QgsComposerObject::NoProperty;
+  return mItemWidget->ddPropertyForWidget( widget );
 }
 
 void QgsComposerPictureWidget::populateDataDefinedButtons()

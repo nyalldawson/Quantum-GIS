@@ -598,7 +598,6 @@ void QgsComposerItemWidget::setValuesForGuiElements()
 
   setValuesForGuiPositionElements();
   setValuesForGuiNonPositionElements();
-  populateDataDefinedButtons();
 }
 
 void QgsComposerItemWidget::on_mBlendModeCombo_currentIndexChanged( int index )

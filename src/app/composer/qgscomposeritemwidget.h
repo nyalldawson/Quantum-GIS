@@ -35,6 +35,9 @@ class QgsComposerItemBaseWidget: public QWidget
     QgsComposerItemBaseWidget( QWidget* parent, QgsComposerObject* composerObject );
     ~QgsComposerItemBaseWidget();
 
+    /**Returns the data defined property corresponding to a data defined button widget*/
+    virtual QgsComposerObject::DataDefinedProperty ddPropertyForWidget( QgsDataDefinedButton* widget );
+
   public slots:
 
     /**Initializes data defined buttons to current atlas coverage layer*/
@@ -49,9 +52,6 @@ class QgsComposerItemBaseWidget: public QWidget
   protected:
     /**Sets a data defined property for the item from its current data defined button settings*/
     void setDataDefinedProperty( const QgsDataDefinedButton *ddBtn, QgsComposerObject::DataDefinedProperty p );
-
-    /**Returns the data defined property corresponding to a data defined button widget*/
-    virtual QgsComposerObject::DataDefinedProperty ddPropertyForWidget( QgsDataDefinedButton* widget );
 
     virtual void connectDataDefinedSignals();
 
@@ -82,6 +82,8 @@ class QgsComposerItemWidget: public QgsComposerItemBaseWidget, private Ui::QgsCo
     void showBackgroundGroup( bool showGroup );
     /**Toggles display of the frame group*/
     void showFrameGroup( bool showGroup );
+
+    QgsComposerObject::DataDefinedProperty ddPropertyForWidget( QgsDataDefinedButton *widget );
 
   public slots:
 
@@ -133,9 +135,6 @@ class QgsComposerItemWidget: public QgsComposerItemBaseWidget, private Ui::QgsCo
 
     /**Initializes data defined buttons to current atlas coverage layer*/
     virtual void populateDataDefinedButtons();
-
-  protected:
-    QgsComposerObject::DataDefinedProperty ddPropertyForWidget( QgsDataDefinedButton *widget );
 
   private:
     QgsComposerItemWidget();

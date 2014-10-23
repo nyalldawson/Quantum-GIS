@@ -245,7 +245,7 @@ QgsComposerObject::DataDefinedProperty QgsComposerMapWidget::ddPropertyForWidget
     return QgsComposerObject::MapAtlasMargin;
   }
 
-  return QgsComposerObject::NoProperty;
+  return mItemWidget->ddPropertyForWidget( widget );
 }
 
 void QgsComposerMapWidget::compositionAtlasToggled( bool atlasEnabled )

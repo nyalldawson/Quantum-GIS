@@ -37,6 +37,8 @@ class QgsComposerMapWidget: public QgsComposerItemBaseWidget, private Ui::QgsCom
     QgsComposerMapWidget( QgsComposerMap* composerMap );
     virtual ~QgsComposerMapWidget();
 
+    QgsComposerObject::DataDefinedProperty ddPropertyForWidget( QgsDataDefinedButton *widget );
+
   public slots:
     void on_mPreviewModeComboBox_activated( int i );
     void on_mScaleLineEdit_editingFinished();
@@ -137,8 +139,6 @@ class QgsComposerMapWidget: public QgsComposerItemBaseWidget, private Ui::QgsCom
 
     /**Sets the current composer map values to the GUI elements*/
     virtual void updateGuiElements();
-
-    QgsComposerObject::DataDefinedProperty ddPropertyForWidget( QgsDataDefinedButton *widget );
 
   protected slots:
     /**Initializes data defined buttons to current atlas coverage layer*/
