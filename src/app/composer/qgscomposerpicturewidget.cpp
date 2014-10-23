@@ -44,6 +44,9 @@ QgsComposerPictureWidget::QgsComposerPictureWidget( QgsComposerPicture* picture 
   mItemWidget = new QgsComposerItemWidget( this, picture );
   mainLayout->addWidget( mItemWidget );
 
+  mSourceDDBtn->registerEnabledWidget( mPictureLineEdit );
+  mSourceDDBtn->registerEnabledWidget( mPictureBrowseButton );
+
   setGuiElementValues();
   mPreviewsLoadingLabel->hide();
 
@@ -56,9 +59,6 @@ QgsComposerPictureWidget::QgsComposerPictureWidget( QgsComposerPicture* picture 
 
   connect( mPicture, SIGNAL( itemChanged() ), this, SLOT( setGuiElementValues() ) );
   connect( mPicture, SIGNAL( pictureRotationChanged( double ) ), this, SLOT( setPicRotationSpinValue( double ) ) );
-
-  mSourceDDBtn->registerEnabledWidget( mPictureLineEdit );
-  mSourceDDBtn->registerEnabledWidget( mPictureBrowseButton );
 
   //connections for data defined buttons
   connectDataDefinedSignals();
