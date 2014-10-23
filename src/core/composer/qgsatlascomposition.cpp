@@ -610,6 +610,11 @@ bool QgsAtlasComposition::setEditEnabled( const bool enabled )
   {
     return false;
   }
+  if ( enabled == mEditEnabled )
+  {
+    return true;
+  }
+
   if ( enabled )
   {
 

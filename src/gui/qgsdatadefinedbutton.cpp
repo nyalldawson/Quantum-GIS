@@ -630,6 +630,8 @@ void QgsDataDefinedButton::setFieldValueIsEditable( const bool isEditable )
   }
 
   mFieldValueIsEditable = isEditable;
+  //enable widgets if editable enabled, so users can make changes
+  disableEnabledWidgets( !isEditable );
   updateGui();
 }
 
