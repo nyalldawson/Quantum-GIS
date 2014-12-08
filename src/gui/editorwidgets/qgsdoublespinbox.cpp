@@ -19,6 +19,7 @@
 #include <QStyle>
 #include <QToolButton>
 #include <QLabel>
+#include <QFontMetrics>
 
 #include "qgsdoublespinbox.h"
 #include "qgsexpression.h"
@@ -39,7 +40,9 @@ QgsDoubleSpinBox::QgsDoubleSpinBox( QWidget *parent )
   connect( mClearButton, SIGNAL( clicked() ), this, SLOT( clear() ) );
 
   mPrefixLabel = new QLabel( this );
+  mPrefixLabel->setText( QString("x:"));
   mSuffixLabel = new QLabel( this );
+  mSuffixLabel->setText( QString("mm"));
 
 
   setStyleSheet( QString( "padding-right: %1px;" ).arg( mClearButton->sizeHint().width() + 18 + frameWidth() + 1 ) );
@@ -195,7 +198,14 @@ void QgsDoubleSpinBox::resizeEvent( QResizeEvent * event )
   mClearButton->move( rect().right() - frameWidth() - 18 - clearSize.width(),
                       ( rect().bottom() + 1 - clearSize.height() ) / 2 );
 
-  QSize suffixSize = mSuffixLabel->sizeHint();
-  mSuffixLabel->move( mClearButton->rect().left() - suffixSize.width(),
+  QSize suffixSize = mSuffixLabel->fontMetrics().boundingRect( mSuffixLabel->text() ).size();
+  mSuffixLabel->move( rect().right() - frameWidth() - 18 - clearSize.width() - suffixSize.width(),
                       ( rect().bottom() + 1 - suffixSize.height() ) / 2 );
+
+  QSize prefixSize = mSuffixLabel->fontMetrics().boundingRect( mPrefixLabel->text() ).size();
+  mSuffixLabel->move( frameWidth() + 18,
+                      ( rect().bottom() + 1 - prefixSize.height() ) / 2 );
+
+  lineEdit()->setStyleSheet( QString( "padding-left: %2px; padding-right: %2px;" ).arg( prefixSize.width() + 1 ).arg( mClearButton->sizeHint().width() + 1 ) );
+
 }
