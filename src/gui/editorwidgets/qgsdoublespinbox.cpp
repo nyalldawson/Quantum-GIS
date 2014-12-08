@@ -18,6 +18,7 @@
 #include <QSettings>
 #include <QStyle>
 #include <QToolButton>
+#include <QLabel>
 
 #include "qgsdoublespinbox.h"
 #include "qgsexpression.h"
@@ -36,6 +37,10 @@ QgsDoubleSpinBox::QgsDoubleSpinBox( QWidget *parent )
   mClearButton->setCursor( Qt::ArrowCursor );
   mClearButton->setStyleSheet( "position: absolute; border: none; padding: 0px;" );
   connect( mClearButton, SIGNAL( clicked() ), this, SLOT( clear() ) );
+
+  mPrefixLabel = new QLabel( this );
+  mSuffixLabel = new QLabel( this );
+
 
   setStyleSheet( QString( "padding-right: %1px;" ).arg( mClearButton->sizeHint().width() + 18 + frameWidth() + 1 ) );
 
@@ -186,9 +191,11 @@ void QgsDoubleSpinBox::resizeEvent( QResizeEvent * event )
 {
   QDoubleSpinBox::resizeEvent( event );
 
-  QSize sz = mClearButton->sizeHint();
+  QSize clearSize = mClearButton->sizeHint();
+  mClearButton->move( rect().right() - frameWidth() - 18 - clearSize.width(),
+                      ( rect().bottom() + 1 - clearSize.height() ) / 2 );
 
-  mClearButton->move( rect().right() - frameWidth() - 18 - sz.width(),
-                      ( rect().bottom() + 1 - sz.height() ) / 2 );
-
+  QSize suffixSize = mSuffixLabel->sizeHint();
+  mSuffixLabel->move( mClearButton->rect().left() - suffixSize.width(),
+                      ( rect().bottom() + 1 - suffixSize.height() ) / 2 );
 }

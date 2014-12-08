@@ -19,6 +19,8 @@
 #include <QDoubleSpinBox>
 #include <QToolButton>
 
+class QLabel;
+
 /**
  * @brief The QgsSpinBox is a spin box with a clear button that will set the value to the defined clear value.
  * The clear value can be either the minimum or the maiximum value of the spin box or a custom value.
@@ -97,6 +99,8 @@ class GUI_EXPORT QgsDoubleSpinBox : public QDoubleSpinBox
     bool mExpressionsEnabled;
 
     QToolButton* mClearButton;
+    QLabel* mPrefixLabel;
+    QLabel* mSuffixLabel;
     QString stripped( const QString &originalText ) const;
 };
 
