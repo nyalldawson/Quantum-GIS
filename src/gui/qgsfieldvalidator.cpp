@@ -28,12 +28,14 @@
 #include "qgslogger.h"
 #include "qgslonglongvalidator.h"
 #include "qgsfield.h"
+#include "qgsexpression.h"
 
 QgsFieldValidator::QgsFieldValidator( QObject *parent, const QgsField &field, QString defaultValue, QString dateFormat )
     : QValidator( parent )
     , mField( field )
     , mDefaultValue( defaultValue )
     , mDateFormat( dateFormat )
+    , mAllowExpressions( true ) //todo - default to false
 {
   switch ( mField.type() )
   {
@@ -89,7 +91,12 @@ QgsFieldValidator::QgsFieldValidator( QObject *parent, const QgsField &field, QS
 
 QgsFieldValidator::~QgsFieldValidator()
 {
-  delete mValidator;
+    delete mValidator;
+}
+
+void QgsFieldValidator::setExpressionsAllowed(const bool allow)
+{
+  mAllowExpressions = allow;
 }
 
 QValidator::State QgsFieldValidator::validate( QString &s, int &i ) const
@@ -113,6 +120,14 @@ QValidator::State QgsFieldValidator::validate( QString &s, int &i ) const
   if ( mValidator )
   {
     QValidator::State result = mValidator->validate( s, i );
+
+    if ( result == QValidator::Invalid && mAllowExpressions )
+    {
+      //allow invalid characters if expressions are allowed. These will get
+      //replaced by QgsFieldValidator::fixup
+      return Intermediate;
+    }
+
     return result;
   }
   else if ( mField.type() == QVariant::String )
@@ -148,7 +163,28 @@ void QgsFieldValidator::fixup( QString &s ) const
 {
   if ( mValidator )
   {
+    if ( mAllowExpressions )
+    {
+        bool ok;
+        s.toDouble( &ok );
+        if ( ok )
+        {
+          return;
+        }
+
+        //otherwise try to evalute as expression
+        QgsExpression expr( s );
+        QVariant result = expr.evaluate();
+        result.toDouble( &ok );
+        s = result.toString();
+        if ( ok )
+        {
+          return;
+        }
+    }
+
     mValidator->fixup( s );
+    //if still not good, reset
   }
   else if ( mField.type() == QVariant::String && mField.length() > 0 && s.size() > mField.length() && s != mDefaultValue )
   {

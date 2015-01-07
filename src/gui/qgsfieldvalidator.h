@@ -37,6 +37,10 @@ class GUI_EXPORT QgsFieldValidator : public QValidator
     virtual State validate( QString &, int & ) const override;
     virtual void fixup( QString & ) const override;
 
+    //only for numeric
+    void setExpressionsAllowed( const bool allow );
+
+
     QString dateFormat() const { return mDateFormat; }
 
   private:
@@ -48,6 +52,7 @@ class GUI_EXPORT QgsFieldValidator : public QValidator
     QString mNullValue;
     QString mDefaultValue;
     QString mDateFormat;
+    bool mAllowExpressions;
 };
 
 #endif // QGSFIELDVALIDATOR_H
