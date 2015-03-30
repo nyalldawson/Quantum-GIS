@@ -63,6 +63,7 @@
 %Include qgsfilterlineedit.sip
 %Include qgsformannotationitem.sip
 %Include qgsgenericprojectionselector.sip
+%Include qgsgeometrywidget.sip
 %Include qgshighlight.sip
 %Include qgshistogramwidget.sip
 %Include qgshtmlannotationitem.sip

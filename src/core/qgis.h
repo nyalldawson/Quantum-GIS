@@ -240,6 +240,13 @@ class CORE_EXPORT QGis
       NauticalMiles = 7
     };
 
+    /** Provides translated string representing a WKB type
+     * @param type WKB type
+     * @returns translated string
+     * @note added in QGIS 2.9
+     */
+    static QString tr( QGis::WkbType type );
+
     //! Provides the canonical name of the type value
     static QString toLiteral( QGis::UnitType unit );
     //! Converts from the canonical name to the type value

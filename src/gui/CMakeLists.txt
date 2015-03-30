@@ -175,6 +175,7 @@ SET(QGIS_GUI_SRCS
   qgsfilterlineedit.cpp
   qgsformannotationitem.cpp
   qgsgenericprojectionselector.cpp
+  qgsgeometrywidget.cpp
   qgshighlight.cpp
   qgshistogramwidget.cpp
   qgsidentifymenu.cpp
@@ -300,6 +301,7 @@ SET(QGIS_GUI_MOC_HDRS
   qgsfilterlineedit.h
   qgsformannotationitem.h
   qgsgenericprojectionselector.h
+  qgsgeometrywidget.h
   qgshistogramwidget.h
   qgshtmlannotationitem.h
   qgsidentifymenu.h

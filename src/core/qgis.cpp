@@ -111,6 +111,44 @@ QGis::UnitType QGis::fromLiteral( QString literal, QGis::UnitType defaultType )
   return defaultType;
 }
 
+QString QGis::tr( QGis::WkbType type )
+{
+  switch ( type )
+  {
+    case QGis::WKBPoint:
+    case QGis::WKBPoint25D:
+      return QT_TR_NOOP( "Point" );
+
+    case QGis::WKBMultiPoint:
+    case QGis::WKBMultiPoint25D:
+      return QT_TR_NOOP( "Multipoint" );
+
+    case QGis::WKBLineString:
+    case QGis::WKBLineString25D:
+      return QT_TR_NOOP( "Line" );
+
+    case QGis::WKBMultiLineString:
+    case QGis::WKBMultiLineString25D:
+      return QT_TR_NOOP( "Multiline" );
+
+    case QGis::WKBPolygon:
+    case QGis::WKBPolygon25D:
+      return QT_TR_NOOP( "Polygon" );
+
+    case QGis::WKBMultiPolygon:
+    case QGis::WKBMultiPolygon25D:
+      return QT_TR_NOOP( "Multipolygon" );
+
+    case QGis::WKBNoGeometry:
+      return QT_TR_NOOP( "No geometry" );
+
+    case QGis::WKBUnknown:
+      return QT_TR_NOOP( "Unknown geometry" );
+  }
+
+  return QString::null;
+}
+
 QString QGis::toLiteral( QGis::UnitType unit )
 {
   return QString( qgisUnitTypes[ static_cast<int>( unit )] );
