@@ -591,8 +591,16 @@ void QgsPostgresFeatureIterator::getFeatureAttribute( int idx, QgsPostgresResult
   if ( mSource->mPrimaryKeyAttrs.contains( idx ) )
     return;
 
-  QVariant v = QgsPostgresProvider::convertValue( mSource->mFields[idx].type(), queryResult.PQgetvalue( row, col ) );
-  feature.setAttribute( idx, v );
+  if ( mSource->mFields[idx].type() == (QVariant::Type)QMetaType::type( "QgsGeometry" ))
+  {
+      //geometry type
+      feature.setAttribute( idx, QVariant::fromValue( *QgsGeometry::fromWkt("LINESTRING(1 2, 3 5, 9 1)") ));
+  }
+  else
+  {
+      QVariant v = QgsPostgresProvider::convertValue( mSource->mFields[idx].type(), queryResult.PQgetvalue( row, col ) );
+      feature.setAttribute( idx, v );
+  }
 
   col++;
 }

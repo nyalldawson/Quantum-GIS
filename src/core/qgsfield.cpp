@@ -127,6 +127,13 @@ void QgsField::setComment( const QString& comment )
 
 QString QgsField::displayString( const QVariant& v ) const
 {
+  if ( v.type() == (QVariant::Type)QMetaType::type( "QgsGeometry" ) )
+  {
+    QgsGeometry g = qvariant_cast<QgsGeometry>(v);
+    (void)g.wkbSize();
+    return QGis::tr( g.wkbType() );
+  }
+
   if ( v.isNull() )
   {
     QSettings settings;

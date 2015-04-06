@@ -95,6 +95,11 @@ class CORE_EXPORT QgsGeometry
     //! Destructor
     ~QgsGeometry();
 
+    operator QVariant() const
+    {
+      return QVariant::fromValue(*this);
+    }
+
     /** Returns the underlying geometry store.
      * @note added in QGIS 2.10
      * @see setGeometry
