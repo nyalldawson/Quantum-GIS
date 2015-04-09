@@ -162,6 +162,7 @@ class CORE_EXPORT QgsPaintEffect
     bool mEnabled;
     DrawMode mDrawMode;
     bool requiresQPainterDpiFix;
+    QPicture* mOriginalSource;
 
     /** Handles drawing of the effect's result on to the specified render context.
      * Derived classes must reimplement this method to apply any transformations to

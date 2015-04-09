@@ -61,6 +61,7 @@ static void _initWidgetFunctions()
   _initWidgetFunction( "innerGlow", QgsGlowWidget::create );
   _initWidgetFunction( "transform", QgsTransformWidget::create );
   _initWidgetFunction( "color", QgsColorEffectWidget::create );
+  _initWidgetFunction( "mask", QgsMaskEffectWidget::create );
 
   initialized = true;
 }

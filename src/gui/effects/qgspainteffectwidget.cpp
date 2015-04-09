@@ -22,6 +22,7 @@
 #include "qgsgloweffect.h"
 #include "qgstransformeffect.h"
 #include "qgscoloreffect.h"
+#include "qgsmaskeffect.h"
 #include "qgsstylev2.h"
 #include "qgsvectorcolorrampv2.h"
 
@@ -962,5 +963,79 @@ void QgsColorEffectWidget::on_mGrayscaleCombo_currentIndexChanged( int index )
     return;
 
   mEffect->setGrayscaleMode(( QgsImageOperation::GrayscaleMode ) mGrayscaleCombo->itemData( mGrayscaleCombo->currentIndex() ).toInt() );
+  emit changed();
+}
+
+
+
+//
+// mask
+//
+
+QgsMaskEffectWidget::QgsMaskEffectWidget( QWidget *parent )
+    : QgsPaintEffectWidget( parent )
+    , mEffect( NULL )
+{
+  setupUi( this );
+
+  mMaskTypeCombo->addItem( tr( "Source In" ), QgsMaskEffect::SourceIn );
+  mMaskTypeCombo->addItem( tr( "Source Out" ), QgsMaskEffect::SourceOut );
+  mMaskTypeCombo->addItem( tr( "Fade from top" ), QgsMaskEffect::FadeFromTop );
+  mMaskTypeCombo->addItem( tr( "Fade from bottom" ), QgsMaskEffect::FadeFromBottom );
+  mMaskTypeCombo->addItem( tr( "Fade from left" ), QgsMaskEffect::FadeFromLeft );
+  mMaskTypeCombo->addItem( tr( "Fade from right" ), QgsMaskEffect::FadeFromRight );
+
+  initGui();
+}
+
+
+void QgsMaskEffectWidget::setPaintEffect( QgsPaintEffect *effect )
+{
+  if ( !effect || effect->type() != "mask" )
+    return;
+
+  mEffect = static_cast<QgsMaskEffect*>( effect );
+  initGui();
+}
+
+void QgsMaskEffectWidget::initGui()
+{
+  if ( !mEffect )
+  {
+    return;
+  }
+
+  blockSignals( true );
+
+  mMaskTypeCombo->setCurrentIndex( mMaskTypeCombo->findData( mEffect->maskType() ) );
+  mDrawModeComboBox->setDrawMode( mEffect->drawMode() );
+
+  blockSignals( false );
+}
+
+void QgsMaskEffectWidget::blockSignals( const bool block )
+{
+  mMaskTypeCombo->blockSignals( block );
+  mDrawModeComboBox->blockSignals( block );
+}
+
+void QgsMaskEffectWidget::on_mMaskTypeCombo_currentIndexChanged( int index )
+{
+  if ( !mEffect )
+    return;
+
+  QgsMaskEffect::MaskType type = ( QgsMaskEffect::MaskType ) mMaskTypeCombo->itemData( index ).toInt();
+  mEffect->setMaskType( type );
+  emit changed();
+}
+
+void QgsMaskEffectWidget::on_mDrawModeComboBox_currentIndexChanged( int index )
+{
+  Q_UNUSED( index );
+
+  if ( !mEffect )
+    return;
+
+  mEffect->setDrawMode( mDrawModeComboBox->drawMode() );
   emit changed();
 }

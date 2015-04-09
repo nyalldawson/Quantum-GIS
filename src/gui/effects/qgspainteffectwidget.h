@@ -25,6 +25,7 @@ class QgsBlurEffect;
 class QgsGlowEffect;
 class QgsTransformEffect;
 class QgsColorEffect;
+class QgsMaskEffect;
 
 
 /** \ingroup gui
@@ -256,6 +257,34 @@ class GUI_EXPORT QgsColorEffectWidget : public QgsPaintEffectWidget, private Ui:
     void on_mColorizeCheck_stateChanged( int state );
     void on_mColorizeColorButton_colorChanged( const QColor& color );
     void on_mGrayscaleCombo_currentIndexChanged( int index );
+
+};
+
+
+
+#include "ui_widget_maskeffect.h"
+
+class GUI_EXPORT QgsMaskEffectWidget : public QgsPaintEffectWidget, private Ui::WidgetMaskEffect
+{
+    Q_OBJECT
+
+  public:
+    QgsMaskEffectWidget( QWidget* parent = NULL );
+
+    static QgsPaintEffectWidget* create() { return new QgsMaskEffectWidget(); }
+
+    virtual void setPaintEffect( QgsPaintEffect* effect ) override;
+
+  private:
+    QgsMaskEffect* mEffect;
+
+    void initGui();
+    void blockSignals( const bool block );
+
+  private slots:
+
+    void on_mMaskTypeCombo_currentIndexChanged( int index );
+    void on_mDrawModeComboBox_currentIndexChanged( int index );
 
 };
 

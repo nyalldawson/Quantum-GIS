@@ -20,6 +20,7 @@
 #include "qgsgloweffect.h"
 #include "qgstransformeffect.h"
 #include "qgscoloreffect.h"
+#include "qgsmaskeffect.h"
 
 QgsPaintEffectAbstractMetadata::QgsPaintEffectAbstractMetadata( const QString& name, const QString& visibleName )
     : mName( name )
@@ -49,6 +50,8 @@ QgsPaintEffectRegistry::QgsPaintEffectRegistry()
                  QgsTransformEffect::create, nullptr ) );
   addEffectType( new QgsPaintEffectMetadata( "color", QObject::tr( "Colorise" ),
                  QgsColorEffect::create, nullptr ) );
+  addEffectType( new QgsPaintEffectMetadata( "mask", QObject::tr( "Mask" ),
+                 QgsMaskEffect::create, nullptr ) );
 }
 
 QgsPaintEffectRegistry::~QgsPaintEffectRegistry()
