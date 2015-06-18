@@ -201,6 +201,10 @@ class CORE_EXPORT QgsDataItem : public QObject
     /** Move object and all its descendants to thread */
     void moveToThread( QThread * targetThread );
 
+    virtual bool hasPropertyText() const { return false; }
+
+    virtual QString propertyText() const { return QString(); }
+
   protected:
     virtual void populate( QVector<QgsDataItem*> children );
     virtual void refresh( QVector<QgsDataItem*> children );

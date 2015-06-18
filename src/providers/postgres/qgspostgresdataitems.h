@@ -63,6 +63,11 @@ class QgsPGConnectionItem : public QgsDataCollectionItem
     virtual bool acceptDrop() override { return true; }
     virtual bool handleDrop( const QMimeData * data, Qt::DropAction action ) override;
 
+
+    virtual bool hasPropertyText() const override { return true; }
+
+    virtual QString propertyText() const override { return QObject::tr( "test" ); }
+
   signals:
     void addGeometryColumn( QgsPostgresLayerProperty );
 

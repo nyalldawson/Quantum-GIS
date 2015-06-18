@@ -82,6 +82,17 @@ class QgsBrowserDirectoryProperties : public QgsBrowserPropertiesWidget , privat
     QgsBrowserPropertiesWrapLabel *mPathLabel;
 };
 
+class QgsBrowserHtmlProperties : public QgsBrowserPropertiesWidget
+{
+    Q_OBJECT
+  public:
+    QgsBrowserHtmlProperties( QWidget* parent = 0 );
+    void setItem( QgsDataItem* item ) override;
+
+  private:
+    QTextBrowser *mTextBrowser;
+};
+
 class QgsBrowserPropertiesDialog : public QDialog , private Ui::QgsBrowserPropertiesDialogBase
 {
     Q_OBJECT

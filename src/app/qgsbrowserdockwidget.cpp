@@ -276,7 +276,13 @@ QgsBrowserPropertiesWidget::QgsBrowserPropertiesWidget( QWidget* parent ) :
 QgsBrowserPropertiesWidget* QgsBrowserPropertiesWidget::createWidget( QgsDataItem* item, QWidget* parent )
 {
   QgsBrowserPropertiesWidget* propertiesWidget = 0;
-  if ( item->type() == QgsDataItem::Layer )
+
+  if ( item->hasPropertyText() )
+  {
+    propertiesWidget = new QgsBrowserHtmlProperties( parent );
+    propertiesWidget->setItem( item );
+  }
+  else if ( item->type() == QgsDataItem::Layer )
   {
     propertiesWidget = new QgsBrowserLayerProperties( parent );
     propertiesWidget->setItem( item );
@@ -909,3 +915,22 @@ void QgsBrowserDockWidget::splitterMoved()
   mPropertiesWidgetHeight = total > 0 ? sizes.value( 1 ) / total : 0;
 }
 
+
+QgsBrowserHtmlProperties::QgsBrowserHtmlProperties( QWidget *parent )
+    : QgsBrowserPropertiesWidget( parent )
+{
+  QVBoxLayout *vLayout = new QVBoxLayout();
+  mTextBrowser = new QTextBrowser( 0 );
+  vLayout->addWidget( mTextBrowser );
+  vLayout->setSpacing( 6 );
+  vLayout->setContentsMargins( 0, 0, 0, 0 );
+  setLayout( vLayout );
+}
+
+void QgsBrowserHtmlProperties::setItem( QgsDataItem *item )
+{
+  if ( !item )
+    return;
+
+  mTextBrowser->setText( item->propertyText() );
+}
