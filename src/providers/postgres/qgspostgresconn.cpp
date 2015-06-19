@@ -73,6 +73,11 @@ QString QgsPostgresResult::PQresultErrorMessage()
   return mRes ? QString::fromUtf8( ::PQresultErrorMessage( mRes ) ) : QObject::tr( "no result buffer" );
 }
 
+QString QgsPostgresResult::PQcmdTuples()
+{
+  return mRes ? QString::fromUtf8( ::PQcmdTuples( mRes ) ) : QObject::tr( "no result buffer" );
+}
+
 int QgsPostgresResult::PQntuples()
 {
   Q_ASSERT( mRes );

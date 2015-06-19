@@ -11,6 +11,7 @@ SET(PG_SRCS
   qgspostgrestransaction.cpp
   qgspgsourceselect.cpp
   qgspgnewconnection.cpp
+  qgspgquerydialog.cpp
   qgspgtablemodel.cpp
   qgscolumntypethread.cpp
   qgspostgresexpressioncompiler.cpp
@@ -22,6 +23,7 @@ SET(PG_MOC_HDRS
   qgspostgresdataitems.h
   qgspgsourceselect.h
   qgspgnewconnection.h
+  qgspgquerydialog.h
   qgspgtablemodel.h
   qgscolumntypethread.h
 )

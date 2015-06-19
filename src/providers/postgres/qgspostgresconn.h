@@ -152,6 +152,7 @@ class QgsPostgresResult
 
     ExecStatusType PQresultStatus();
     QString PQresultErrorMessage();
+    QString PQcmdTuples();
 
     int PQntuples();
     QString PQgetvalue( int row, int col );

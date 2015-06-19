@@ -23,6 +23,7 @@
 #include "qgsapplication.h"
 #include "qgsmessageoutput.h"
 #include "qgsnewnamedialog.h"
+#include "qgspgquerydialog.h"
 
 #include <QMessageBox>
 #include <QProgressDialog>
@@ -98,6 +99,18 @@ QList<QAction*> QgsPGConnectionItem::actions()
 {
   QList<QAction*> lst;
 
+  QAction* actionRefresh = new QAction( tr( "Refresh" ), this );
+  connect( actionRefresh, SIGNAL( triggered() ), this, SLOT( refreshConnection() ) );
+  lst.append( actionRefresh );
+
+  QAction* actionQuery = new QAction( tr( "Query..." ), this );
+  connect( actionQuery, SIGNAL( triggered() ), this, SLOT( query() ) );
+  lst.append( actionQuery );
+
+  QAction* separator = new QAction( this );
+  separator->setSeparator( true );
+  lst.append( separator );
+
   QAction* actionEdit = new QAction( tr( "Edit..." ), this );
   connect( actionEdit, SIGNAL( triggered() ), this, SLOT( editConnection() ) );
   lst.append( actionEdit );
@@ -105,10 +118,6 @@ QList<QAction*> QgsPGConnectionItem::actions()
   QAction* actionDelete = new QAction( tr( "Delete" ), this );
   connect( actionDelete, SIGNAL( triggered() ), this, SLOT( deleteConnection() ) );
   lst.append( actionDelete );
-
-  QAction* actionRefresh = new QAction( tr( "Refresh" ), this );
-  connect( actionRefresh, SIGNAL( triggered() ), this, SLOT( refreshConnection() ) );
-  lst.append( actionRefresh );
 
   return lst;
 }
@@ -141,6 +150,13 @@ void QgsPGConnectionItem::refreshConnection()
 {
   // the parent should be updated
   refresh();
+}
+
+void QgsPGConnectionItem::query()
+{
+  QgsPgQueryDialog dlg( mName, NULL );
+  dlg.setWindowTitle( tr( "Query %1" ).arg( mName ) );
+  dlg.exec();
 }
 
 bool QgsPGConnectionItem::handleDrop( const QMimeData * data, Qt::DropAction )
@@ -614,6 +630,8 @@ void QgsPGRootItem::newConnection()
     refresh();
   }
 }
+
+
 
 QMainWindow *QgsPGRootItem::sMainWindow = 0;
 

@@ -47,6 +47,7 @@ class QgsPGRootItem : public QgsDataCollectionItem
   public slots:
     void connectionsChanged();
     void newConnection();
+
 };
 
 class QgsPGConnectionItem : public QgsDataCollectionItem
@@ -75,6 +76,7 @@ class QgsPGConnectionItem : public QgsDataCollectionItem
     void editConnection();
     void deleteConnection();
     void refreshConnection();
+    void query();
 
 };
 
