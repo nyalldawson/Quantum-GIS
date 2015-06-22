@@ -19,6 +19,9 @@
 #include "qgsdatasourceuri.h"
 #include "qgspostgresconn.h"
 #include "qgspostgresconnpool.h"
+#include "qgsvectorlayer.h"
+#include "qgsmaplayerregistry.h"
+#include "qgsvectordataprovider.h"
 #include <QMessageBox>
 #include <QSettings>
 #include <QTextBrowser>
@@ -41,6 +44,8 @@ QgsPgQueryDialog::QgsPgQueryDialog( const QString& connectionName, QWidget *pare
   mSqlEditor->setVerticalScrollBarPolicy( Qt::ScrollBarAsNeeded );
   initCompleter();
 
+  mLayerComboBox->setFilters( QgsMapLayerProxyModel::VectorLayer );
+  connect( mLayerComboBox, SIGNAL( layerChanged( QgsMapLayer* ) ), this, SLOT( setFromLayer( QgsMapLayer* ) ) );
 }
 
 QgsPgQueryDialog::~QgsPgQueryDialog()
@@ -149,8 +154,8 @@ void QgsPgQueryDialog::on_mRetrieveColumnsButton_clicked()
 
   mIdColCombo->setEnabled( true );
   mGeomColCombo->setEnabled( true );
-  mIdColCombo->addItem( tr("<not set>"));
-  mGeomColCombo->addItem( tr("<not set>"));
+  mIdColCombo->addItem( tr( "<not set>" ) );
+  mGeomColCombo->addItem( tr( "<not set>" ) );
 
   int defaultKeyCol = -1;
   int defaultGeomCol = -1;
@@ -159,7 +164,7 @@ void QgsPgQueryDialog::on_mRetrieveColumnsButton_clicked()
   QStringList pkColCandidates = QStringList() << "id" << "uid" << "pid";
   QStringList geomColCandidates = QStringList() << "geom" << "geometry" << "the_geom" << "way";
 
-  mMessagesBrowser->setText( tr( "%1 columns fetched for query.").arg( result.PQnfields() ) );
+  mMessagesBrowser->setText( tr( "%1 columns fetched for query." ).arg( result.PQnfields() ) );
   for ( int i = 0; i < result.PQnfields(); i++ )
   {
     QString colName = result.PQfname( i );
@@ -186,9 +191,9 @@ void QgsPgQueryDialog::on_mRetrieveColumnsButton_clicked()
 
   //precedence goes to keeping the previous selected columns
   if ( prevKeyCol >= 0 )
-    mIdColCombo->setCurrentIndex( prevKeyCol + 1);
+    mIdColCombo->setCurrentIndex( prevKeyCol + 1 );
   else if ( defaultKeyCol >= 0 )
-    mIdColCombo->setCurrentIndex( defaultKeyCol + 1);
+    mIdColCombo->setCurrentIndex( defaultKeyCol + 1 );
 
   if ( prevGeomCol >= 0 )
     mGeomColCombo->setCurrentIndex( prevGeomCol + 1 );
@@ -197,6 +202,121 @@ void QgsPgQueryDialog::on_mRetrieveColumnsButton_clicked()
 
   QgsPostgresConnPool::instance()->releaseConnection( conn );
   QApplication::restoreOverrideCursor();
+}
+
+void QgsPgQueryDialog::on_mLoadLayerButton_clicked()
+{
+  QString query = mSqlEditor->text().trimmed();
+
+  // remove a trailing ';' from query if present
+  if ( query.endsWith( ';' ) )
+  {
+    query.chop( 1 );
+  }
+
+  if ( query.isEmpty() )
+  {
+    mMessagesBrowser->setText( QString() );
+    return;
+  }
+
+  //wrap query in ()s
+  query.prepend( "(" ).append( ")" );
+
+  bool hasUniqueField = mIdColCombo->currentIndex() > 0;
+  QString uniqueField = hasUniqueField ? mIdColCombo->currentText() : QString();
+  bool hasGeomField = mGeomColCombo->currentIndex() > 0;
+  QString geomField = hasGeomField ? mGeomColCombo->currentText() : QString();
+
+  QApplication::setOverrideCursor( Qt::WaitCursor );
+
+  QString layerName = mLayerNameEdit->text();
+
+  QgsDataSourceURI uri = QgsPostgresConn::connUri( mConnName );
+  uri.setDataSource( QString(), query, geomField, QString(), uniqueField );
+  uri.disableSelectAtId( mCacheCheckBox->isChecked() );
+
+  //todo - test run the query
+
+  QList< QgsMapLayer* > existing = QgsMapLayerRegistry::instance()->mapLayersByName( layerName );
+  QgsVectorLayer* layer = 0;
+
+  if ( existing.count() > 0 )
+  {
+    layer = dynamic_cast< QgsVectorLayer* >( existing.at( 0 ) );
+    if ( layer )
+    {
+      layer->setDataSource( uri.uri(), layerName, QString( "postgres" ), false );
+    }
+  }
+  else
+  {
+    layer = new QgsVectorLayer( uri.uri(), layerName, QString( "postgres" ), false );
+    if ( layer->isValid() )
+    {
+      QgsMapLayerRegistry::instance()->addMapLayer( layer );
+    }
+  }
+
+
+  /*
+
+          # get a new layer name
+          names = []
+          for layer in QgsMapLayerRegistry.instance().mapLayers().values():
+              names.append(layer.name())
+
+          layerName = self.layerNameEdit.text()
+          if layerName == "":
+              layerName = self.defaultLayerName
+          newLayerName = layerName
+          index = 1
+          while newLayerName in names:
+              index += 1
+              newLayerName = u"%s_%d" % (layerName, index)
+  */
+
+  QApplication::restoreOverrideCursor();
+}
+
+void QgsPgQueryDialog::setFromLayer( QgsMapLayer *layer )
+{
+  QgsVectorLayer* vlayer = dynamic_cast< QgsVectorLayer* >( layer );
+  if ( !vlayer )
+    return;
+
+  QString uri = vlayer->dataProvider()->dataSourceUri();
+  QgsDataSourceURI dsUri( uri );
+
+  QString table = dsUri.table().trimmed();
+  //trim surrounding brackets
+  if ( table.startsWith( "(" ) && table.endsWith( ")" ) )
+  {
+    table.remove( 0, 1 ).chop( 1 );
+  }
+  mSqlEditor->setText( table );
+
+  mLayerNameEdit->setText( vlayer->name() );
+  QString geomCol = dsUri.geometryColumn();
+  QString keyCol = dsUri.keyColumn();
+
+  mIdColCombo->clear();
+  mIdColCombo->setEnabled( true );
+  mIdColCombo->addItem( tr( "<not set>" ) );
+  if ( !keyCol.isEmpty() )
+  {
+    mIdColCombo->addItem( keyCol );
+    mIdColCombo->setCurrentIndex( 1 );
+  }
+  mGeomColCombo->clear();
+  mGeomColCombo->setEnabled( true );
+  mGeomColCombo->addItem( tr( "<not set>" ) );
+  if ( !geomCol.isEmpty() )
+  {
+    mGeomColCombo->addItem( geomCol );
+    mGeomColCombo->setCurrentIndex( 1 );
+  }
+
 }
 
 void QgsPgQueryDialog::initCompleter()

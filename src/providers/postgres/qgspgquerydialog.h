@@ -34,6 +34,8 @@ class QgsPgQueryDialog : public QDialog, private Ui::QgsDbQueryDialog
     void on_mClearButton_clicked();
     void on_mExecuteButton_clicked();
     void on_mRetrieveColumnsButton_clicked();
+    void on_mLoadLayerButton_clicked();
+    void setFromLayer( QgsMapLayer* layer );
 
   private:
 
