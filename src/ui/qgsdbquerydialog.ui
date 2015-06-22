@@ -169,7 +169,7 @@
       </sizepolicy>
      </property>
      <property name="title">
-      <string>Load as new layer</string>
+      <string>Load as layer</string>
      </property>
      <property name="checkable">
       <bool>true</bool>
@@ -187,15 +187,14 @@
          <item row="0" column="0">
           <layout class="QHBoxLayout" name="horizontalLayout_6">
            <item>
-            <widget class="QCheckBox" name="uniqueColumnCheck">
+            <widget class="QLabel" name="label_3">
              <property name="text">
-              <string>Column with unique 
-integer values</string>
+              <string>Column with unique integer values</string>
              </property>
             </widget>
            </item>
            <item>
-            <widget class="QComboBox" name="uniqueCombo">
+            <widget class="QComboBox" name="mIdColCombo">
              <property name="enabled">
               <bool>false</bool>
              </property>
@@ -214,20 +213,17 @@ integer values</string>
             </widget>
            </item>
            <item>
-            <widget class="QCheckBox" name="hasGeometryCol">
+            <widget class="QLabel" name="label_4">
              <property name="text">
               <string>Geometry column</string>
-             </property>
-             <property name="checked">
-              <bool>true</bool>
-             </property>
-             <property name="tristate">
-              <bool>false</bool>
              </property>
             </widget>
            </item>
            <item>
-            <widget class="QComboBox" name="geomCombo">
+            <widget class="QComboBox" name="mGeomColCombo">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
              <property name="sizePolicy">
               <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
                <horstretch>0</horstretch>
@@ -259,10 +255,9 @@ integer values</string>
             </spacer>
            </item>
            <item>
-            <widget class="QPushButton" name="getColumnsBtn">
+            <widget class="QPushButton" name="mRetrieveColumnsButton">
              <property name="text">
-              <string>Retrieve 
-columns</string>
+              <string>Retrieve columns</string>
              </property>
             </widget>
            </item>
@@ -315,7 +310,7 @@ columns</string>
            <item>
             <widget class="QPushButton" name="loadLayerBtn">
              <property name="text">
-              <string>Load now!</string>
+              <string>Load layer</string>
              </property>
             </widget>
            </item>
@@ -365,38 +360,6 @@ columns</string>
     <hint type="destinationlabel">
      <x>142</x>
      <y>451</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>hasGeometryCol</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>geomCombo</receiver>
-   <slot>setEnabled(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>379</x>
-     <y>385</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>525</x>
-     <y>385</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>uniqueColumnCheck</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>uniqueCombo</receiver>
-   <slot>setEnabled(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>109</x>
-     <y>385</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>274</x>
-     <y>385</y>
     </hint>
    </hints>
   </connection>

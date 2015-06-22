@@ -33,6 +33,7 @@ class QgsPgQueryDialog : public QDialog, private Ui::QgsDbQueryDialog
 
     void on_mClearButton_clicked();
     void on_mExecuteButton_clicked();
+    void on_mRetrieveColumnsButton_clicked();
 
   private:
 

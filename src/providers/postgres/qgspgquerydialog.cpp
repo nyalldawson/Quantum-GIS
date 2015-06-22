@@ -52,6 +52,10 @@ QgsPgQueryDialog::~QgsPgQueryDialog()
 void QgsPgQueryDialog::on_mClearButton_clicked()
 {
   mSqlEditor->clear();
+  mIdColCombo->clear();
+  mGeomColCombo->clear();
+  mIdColCombo->setEnabled( false );
+  mGeomColCombo->setEnabled( false );
   mSqlEditor->setFocus();
 }
 
@@ -92,6 +96,107 @@ void QgsPgQueryDialog::on_mExecuteButton_clicked()
     mResultsTabWidget->setCurrentIndex( 1 );
   }
   QgsPostgresConnPool::instance()->releaseConnection( conn );
+}
+
+void QgsPgQueryDialog::on_mRetrieveColumnsButton_clicked()
+{
+  QString query = mSqlEditor->text().trimmed();
+
+  QString prevIdColName = mIdColCombo->currentText();
+  QString prevGeomColName = mGeomColCombo->currentText();
+
+  mIdColCombo->clear();
+  mGeomColCombo->clear();
+  mIdColCombo->setEnabled( false );
+  mGeomColCombo->setEnabled( false );
+
+  if ( query.isEmpty() )
+  {
+    mMessagesBrowser->setText( QString() );
+    return;
+  }
+
+  QApplication::setOverrideCursor( Qt::WaitCursor );
+
+  // remove a trailing ';' from query if present
+  if ( query.endsWith( ';' ) )
+  {
+    query.chop( 1 );
+  }
+
+  //get the column names
+  QgsDataSourceURI uri = QgsPostgresConn::connUri( mConnName );
+  QgsPostgresConn *conn = QgsPostgresConnPool::instance()->acquireConnection( uri.connectionInfo() );
+  if ( !conn )
+  {
+    //TODO - show error
+    QMessageBox::warning( 0, "ok", "ok!" );
+    return;
+  }
+
+  QString emptyQuery = QString( "SELECT * FROM (%1) _q LIMIT 0" ).arg( query );
+
+  QgsPostgresResult result;
+  result = conn->PQexec( emptyQuery, true );
+  if ( result.PQresultStatus() == PGRES_FATAL_ERROR )
+  {
+    mMessagesBrowser->setText( result.PQresultErrorMessage() );
+    mResultsTabWidget->setCurrentIndex( 1 );
+    QgsPostgresConnPool::instance()->releaseConnection( conn );
+    QApplication::restoreOverrideCursor();
+    return;
+  }
+
+  mIdColCombo->setEnabled( true );
+  mGeomColCombo->setEnabled( true );
+  mIdColCombo->addItem( tr("<not set>"));
+  mGeomColCombo->addItem( tr("<not set>"));
+
+  int defaultKeyCol = -1;
+  int defaultGeomCol = -1;
+  int prevKeyCol = -1;
+  int prevGeomCol = -1;
+  QStringList pkColCandidates = QStringList() << "id" << "uid" << "pid";
+  QStringList geomColCandidates = QStringList() << "geom" << "geometry" << "the_geom" << "way";
+
+  mMessagesBrowser->setText( tr( "%1 columns fetched for query.").arg( result.PQnfields() ) );
+  for ( int i = 0; i < result.PQnfields(); i++ )
+  {
+    QString colName = result.PQfname( i );
+    if ( defaultKeyCol == -1 && pkColCandidates.contains( colName ) )
+    {
+      defaultKeyCol = i;
+    }
+    if ( defaultGeomCol == -1 && geomColCandidates.contains( colName ) )
+    {
+      defaultGeomCol = i;
+    }
+    if ( colName == prevIdColName )
+    {
+      prevKeyCol = i;
+    }
+    if ( colName == prevGeomColName )
+    {
+      prevGeomCol = i;
+    }
+
+    mIdColCombo->addItem( colName );
+    mGeomColCombo->addItem( colName );
+  }
+
+  //precedence goes to keeping the previous selected columns
+  if ( prevKeyCol >= 0 )
+    mIdColCombo->setCurrentIndex( prevKeyCol + 1);
+  else if ( defaultKeyCol >= 0 )
+    mIdColCombo->setCurrentIndex( defaultKeyCol + 1);
+
+  if ( prevGeomCol >= 0 )
+    mGeomColCombo->setCurrentIndex( prevGeomCol + 1 );
+  else if ( defaultGeomCol >= 0 )
+    mGeomColCombo->setCurrentIndex( defaultGeomCol + 1 );
+
+  QgsPostgresConnPool::instance()->releaseConnection( conn );
+  QApplication::restoreOverrideCursor();
 }
 
 void QgsPgQueryDialog::initCompleter()
