@@ -641,6 +641,16 @@ class QgsPalLabeling : QgsLabelingEngineInterface
       LabelShadow
     };
 
+    enum DrawMethod
+    {
+      PreferText = 0, /*!< Draws labels using text objects where possible (ie, where
+                        text output will be high quality). Falls back to using
+                        outlines if outline drawing will result in higher quality
+                        output.*/
+      AlwaysText, /*!< Draws all labels as text objects. */
+      AlwaysOutlines /*!< Draws all labels as outlines. */
+    };
+
     QgsPalLabeling();
     ~QgsPalLabeling();
 
@@ -667,9 +677,27 @@ class QgsPalLabeling : QgsLabelingEngineInterface
     bool isShowingPartialsLabels() const;
     void setShowingPartialsLabels( bool showing );
 
-    //! @note added in 2.4
-    bool isDrawingOutlineLabels() const;
-    void setDrawingOutlineLabels( bool outline );
+    /** @deprecated use drawMethod instead
+    * @note added in 2.4
+    */
+    bool isDrawingOutlineLabels() const /Deprecated/;
+
+    /** @deprecated use setDrawMethod instead
+     * @note added in 2.4
+     */
+    void setDrawingOutlineLabels( bool outline ) /Deprecated/;
+
+    /** Returns the method used for rendering labels.
+     * @note added in 2.10
+     * @see setDrawMethod
+     */
+    DrawMethod drawMethod() const;
+
+    /** Sets the method used for rendering labels.
+     * @note added in 2.10
+     * @see drawMethod
+     */
+    void setDrawMethod( DrawMethod method );
 
     // implemented methods from labeling engine interface
 

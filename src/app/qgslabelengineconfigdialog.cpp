@@ -46,7 +46,7 @@ QgsLabelEngineConfigDialog::QgsLabelEngineConfigDialog( QWidget* parent )
   mShadowDebugRectChkBox->setChecked( lbl.isShowingShadowRectangles() );
 
   chkShowPartialsLabels->setChecked( lbl.isShowingPartialsLabels() );
-  mDrawOutlinesChkBox->setChecked( lbl.isDrawingOutlineLabels() );
+  mDrawMethodCombo->setCurrentIndex(( int )lbl.drawMethod() );
 }
 
 
@@ -65,8 +65,7 @@ void QgsLabelEngineConfigDialog::onOK()
   lbl.setShowingShadowRectangles( mShadowDebugRectChkBox->isChecked() );
   lbl.setShowingAllLabels( chkShowAllLabels->isChecked() );
   lbl.setShowingPartialsLabels( chkShowPartialsLabels->isChecked() );
-  lbl.setDrawingOutlineLabels( mDrawOutlinesChkBox->isChecked() );
-
+  lbl.setDrawMethod(( QgsPalLabeling::DrawMethod )mDrawMethodCombo->currentIndex() );
   lbl.saveEngineSettings();
 
   accept();
@@ -83,5 +82,5 @@ void QgsLabelEngineConfigDialog::setDefaults()
   chkShowAllLabels->setChecked( false );
   mShadowDebugRectChkBox->setChecked( false );
   chkShowPartialsLabels->setChecked( p.getShowPartial() );
-  mDrawOutlinesChkBox->setChecked( true );
+  mDrawMethodCombo->setCurrentIndex( 0 );
 }

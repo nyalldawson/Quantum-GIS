@@ -3037,7 +3037,7 @@ QgsPalLabeling::QgsPalLabeling()
   mShowingShadowRects = false;
   mShowingAllLabels = false;
   mShowingPartialsLabels = p.getShowPartial();
-  mDrawOutlineLabels = true;
+  mDrawTextMethod = PreferText;
 }
 
 QgsPalLabeling::~QgsPalLabeling()
@@ -3515,6 +3515,27 @@ bool QgsPalLabeling::checkMinimumSizeMM( const QgsRenderContext& context, const 
     }
   }
   return true; //should never be reached. Return true in this case to label such geometries anyway.
+}
+
+bool QgsPalLabeling::shouldDrawUsingOutlines( const QgsPalLayerSettings& layer ) const
+{
+  switch ( mDrawTextMethod )
+  {
+    case AlwaysOutlines:
+      return true;
+
+    case AlwaysText:
+      return false;
+
+    case PreferText:
+
+      //use outlines if buffer is enabled
+      return layer.bufferDraw;
+
+  }
+
+  //should not be reachable
+  return false;
 }
 
 void QgsPalLabeling::registerDiagramFeature( const QString& layerID, QgsFeature& feat, const QgsRenderContext& context )
@@ -4354,6 +4375,16 @@ QgsPalLabeling::Search QgsPalLabeling::searchMethod() const
   return mSearch;
 }
 
+bool QgsPalLabeling::isDrawingOutlineLabels() const
+{
+  return mDrawTextMethod == AlwaysOutlines;
+}
+
+void QgsPalLabeling::setDrawingOutlineLabels( bool outline )
+{
+  mDrawTextMethod = outline ? QgsPalLabeling::AlwaysOutlines : QgsPalLabeling::AlwaysText;
+}
+
 void QgsPalLabeling::drawLabelCandidateRect( pal::LabelPosition* lp, QPainter* painter, const QgsMapToPixel* xform )
 {
   QgsPoint outPt = xform->transform( lp->getX(), lp->getY() );
@@ -4630,7 +4661,7 @@ void QgsPalLabeling::drawLabel( pal::LabelPosition* label, QgsRenderContext& con
         // scale for any print output or image saving @ specific dpi
         painter->scale( component.dpiRatio(), component.dpiRatio() );
 
-        if ( mDrawOutlineLabels )
+        if ( shouldDrawUsingOutlines( tmpLyr ) )
         {
           // draw outlined text
           _fixQPictureDPI( painter );
@@ -4638,7 +4669,7 @@ void QgsPalLabeling::drawLabel( pal::LabelPosition* label, QgsRenderContext& con
         }
         else
         {
-          // draw text as text (for SVG and PDF exports)
+          // draw text as text
           painter->setFont( tmpLyr.textFont );
           painter->setPen( tmpLyr.textColor );
           painter->setRenderHint( QPainter::TextAntialiasing );
@@ -5175,8 +5206,8 @@ void QgsPalLabeling::loadEngineSettings()
                         "PAL", "/ShowingAllLabels", false, &saved );
   mShowingPartialsLabels = QgsProject::instance()->readBoolEntry(
                              "PAL", "/ShowingPartialsLabels", p.getShowPartial(), &saved );
-  mDrawOutlineLabels = QgsProject::instance()->readBoolEntry(
-                         "PAL", "/DrawOutlineLabels", true, &saved );
+  mDrawTextMethod = ( QgsPalLabeling::DrawMethod )QgsProject::instance()->readNumEntry(
+                      "PAL", "/DrawMethod", 0, &saved );
 }
 
 void QgsPalLabeling::saveEngineSettings()
@@ -5189,7 +5220,7 @@ void QgsPalLabeling::saveEngineSettings()
   QgsProject::instance()->writeEntry( "PAL", "/ShowingShadowRects", mShowingShadowRects );
   QgsProject::instance()->writeEntry( "PAL", "/ShowingAllLabels", mShowingAllLabels );
   QgsProject::instance()->writeEntry( "PAL", "/ShowingPartialsLabels", mShowingPartialsLabels );
-  QgsProject::instance()->writeEntry( "PAL", "/DrawOutlineLabels", mDrawOutlineLabels );
+  QgsProject::instance()->writeEntry( "PAL", "/DrawMethod", ( int )mDrawTextMethod );
 }
 
 void QgsPalLabeling::clearEngineSettings()
@@ -5202,7 +5233,7 @@ void QgsPalLabeling::clearEngineSettings()
   QgsProject::instance()->removeEntry( "PAL", "/ShowingShadowRects" );
   QgsProject::instance()->removeEntry( "PAL", "/ShowingAllLabels" );
   QgsProject::instance()->removeEntry( "PAL", "/ShowingPartialsLabels" );
-  QgsProject::instance()->removeEntry( "PAL", "/DrawOutlineLabels" );
+  QgsProject::instance()->removeEntry( "PAL", "/DrawMethod" );
 }
 
 QgsLabelingEngineInterface* QgsPalLabeling::clone()
@@ -5212,7 +5243,7 @@ QgsLabelingEngineInterface* QgsPalLabeling::clone()
   lbl->mShowingCandidates = mShowingCandidates;
   lbl->mShowingShadowRects = mShowingShadowRects;
   lbl->mShowingPartialsLabels = mShowingPartialsLabels;
-  lbl->mDrawOutlineLabels = mDrawOutlineLabels;
+  lbl->mDrawTextMethod = mDrawTextMethod;
   return lbl;
 }
 

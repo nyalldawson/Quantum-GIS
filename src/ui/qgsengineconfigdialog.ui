@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>336</width>
-    <height>430</height>
+    <width>458</width>
+    <height>393</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -211,58 +211,32 @@
     </layout>
    </item>
    <item>
-    <layout class="QGridLayout" name="gridLayout_2">
+    <layout class="QGridLayout" name="gridLayout_2" columnstretch="0,1">
      <property name="verticalSpacing">
       <number>6</number>
      </property>
-     <item row="1" column="0" colspan="3">
+     <item row="1" column="0" colspan="2">
       <widget class="QCheckBox" name="chkShowPartialsLabels">
        <property name="text">
         <string>Show partials labels</string>
        </property>
       </widget>
      </item>
-     <item row="5" column="0" colspan="3">
-      <widget class="QCheckBox" name="mShadowDebugRectChkBox">
+     <item row="0" column="0">
+      <widget class="QLabel" name="label_5">
        <property name="text">
-        <string>Show shadow rectangles (for debugging)</string>
+        <string>Render labels as</string>
        </property>
       </widget>
      </item>
-     <item row="3" column="2">
-      <spacer name="horizontalSpacer_4">
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
-       </property>
-       <property name="sizeHint" stdset="0">
-        <size>
-         <width>0</width>
-         <height>20</height>
-        </size>
-       </property>
-      </spacer>
-     </item>
-     <item row="4" column="0" colspan="3">
+     <item row="3" column="0" colspan="2">
       <widget class="QCheckBox" name="chkShowCandidates">
        <property name="text">
         <string>Show candidates (for debugging)</string>
        </property>
       </widget>
      </item>
-     <item row="3" column="1">
-      <widget class="QLabel" name="label_6">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="text">
-        <string>(i.e. including colliding objects)</string>
-       </property>
-      </widget>
-     </item>
-     <item row="2" column="0" colspan="3">
+     <item row="2" column="0" colspan="2">
       <widget class="QCheckBox" name="chkShowAllLabels">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
@@ -271,31 +245,35 @@
         </sizepolicy>
        </property>
        <property name="text">
-        <string>Show all labels and features for all layers</string>
+        <string>Show all labels and features for all layers
+(i.e. including colliding objects)</string>
        </property>
       </widget>
      </item>
-     <item row="3" column="0">
-      <spacer name="horizontalSpacer_3">
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
-       </property>
-       <property name="sizeType">
-        <enum>QSizePolicy::Fixed</enum>
-       </property>
-       <property name="sizeHint" stdset="0">
-        <size>
-         <width>8</width>
-         <height>8</height>
-        </size>
-       </property>
-      </spacer>
-     </item>
-     <item row="0" column="0" colspan="3">
-      <widget class="QCheckBox" name="mDrawOutlinesChkBox">
+     <item row="4" column="0" colspan="2">
+      <widget class="QCheckBox" name="mShadowDebugRectChkBox">
        <property name="text">
-        <string>Draw text as outlines (recommended)</string>
+        <string>Show shadow rectangles (for debugging)</string>
        </property>
+      </widget>
+     </item>
+     <item row="0" column="1">
+      <widget class="QComboBox" name="mDrawMethodCombo">
+       <item>
+        <property name="text">
+         <string>Prefer text where possible (recommended)</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Always text</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Always outlines</string>
+        </property>
+       </item>
       </widget>
      </item>
     </layout>
@@ -330,12 +308,11 @@
   <tabstop>spinCandPoint</tabstop>
   <tabstop>spinCandLine</tabstop>
   <tabstop>spinCandPolygon</tabstop>
-  <tabstop>mDrawOutlinesChkBox</tabstop>
+  <tabstop>mDrawMethodCombo</tabstop>
   <tabstop>chkShowPartialsLabels</tabstop>
   <tabstop>chkShowAllLabels</tabstop>
   <tabstop>chkShowCandidates</tabstop>
   <tabstop>mShadowDebugRectChkBox</tabstop>
-  <tabstop>buttonBox</tabstop>
  </tabstops>
  <resources/>
  <connections>

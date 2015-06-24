@@ -711,6 +711,16 @@ class CORE_EXPORT QgsPalLabeling : public QgsLabelingEngineInterface
       LabelShadow
     };
 
+    enum DrawMethod
+    {
+      PreferText = 0, /*!< Draws labels using text objects where possible (ie, where
+                        text output will be high quality). Falls back to using
+                        outlines if outline drawing will result in higher quality
+                        output.*/
+      AlwaysText, /*!< Draws all labels as text objects. */
+      AlwaysOutlines /*!< Draws all labels as outlines. */
+    };
+
     QgsPalLabeling();
     ~QgsPalLabeling();
 
@@ -737,9 +747,27 @@ class CORE_EXPORT QgsPalLabeling : public QgsLabelingEngineInterface
     bool isShowingPartialsLabels() const { return mShowingPartialsLabels; }
     void setShowingPartialsLabels( bool showing ) { mShowingPartialsLabels = showing; }
 
-    //! @note added in 2.4
-    bool isDrawingOutlineLabels() const { return mDrawOutlineLabels; }
-    void setDrawingOutlineLabels( bool outline ) { mDrawOutlineLabels = outline; }
+    /** @deprecated use drawMethod instead
+    * @note added in 2.4
+    */
+    Q_DECL_DEPRECATED bool isDrawingOutlineLabels() const;
+
+    /** @deprecated use setDrawMethod instead
+     * @note added in 2.4
+     */
+    Q_DECL_DEPRECATED void setDrawingOutlineLabels( bool outline );
+
+    /** Returns the method used for rendering labels.
+     * @note added in 2.10
+     * @see setDrawMethod
+     */
+    DrawMethod drawMethod() const { return mDrawTextMethod; }
+
+    /** Sets the method used for rendering labels.
+     * @note added in 2.10
+     * @see drawMethod
+     */
+    void setDrawMethod( DrawMethod method ) { mDrawTextMethod = method; }
 
     // implemented methods from labeling engine interface
 
@@ -901,9 +929,13 @@ class CORE_EXPORT QgsPalLabeling : public QgsLabelingEngineInterface
     bool mShowingAllLabels; // whether to avoid collisions or not
     bool mShowingShadowRects; // whether to show debugging rectangles for drop shadows
     bool mShowingPartialsLabels; // whether to avoid partials labels or not
-    bool mDrawOutlineLabels; // whether to draw labels as text or outlines
+    DrawMethod mDrawTextMethod; //method to use to draw text, (eg outlines)
 
     QgsLabelingResults* mResults;
+
+  private:
+
+    bool shouldDrawUsingOutlines( const QgsPalLayerSettings& layer ) const;
 
     friend class QgsPalLayerSettings;
 };
