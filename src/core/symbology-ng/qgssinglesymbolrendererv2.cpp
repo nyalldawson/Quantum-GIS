@@ -485,3 +485,8 @@ QgsSingleSymbolRendererV2* QgsSingleSymbolRendererV2::convertFromRenderer( const
 
   return r;
 }
+
+void QgsSingleSymbolRendererV2::modifyRequestExtent( QgsRectangle& extent, QgsRenderContext& context )
+{
+
+}
