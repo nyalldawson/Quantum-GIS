@@ -176,7 +176,16 @@ void QgsPieDiagram::renderDiagram( const QgsFeature& feature, QgsRenderContext& 
         }
         else
         {
-          p->drawPie( baseX, baseY, w, h, totalAngle + s.angleOffset, currentAngle );
+
+          QPainterPath pp;
+          pp.arcMoveTo( baseX, baseY, w, h, ( totalAngle + s.angleOffset ) / 16.0 );
+          pp.arcTo( baseX, baseY, w, h, ( totalAngle + s.angleOffset ) / 16.0, currentAngle / 16.0 );
+          double diff = w / 6;
+          pp.arcTo( baseX + diff, baseY + diff, w - 2 * diff, h - 2*diff, currentAngle / 16.0 + ( totalAngle + s.angleOffset ) / 16.0, - currentAngle / 16.0 );
+          pp.closeSubpath();
+
+          p->drawPath( pp );
+//          p->drawPie( baseX, baseY, w, h, totalAngle + s.angleOffset, currentAngle );
         }
         totalAngle += currentAngle;
       }
