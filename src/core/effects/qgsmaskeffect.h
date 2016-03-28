@@ -64,7 +64,7 @@ class CORE_EXPORT QgsMaskEffect : public QgsPaintEffect
      * @param type mask type
      * @see maskType
      */
-    void setMaskType( const MaskType type ) { mMaskType = type; }
+    void setMaskType( const MaskType type );
 
     /** Returns the mask type, which controls how the opacity of the source
      * image will be masked.

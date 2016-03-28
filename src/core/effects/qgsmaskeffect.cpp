@@ -85,19 +85,24 @@ void QgsMaskEffect::drawFade( QPainter& imPainter )
   double height = imPainter.device()->height();
 
   QGradient gradient;
+
+  // this looks EXTREMELY strange, but is required to workaround a Qt gradient bug.
+  // without it, the alpha channel of gradients is not respected
+  double qtGradientAlphaBugWorkaround = 0.0000001;
+
   switch ( mMaskType )
   {
     case FadeFromTop:
-      gradient = QLinearGradient( 0, 0, 0, height );
+      gradient = QLinearGradient( 0, 0, qtGradientAlphaBugWorkaround, height );
       break;
     case FadeFromBottom:
-      gradient = QLinearGradient( 0, height, 0, 0 );
+      gradient = QLinearGradient( 0, height, qtGradientAlphaBugWorkaround, 0 );
       break;
     case FadeFromLeft:
-      gradient = QLinearGradient( 0, 0, width, 0 );
+      gradient = QLinearGradient( 0, 0, width, qtGradientAlphaBugWorkaround );
       break;
     case FadeFromRight:
-      gradient = QLinearGradient( width, 0, 0, 0 );
+      gradient = QLinearGradient( width, 0, 0, qtGradientAlphaBugWorkaround );
       break;
     case SourceIn:
     case SourceOut:
@@ -128,7 +133,7 @@ void QgsMaskEffect::readProperties( const QgsStringMap &props )
   QgsMaskEffect::MaskType type = ( QgsMaskEffect::MaskType )props.value( "mask_type" ).toInt( &ok );
   if ( ok )
   {
-    mMaskType = type;
+    setMaskType( type );
   }
 }
 
@@ -136,4 +141,13 @@ QgsPaintEffect *QgsMaskEffect::clone() const
 {
   QgsMaskEffect* newEffect = new QgsMaskEffect( *this );
   return newEffect;
+}
+
+void QgsMaskEffect::setMaskType(const QgsMaskEffect::MaskType type)
+{
+    mMaskType = type;
+    if ( type == SourceIn || type == SourceOut )
+    {
+        requiresQPainterDpiFix = false;
+    }
 }
