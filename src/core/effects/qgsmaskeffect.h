@@ -63,7 +63,7 @@ class CORE_EXPORT QgsMaskEffect : public QgsPaintEffect
      * @param method blur method
      * @see blurMethod
      */
-    void setMaskType( const MaskType type ) { mMaskType = type; }
+    void setMaskType( const MaskType type );
 
     /** Returns the blur method (algorithm) used for performing the blur.
      * @returns blur method
