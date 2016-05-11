@@ -90,9 +90,9 @@ QList<QgsLabelFeature*> QgsVectorLayerDiagramProvider::labelFeatures( QgsRenderC
   if ( !prepare( context, attributeNames ) )
     return QList<QgsLabelFeature*>();
 
-  QgsRectangle layerExtent = context.extent();
+  QgsRectangle layerExtent = context.viewPortExtent();
   if ( mSettings.coordinateTransform() )
-    layerExtent = mSettings.coordinateTransform()->transformBoundingBox( context.extent(), QgsCoordinateTransform::ReverseTransform );
+    layerExtent = mSettings.coordinateTransform()->transformBoundingBox( context.viewPortExtent(), QgsCoordinateTransform::ReverseTransform );
 
   QgsFeatureRequest request;
   request.setFilterRect( layerExtent );
@@ -220,11 +220,11 @@ QgsLabelFeature* QgsVectorLayerDiagramProvider::registerDiagram( QgsFeature& fea
 
   //convert geom to geos
   const QgsGeometry* geom = feat.constGeometry();
-  QScopedPointer<QgsGeometry> extentGeom( QgsGeometry::fromRect( mapSettings.visibleExtent() ) );
+  QScopedPointer<QgsGeometry> extentGeom( QgsGeometry::fromRect( mapSettings.viewportExtent() ) );
   if ( !qgsDoubleNear( mapSettings.rotation(), 0.0 ) )
   {
     //PAL features are prerotated, so extent also needs to be unrotated
-    extentGeom->rotate( -mapSettings.rotation(), mapSettings.visibleExtent().center() );
+    extentGeom->rotate( -mapSettings.rotation(), mapSettings.viewportExtent().center() );
   }
 
   const GEOSGeometry* geos_geom = nullptr;

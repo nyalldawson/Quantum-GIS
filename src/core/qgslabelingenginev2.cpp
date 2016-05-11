@@ -219,11 +219,11 @@ void QgsLabelingEngineV2::run( QgsRenderContext& context )
 
   QPainter* painter = context.painter();
 
-  QgsGeometry* extentGeom( QgsGeometry::fromRect( mMapSettings.visibleExtent() ) );
+  QgsGeometry* extentGeom( QgsGeometry::fromRect( mMapSettings.viewportExtent() ) );
   if ( !qgsDoubleNear( mMapSettings.rotation(), 0.0 ) )
   {
     //PAL features are prerotated, so extent also needs to be unrotated
-    extentGeom->rotate( -mMapSettings.rotation(), mMapSettings.visibleExtent().center() );
+    extentGeom->rotate( -mMapSettings.rotation(), mMapSettings.viewportExtent().center() );
   }
 
   QgsRectangle extent = extentGeom->boundingBox();

@@ -53,7 +53,7 @@ QgsRasterLayerRenderer::QgsRasterLayerRenderer( QgsRasterLayer* layer, QgsRender
     QgsDebugMsgLevel( "coordinateTransform set -> project extents.", 4 );
     try
     {
-      myProjectedViewExtent = rendererContext.coordinateTransform()->transformBoundingBox( rendererContext.extent() );
+      myProjectedViewExtent = rendererContext.coordinateTransform()->transformBoundingBox( rendererContext.viewPortExtent() );
     }
     catch ( QgsCsException &cs )
     {
@@ -74,7 +74,7 @@ QgsRasterLayerRenderer::QgsRasterLayerRenderer( QgsRasterLayer* layer, QgsRender
   else
   {
     QgsDebugMsgLevel( "coordinateTransform not set", 4 );
-    myProjectedViewExtent = rendererContext.extent();
+    myProjectedViewExtent = rendererContext.viewPortExtent();
     myProjectedLayerExtent = layer->extent();
   }
 
@@ -87,7 +87,7 @@ QgsRasterLayerRenderer::QgsRasterLayerRenderer( QgsRasterLayer* layer, QgsRender
     return;
   }
 
-  QgsDebugMsgLevel( "theViewExtent is " + rendererContext.extent().toString(), 4 );
+  QgsDebugMsgLevel( "theViewExtent is " + rendererContext.viewPortExtent().toString(), 4 );
   QgsDebugMsgLevel( "myProjectedViewExtent is " + myProjectedViewExtent.toString(), 4 );
   QgsDebugMsgLevel( "myProjectedLayerExtent is " + myProjectedLayerExtent.toString(), 4 );
   QgsDebugMsgLevel( "myRasterExtent is " + myRasterExtent.toString(), 4 );

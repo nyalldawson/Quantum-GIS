@@ -242,11 +242,11 @@ bool QgsVectorLayerLabelProvider::prepare( const QgsRenderContext& context, QStr
   lyr.ptOne = lyr.xform->toMapCoordinates( 1, 0 );
 
   // rect for clipping
-  lyr.extentGeom = QgsGeometry::fromRect( mapSettings.visibleExtent() );
+  lyr.extentGeom = QgsGeometry::fromRect( mapSettings.viewportExtent() );
   if ( !qgsDoubleNear( mapSettings.rotation(), 0.0 ) )
   {
     //PAL features are prerotated, so extent also needs to be unrotated
-    lyr.extentGeom->rotate( -mapSettings.rotation(), mapSettings.visibleExtent().center() );
+    lyr.extentGeom->rotate( -mapSettings.rotation(), mapSettings.viewportExtent().center() );
   }
 
   lyr.mFeatsSendingToPal = 0;
@@ -272,9 +272,9 @@ QList<QgsLabelFeature*> QgsVectorLayerLabelProvider::labelFeatures( QgsRenderCon
   if ( mRenderer )
     mRenderer->startRender( ctx, mFields );
 
-  QgsRectangle layerExtent = ctx.extent();
+  QgsRectangle layerExtent = ctx.viewPortExtent();
   if ( mSettings.ct )
-    layerExtent = mSettings.ct->transformBoundingBox( ctx.extent(), QgsCoordinateTransform::ReverseTransform );
+    layerExtent = mSettings.ct->transformBoundingBox( ctx.viewPortExtent(), QgsCoordinateTransform::ReverseTransform );
 
   QgsFeatureRequest request;
   request.setFilterRect( layerExtent );

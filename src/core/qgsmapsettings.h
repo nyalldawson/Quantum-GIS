@@ -66,6 +66,10 @@ class CORE_EXPORT QgsMapSettings
     //! of output size. Use visibleExtent() to get the resulting extent.
     void setExtent( const QgsRectangle& rect );
 
+    QgsRectangle viewportExtent() const;
+
+    void setViewportExtent( const QgsRectangle& extent );
+
     //! Return the size of the resulting map image
     QSize outputSize() const;
     //! Set the size of the resulting map image
@@ -259,6 +263,7 @@ class CORE_EXPORT QgsMapSettings
     QSize mSize;
 
     QgsRectangle mExtent;
+    QgsRectangle mViewportExtent;
 
     double mRotation;
 

@@ -343,7 +343,7 @@ void QgsVectorLayer::drawLabels( QgsRenderContext& rendererContext )
       // select the records in the extent. The provider sets a spatial filter
       // and sets up the selection set for retrieval
       QgsFeatureIterator fit = getFeatures( QgsFeatureRequest()
-                                            .setFilterRect( rendererContext.extent() )
+                                            .setFilterRect( rendererContext.viewPortExtent() )
                                             .setSubsetOfAttributes( attributes ) );
 
       QgsFeature fet;

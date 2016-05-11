@@ -318,6 +318,16 @@ void QgsMapCanvas::setMagnificationFactor( double level )
 
   mMagnificationFactor = level;
   mSettings.setExtent( ext );
+  if ( !qgsDoubleNear( level, 1.0 ) )
+  {
+    QgsRectangle viewport = ext;
+    viewport.scale( mMagnificationFactor );
+    mSettings.setViewportExtent( viewport );
+  }
+  else
+  {
+    mSettings.setViewportExtent( QgsRectangle() );
+  }
   refresh();
 }
 

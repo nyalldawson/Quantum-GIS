@@ -135,7 +135,7 @@ QgsConstWkbPtr QgsSymbolV2::_getLineString( QPolygonF& pts, QgsRenderContext& co
   //apply clipping for large lines to achieve a better rendering performance
   if ( clipToExtent && nPoints > 1 )
   {
-    const QgsRectangle& e = context.extent();
+    const QgsRectangle& e = context.viewPortExtent();
     double cw = e.width() / 10;
     double ch = e.height() / 10;
     QgsRectangle clipRect( e.xMinimum() - cw, e.yMinimum() - ch, e.xMaximum() + cw, e.yMaximum() + ch );
@@ -191,7 +191,7 @@ QgsConstWkbPtr QgsSymbolV2::_getPolygon( QPolygonF &pts, QList<QPolygonF> &holes
 
   const QgsCoordinateTransform* ct = context.coordinateTransform();
   const QgsMapToPixel& mtp = context.mapToPixel();
-  const QgsRectangle& e = context.extent();
+  const QgsRectangle& e = context.viewPortExtent();
   double cw = e.width() / 10;
   double ch = e.height() / 10;
   QgsRectangle clipRect( e.xMinimum() - cw, e.yMinimum() - ch, e.xMaximum() + cw, e.yMaximum() + ch );
@@ -225,7 +225,7 @@ QgsConstWkbPtr QgsSymbolV2::_getPolygon( QPolygonF &pts, QList<QPolygonF> &holes
 
     //clip close to view extent, if needed
     QRectF ptsRect = poly.boundingRect();
-    if ( clipToExtent && !context.extent().contains( ptsRect ) )
+    if ( clipToExtent && !context.viewPortExtent().contains( ptsRect ) )
     {
       QgsClipper::trimPolygon( poly, clipRect );
     }

@@ -2750,7 +2750,7 @@ void QgsPalLayerSettings::registerFeature( QgsFeature& f, QgsRenderContext &cont
         //rotate position with map if data-defined
         if ( dataDefinedPosition && m2p.mapRotation() )
         {
-          const QgsPoint& center = context.extent().center();
+          const QgsPoint& center = context.viewPortExtent().center();
           QTransform t = QTransform::fromTranslate( center.x(), center.y() );
           t.rotate( -m2p.mapRotation() );
           t.translate( -center.x(), -center.y() );
@@ -4054,7 +4054,7 @@ QgsGeometry* QgsPalLabeling::prepareGeometry( const QgsGeometry* geometry, QgsRe
   const QgsMapToPixel& m2p = context.mapToPixel();
   if ( !qgsDoubleNear( m2p.mapRotation(), 0 ) )
   {
-    QgsPoint center = context.extent().center();
+    QgsPoint center = context.viewPortExtent().center();
 
     if ( ct )
     {

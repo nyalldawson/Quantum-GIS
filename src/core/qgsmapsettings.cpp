@@ -66,6 +66,16 @@ void QgsMapSettings::setExtent( const QgsRectangle& extent )
   updateDerived();
 }
 
+QgsRectangle QgsMapSettings::viewportExtent() const
+{
+  return mViewportExtent.isNull() ? mExtent : mViewportExtent;
+}
+
+void QgsMapSettings::setViewportExtent( const QgsRectangle& extent )
+{
+  mViewportExtent = extent;
+}
+
 double QgsMapSettings::rotation() const
 {
   return mRotation;

@@ -98,6 +98,7 @@ class CORE_EXPORT QgsRenderContext
     const QgsCoordinateTransform* coordinateTransform() const {return mCoordTransform;}
 
     const QgsRectangle& extent() const {return mExtent;}
+    const QgsRectangle& viewPortExtent() const {return mViewportExtent.isNull() ? mExtent : mViewportExtent;}
 
     const QgsMapToPixel& mapToPixel() const {return mMapToPixel;}
 
@@ -143,6 +144,7 @@ class CORE_EXPORT QgsRenderContext
     void setCoordinateTransform( const QgsCoordinateTransform* t );
     void setMapToPixel( const QgsMapToPixel& mtp ) {mMapToPixel = mtp;}
     void setExtent( const QgsRectangle& extent ) {mExtent = extent;}
+    void setViewportExtent( const QgsRectangle& extent ) {mViewportExtent = extent;}
 
     void setDrawEditingInformation( bool b );
 
@@ -230,6 +232,7 @@ class CORE_EXPORT QgsRenderContext
     const QgsCoordinateTransform* mCoordTransform;
 
     QgsRectangle mExtent;
+    QgsRectangle mViewportExtent;
 
     QgsMapToPixel mMapToPixel;
 

@@ -148,7 +148,7 @@ bool QgsVectorLayerRenderer::render()
 
   QString rendererFilter = mRendererV2->filter( mFields );
 
-  QgsRectangle requestExtent = mContext.extent();
+  QgsRectangle requestExtent = mContext.viewPortExtent();
   mRendererV2->modifyRequestExtent( requestExtent, mContext );
 
   QgsFeatureRequest featureRequest = QgsFeatureRequest()
@@ -185,7 +185,7 @@ bool QgsVectorLayerRenderer::render()
     {
       try
       {
-        QgsPoint center = mContext.extent().center();
+        QgsPoint center = mContext.viewPortExtent().center();
         double rectSize = ct->sourceCrs().geographicFlag() ? 0.0008983 /* ~100/(40075014/360=111319.4833) */ : 100;
 
         QgsRectangle sourceRect = QgsRectangle( center.x(), center.y(), center.x() + rectSize, center.y() + rectSize );
@@ -285,7 +285,7 @@ void QgsVectorLayerRenderer::setGeometryCachePointer( QgsGeometryCache* cache )
   if ( mCache )
   {
     // Destroy all cached geometries and clear the references to them
-    mCache->setCachedGeometriesRect( mContext.extent() );
+    mCache->setCachedGeometriesRect( mContext.viewPortExtent() );
   }
 }
 

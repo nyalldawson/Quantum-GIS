@@ -128,7 +128,7 @@ void QgsMapHitTest::runHitTestLayer( QgsVectorLayer* vl, SymbolV2Set& usedSymbol
   {
     if ( mPolygon.isEmpty() )
     {
-      request.setFilterRect( context.extent() );
+      request.setFilterRect( context.viewPortExtent() );
       request.setFlags( QgsFeatureRequest::ExactIntersect );
     }
     else
