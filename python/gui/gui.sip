@@ -83,6 +83,7 @@
 %Include qgsformannotationitem.sip
 %Include qgsgenericprojectionselector.sip
 %Include qgsgeometryrubberband.sip
+%Include qgsgeometrywidget.sip
 %Include qgsgradientstopeditor.sip
 %Include qgsgroupwmsdatadialog.sip
 %Include qgshighlight.sip
