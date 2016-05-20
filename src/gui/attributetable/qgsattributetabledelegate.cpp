@@ -29,6 +29,7 @@
 #include "qgslogger.h"
 #include "qgsvectordataprovider.h"
 #include "qgsactionmanager.h"
+#include "qgsgeometrywidget.h"
 
 
 QgsVectorLayer* QgsAttributeTableDelegate::layer( const QAbstractItemModel *model )
@@ -65,6 +66,12 @@ QWidget* QgsAttributeTableDelegate::createEditor( QWidget *parent, const QStyleO
     return nullptr;
 
   int fieldIdx = index.model()->data( index, QgsAttributeTableModel::FieldIndexRole ).toInt();
+  //vl->fields().at( fieldIdx ).type()
+
+  if ( fieldIdx == 3 )
+  {
+    return new QgsGeometryWidget( parent );
+  }
 
   QString widgetType = vl->editFormConfig()->widgetType( fieldIdx );
   QgsEditorWidgetConfig cfg = vl->editFormConfig()->widgetConfig( fieldIdx );
@@ -106,6 +113,13 @@ void QgsAttributeTableDelegate::setModelData( QWidget *editor, QAbstractItemMode
 
 void QgsAttributeTableDelegate::setEditorData( QWidget *editor, const QModelIndex &index ) const
 {
+  int fieldIdx = index.model()->data( index, QgsAttributeTableModel::FieldIndexRole ).toInt();
+  if ( fieldIdx == 3 )
+  {
+    QgsGeometryWidget* w = qobject_cast< QgsGeometryWidget* >( editor );
+    w->setGeometryValue( qvariant_cast<QgsGeometry>( index.model()->data( index, Qt::EditRole ) ) );
+    return;
+  }
   QgsEditorWidgetWrapper* eww =  QgsEditorWidgetWrapper::fromWidget( editor );
   if ( !eww )
     return;
