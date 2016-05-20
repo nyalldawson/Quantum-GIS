@@ -95,6 +95,7 @@ class QgsPostgresFeatureIterator : public QgsAbstractFeatureIteratorFromSource<Q
 
 
     QString whereClauseRect();
+    QgsGeometry* fetchGeometry( QgsPostgresResult &queryResult, int row, int col ) const;
     bool getFeature( QgsPostgresResult &queryResult, int row, QgsFeature &feature );
     void getFeatureAttribute( int idx, QgsPostgresResult& queryResult, int row, int& col, QgsFeature& feature );
     bool declareCursor( const QString& whereClause, long limit = -1, bool closeOnFail = true , const QString& orderBy = QString() );

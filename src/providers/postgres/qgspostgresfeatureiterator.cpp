@@ -632,6 +632,64 @@ bool QgsPostgresFeatureIterator::declareCursor( const QString& whereClause, long
   return true;
 }
 
+QgsGeometry* QgsPostgresFeatureIterator::fetchGeometry( QgsPostgresResult &queryResult, int row, int col ) const
+{
+  int returnedLength = ::PQgetlength( queryResult.result(), row, col );
+  if ( returnedLength > 0 )
+  {
+    unsigned char *geom = new unsigned char[returnedLength + 1];
+    memcpy( geom, PQgetvalue( queryResult.result(), row, col ), returnedLength );
+    memset( geom + returnedLength, 0, 1 );
+
+    unsigned int wkbType;
+    memcpy( &wkbType, geom + 1, sizeof( wkbType ) );
+    QgsWKBTypes::Type newType = QgsPostgresConn::wkbTypeFromOgcWkbType( wkbType );
+
+    if (( unsigned int )newType != wkbType )
+    {
+      // overwrite type
+      unsigned int n = newType;
+      memcpy( geom + 1, &n, sizeof( n ) );
+    }
+
+    // PostGIS stores TIN as a collection of Triangles.
+    // Since Triangles are not supported, they have to be converted to Polygons
+    const int nDims = 2 + ( QgsWKBTypes::hasZ( newType ) ? 1 : 0 ) + ( QgsWKBTypes::hasM( newType ) ? 1 : 0 );
+    if ( wkbType % 1000 == 16 )
+    {
+      unsigned int numGeoms;
+      memcpy( &numGeoms, geom + 5, sizeof( unsigned int ) );
+      unsigned char *wkb = geom + 9;
+      for ( unsigned int i = 0; i < numGeoms; ++i )
+      {
+        const unsigned int localType = QgsWKBTypes::singleType( newType ); // polygon(Z|M)
+        memcpy( wkb + 1, &localType, sizeof( localType ) );
+
+        // skip endian and type info
+        wkb += sizeof( unsigned int ) + 1;
+
+        // skip coordinates
+        unsigned int nRings;
+        memcpy( &nRings, wkb, sizeof( int ) );
+        wkb += sizeof( int );
+        for ( unsigned int j = 0; j < nRings; ++j )
+        {
+          unsigned int nPoints;
+          memcpy( &nPoints, wkb, sizeof( int ) );
+          wkb += sizeof( nPoints ) + sizeof( double ) * nDims * nPoints;
+        }
+      }
+    }
+
+    QgsGeometry *g = new QgsGeometry();
+    g->fromWkb( geom, returnedLength + 1 );
+    return g;
+  }
+  else
+  {
+    return nullptr;
+  }
+}
 
 bool QgsPostgresFeatureIterator::getFeature( QgsPostgresResult &queryResult, int row, QgsFeature &feature )
 {
@@ -641,62 +699,7 @@ bool QgsPostgresFeatureIterator::getFeature( QgsPostgresResult &queryResult, int
 
   if ( mFetchGeometry )
   {
-    int returnedLength = ::PQgetlength( queryResult.result(), row, col );
-    if ( returnedLength > 0 )
-    {
-      unsigned char *featureGeom = new unsigned char[returnedLength + 1];
-      memcpy( featureGeom, PQgetvalue( queryResult.result(), row, col ), returnedLength );
-      memset( featureGeom + returnedLength, 0, 1 );
-
-      unsigned int wkbType;
-      memcpy( &wkbType, featureGeom + 1, sizeof( wkbType ) );
-      QgsWKBTypes::Type newType = QgsPostgresConn::wkbTypeFromOgcWkbType( wkbType );
-
-      if (( unsigned int )newType != wkbType )
-      {
-        // overwrite type
-        unsigned int n = newType;
-        memcpy( featureGeom + 1, &n, sizeof( n ) );
-      }
-
-      // PostGIS stores TIN as a collection of Triangles.
-      // Since Triangles are not supported, they have to be converted to Polygons
-      const int nDims = 2 + ( QgsWKBTypes::hasZ( newType ) ? 1 : 0 ) + ( QgsWKBTypes::hasM( newType ) ? 1 : 0 );
-      if ( wkbType % 1000 == 16 )
-      {
-        unsigned int numGeoms;
-        memcpy( &numGeoms, featureGeom + 5, sizeof( unsigned int ) );
-        unsigned char *wkb = featureGeom + 9;
-        for ( unsigned int i = 0; i < numGeoms; ++i )
-        {
-          const unsigned int localType = QgsWKBTypes::singleType( newType ); // polygon(Z|M)
-          memcpy( wkb + 1, &localType, sizeof( localType ) );
-
-          // skip endian and type info
-          wkb += sizeof( unsigned int ) + 1;
-
-          // skip coordinates
-          unsigned int nRings;
-          memcpy( &nRings, wkb, sizeof( int ) );
-          wkb += sizeof( int );
-          for ( unsigned int j = 0; j < nRings; ++j )
-          {
-            unsigned int nPoints;
-            memcpy( &nPoints, wkb, sizeof( int ) );
-            wkb += sizeof( nPoints ) + sizeof( double ) * nDims * nPoints;
-          }
-        }
-      }
-
-      QgsGeometry *g = new QgsGeometry();
-      g->fromWkb( featureGeom, returnedLength + 1 );
-      feature.setGeometry( g );
-    }
-    else
-    {
-      feature.setGeometry( nullptr );
-    }
-
+    feature.setGeometry( fetchGeometry( queryResult, row, col ) );
     col++;
   }
 
@@ -766,8 +769,23 @@ void QgsPostgresFeatureIterator::getFeatureAttribute( int idx, QgsPostgresResult
   if ( mSource->mPrimaryKeyAttrs.contains( idx ) )
     return;
 
-  QVariant v = QgsPostgresProvider::convertValue( mSource->mFields.at( idx ).type(), queryResult.PQgetvalue( row, col ) );
-  feature.setAttribute( idx, v );
+  if ( mSource->mFields[idx].type() == ( QVariant::Type )QMetaType::type( "QgsGeometry" ) )
+  {
+    //geometry type
+    QgsGeometry* g = fetchGeometry( queryResult, row, col );
+    if ( g )
+    {
+      feature.setAttribute( idx, *g );
+      delete g;
+    }
+    else
+      feature.setAttribute( idx, QVariant( QgsGeometry() ) );
+  }
+  else
+  {
+    QVariant v = QgsPostgresProvider::convertValue( mSource->mFields.at( idx ).type(), queryResult.PQgetvalue( row, col ) );
+    feature.setAttribute( idx, v );
+  }
 
   col++;
 }

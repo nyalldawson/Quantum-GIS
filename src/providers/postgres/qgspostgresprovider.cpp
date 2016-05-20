@@ -896,6 +896,11 @@ bool QgsPostgresProvider::loadFields()
         fieldType = QVariant::Date;
         fieldSize = -1;
       }
+      else if ( fieldTypeName == "geometry" )
+      {
+        fieldType = ( QVariant::Type )QMetaType::type( "QgsGeometry" );
+        fieldSize = -1;
+      }
       else if ( fieldTypeName == "time" )
       {
         fieldType = QVariant::Time;
@@ -908,7 +913,6 @@ bool QgsPostgresProvider::loadFields()
       }
       else if ( fieldTypeName == "text" ||
                 fieldTypeName == "bool" ||
-                fieldTypeName == "geometry" ||
                 fieldTypeName == "hstore" ||
                 fieldTypeName == "inet" ||
                 fieldTypeName == "money" ||

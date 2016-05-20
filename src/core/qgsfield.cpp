@@ -18,6 +18,7 @@
 #include "qgsfield_p.h"
 #include "qgis.h"
 #include "qgsapplication.h"
+#include "qgsgeometry.h"
 
 #include <QSettings>
 #include <QDataStream>
@@ -154,6 +155,12 @@ void QgsField::setComment( const QString& comment )
 
 QString QgsField::displayString( const QVariant& v ) const
 {
+  if ( QString( "QgsGeometry" ) == v.typeName() )
+  {
+    QgsGeometry g = qvariant_cast<QgsGeometry>( v );
+    return g.isEmpty() ? QObject::tr( "Empty" ) : QgsWKBTypes::displayString( g.geometry()->wkbType() );
+  }
+
   if ( v.isNull() )
   {
     QSettings settings;
