@@ -64,6 +64,11 @@ QgsOrganizeTableColumnsDialog::QgsOrganizeTableColumnsDialog( const QgsVectorLay
         item = new QListWidgetItem( tr( "[Action Widget]" ), mFieldsList );
         item->setIcon( QgsApplication::getThemeIcon( "/propertyicons/action.svg" ) );
       }
+      else if ( columnConfig.mType == QgsAttributeTableConfig::Geometry )
+      {
+        item = new QListWidgetItem( tr( "[Geometry Widget]" ), mFieldsList );
+        item->setIcon( QgsApplication::getThemeIcon( "/propertyicons/action.svg" ) );
+      }
       else
       {
         int idx = vl->fieldNameIndex( columnConfig.mName );

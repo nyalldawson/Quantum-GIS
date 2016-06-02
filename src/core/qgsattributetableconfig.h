@@ -36,7 +36,8 @@ class CORE_EXPORT QgsAttributeTableConfig
     enum Type
     {
       Field,    //!< This column represents a field
-      Action    //!< This column represents an action widget
+      Action,    //!< This column represents an action widget
+      Geometry,    //!< This column represents an geometry widget
     };
 
     /**

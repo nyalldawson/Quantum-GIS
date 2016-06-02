@@ -69,18 +69,31 @@ void QgsAttributeTableFilterModel::sort( int column, Qt::SortOrder order )
 
 QVariant QgsAttributeTableFilterModel::data( const QModelIndex& index, int role ) const
 {
-  if ( mapColumnToSource( index.column() ) == -1 ) // actions
+  int sourceColumn = mapColumnToSource( index.column() );
+
+  switch ( role )
   {
-    if ( role == TypeRole )
-      return ColumnTypeActionButton;
-    else if ( role == QgsAttributeTableModel::FeatureIdRole )
+    case TypeRole:
     {
-      QModelIndex fieldIndex = QSortFilterProxyModel::mapToSource( QSortFilterProxyModel::index( index.row(), 0, index.parent() ) );
-      return sourceModel()->data( fieldIndex, QgsAttributeTableModel::FeatureIdRole );
+      if ( sourceColumn == ActionColumn )
+        return ColumnTypeActionButton;
+      else if ( sourceColumn == GeometryColumn )
+        return ColumnTypeGeometry;
+      else
+        return ColumnTypeField;
     }
+
+    case QgsAttributeTableModel::FeatureIdRole:
+    {
+      if ( sourceColumn == ActionColumn || sourceColumn == GeometryColumn )
+      {
+        QModelIndex fieldIndex = QSortFilterProxyModel::mapToSource( QSortFilterProxyModel::index( index.row(), 0, index.parent() ) );
+        return sourceModel()->data( fieldIndex, QgsAttributeTableModel::FeatureIdRole );
+      }
+      break;
+    }
+
   }
-  else if ( role == TypeRole )
-    return ColumnTypeField;
 
   return QSortFilterProxyModel::data( index, role );
 }
@@ -89,8 +102,10 @@ QVariant QgsAttributeTableFilterModel::headerData( int section, Qt::Orientation 
 {
   if ( orientation ==  Qt::Horizontal )
   {
-    if ( mColumnMapping.at( section ) == -1 && role == Qt::DisplayRole )
+    if ( mColumnMapping.at( section ) == ActionColumn && role == Qt::DisplayRole )
       return tr( "Actions" );
+    else if ( mColumnMapping.at( section ) == GeometryColumn && role == Qt::DisplayRole )
+      return tr( "Geometry" );
     else
       return QSortFilterProxyModel::headerData( section, orientation, role );
   }
@@ -100,7 +115,7 @@ QVariant QgsAttributeTableFilterModel::headerData( int section, Qt::Orientation 
 
 int QgsAttributeTableFilterModel::actionColumnIndex() const
 {
-  return mColumnMapping.indexOf( -1 );
+  return mColumnMapping.indexOf( ActionColumn );
 }
 
 int QgsAttributeTableFilterModel::columnCount( const QModelIndex& parent ) const
@@ -123,7 +138,14 @@ void QgsAttributeTableFilterModel::setAttributeTableConfig( const QgsAttributeTa
       continue;
 
     // The new value for the mapping (field index or -1 for action column)
-    int newValue = ( columnConfig.mType == QgsAttributeTableConfig::Action ) ? -1 : layer()->fieldNameIndex( columnConfig.mName );
+    int newValue;
+    if ( columnConfig.mType == QgsAttributeTableConfig::Action )
+      newValue = ActionColumn;
+    else if ( columnConfig.mType == QgsAttributeTableConfig::Geometry )
+      newValue = GeometryColumn;
+    else
+      newValue = layer()->fieldNameIndex( columnConfig.mName );
+
     newColumnMapping << newValue;
   }
 
@@ -476,8 +498,8 @@ QModelIndex QgsAttributeTableFilterModel::mapToSource( const QModelIndex& proxyI
 
   int sourceColumn = mapColumnToSource( proxyIndex.column() );
 
-  // For the action column there is no matching column in the source model: invalid
-  if ( sourceColumn == -1 )
+  // For the action/geometry column there is no matching column in the source model: invalid
+  if ( sourceColumn == ActionColumn || sourceColumn == GeometryColumn )
     return QModelIndex();
 
   return QSortFilterProxyModel::mapToSource( index( proxyIndex.row(), sourceColumn, proxyIndex.parent() ) );
@@ -495,8 +517,9 @@ QModelIndex QgsAttributeTableFilterModel::mapFromSource( const QModelIndex& sour
 
 Qt::ItemFlags QgsAttributeTableFilterModel::flags( const QModelIndex& index ) const
 {
-  // Handle the action column flags here, the master model doesn't know it
-  if ( mapColumnToSource( index.column() ) == -1 )
+  // Handle the action/geometry column flags here, the master model doesn't know them
+  int sourceColumn = mapColumnToSource( index.column() );
+  if ( sourceColumn == ActionColumn || sourceColumn == GeometryColumn )
     return Qt::ItemIsEnabled | Qt::ItemIsSelectable;
 
   QModelIndex source_index = mapToSource( index );

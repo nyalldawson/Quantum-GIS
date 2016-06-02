@@ -51,7 +51,8 @@ class GUI_EXPORT QgsAttributeTableFilterModel: public QSortFilterProxyModel, pub
     enum ColumnType
     {
       ColumnTypeField,       //!< This column shows a field
-      ColumnTypeActionButton //!< This column shows action buttons
+      ColumnTypeActionButton, //!< This column shows action buttons
+      ColumnTypeGeometry, //!< This column shows geometry actions
     };
 
     /**
@@ -247,6 +248,13 @@ class GUI_EXPORT QgsAttributeTableFilterModel: public QSortFilterProxyModel, pub
     void onColumnsChanged();
 
   private:
+
+    enum SpecialColumns
+    {
+      ActionColumn = -1,
+      GeometryColumn = -2,
+    };
+
     QgsFeatureIds mFilteredFeatures;
     QgsMapCanvas* mCanvas;
     FilterMode mFilterMode;
