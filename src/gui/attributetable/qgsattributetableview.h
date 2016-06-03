@@ -144,7 +144,9 @@ class GUI_EXPORT QgsAttributeTableView : public QTableView
 
   private:
     void updateActionImage( QWidget* widget );
+    void updateGeometryWidgetImage( QWidget* widget );
     QWidget* createActionWidget( QgsFeatureId fid );
+    QWidget* createGeometryWidget( QgsFeatureId fid );
 
     void selectRow( int row, bool anchor );
     QgsAttributeTableModel* mMasterModel;

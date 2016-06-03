@@ -21,7 +21,7 @@
 #include <QList>
 #include <QWidget>
 
-class QLineEdit;
+class QLabel;
 class QToolButton;
 class QMenu;
 class QgsGeometry;
@@ -42,14 +42,14 @@ class GUI_EXPORT QgsGeometryWidget : public QWidget
     /** Constructor for QgsGeometryWidget.
      * @param parent parent widget
      */
-    explicit QgsGeometryWidget( QWidget *parent = 0 );
+    explicit QgsGeometryWidget( QWidget *parent = nullptr );
 
     /** Sets the current geometry value for the widget.
      * @param geometry geometry value. Can be null to represent "no geometry" values.
      * Ownership is not transferred.
      * @see geometryValue()
      */
-    void setGeometryValue( QgsGeometry* geometry );
+    void setGeometryValue( const QgsGeometry* geometry );
 
     /** Sets the current geometry value for the widget.
      * @param geometry geometry value. Use an empty QgsGeometry() to represent
@@ -94,9 +94,13 @@ class GUI_EXPORT QgsGeometryWidget : public QWidget
     //! Try to paste the contents of the clipboard as a geometry.
     void pasteTriggered();
 
+  signals:
+
+    void geometryChanged( const QgsGeometry& geometry );
+
   private:
 
-    QLineEdit* mLineEdit;
+    QLabel* mLabel;
     QToolButton* mButton;
     QMenu* mMenu;
     QAction* mClearAction;

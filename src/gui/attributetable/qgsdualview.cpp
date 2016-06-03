@@ -73,7 +73,7 @@ void QgsDualView::init( QgsVectorLayer* layer, QgsMapCanvas* mapCanvas, const Qg
   mTableView->horizontalHeader()->setContextMenuPolicy( Qt::CustomContextMenu );
   connect( mTableView->horizontalHeader(), SIGNAL( customContextMenuRequested( QPoint ) ), this, SLOT( showViewHeaderMenu( QPoint ) ) );
 
-  initLayerCache( layer, !request.filterRect().isNull() );
+  initLayerCache( layer, true /*!request.filterRect().isNull()*/ );
   initModels( mapCanvas, request );
 
   mConditionalFormatWidget->setLayer( layer );

@@ -22,6 +22,7 @@
 QgsVectorLayerCache::QgsVectorLayerCache( QgsVectorLayer* layer, int cacheSize, QObject* parent )
     : QObject( parent )
     , mLayer( layer )
+    , mCacheGeometry( false ) //must start at false so that call to setCacheGeometry(true) is a change
     , mFullCache( false )
 {
   mCache.setMaxCost( cacheSize );
@@ -58,6 +59,9 @@ int QgsVectorLayerCache::cacheSize()
 
 void QgsVectorLayerCache::setCacheGeometry( bool cacheGeometry )
 {
+  if ( cacheGeometry == mCacheGeometry )
+    return;
+
   mCacheGeometry = cacheGeometry && mLayer->hasGeometryType();
   if ( cacheGeometry )
   {
@@ -67,6 +71,7 @@ void QgsVectorLayerCache::setCacheGeometry( bool cacheGeometry )
   {
     disconnect( mLayer, SIGNAL( geometryChanged( QgsFeatureId, QgsGeometry& ) ), this, SLOT( geometryChanged( QgsFeatureId, QgsGeometry& ) ) );
   }
+  invalidate();
 }
 
 void QgsVectorLayerCache::setCacheSubsetOfAttributes( const QgsAttributeList& attributes )

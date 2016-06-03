@@ -17,7 +17,7 @@
 #include "qgsgeometrywidget.h"
 #include "qgsapplication.h"
 #include "qgsgeometry.h"
-#include <QLineEdit>
+#include <QLabel>
 #include <QHBoxLayout>
 #include <QToolButton>
 #include <QMenu>
@@ -26,18 +26,17 @@
 
 QgsGeometryWidget::QgsGeometryWidget( QWidget *parent )
     : QWidget( parent )
-    , mLineEdit( nullptr )
+    , mLabel( nullptr )
 {
   QHBoxLayout* layout = new QHBoxLayout( this );
   layout->setContentsMargins( 0, 0, 0, 0 );
   layout->setSpacing( 0 );
 
-  mLineEdit = new QLineEdit( this );
-  mLineEdit->setReadOnly( true );
-  mLineEdit->setStyleSheet( "font-style: italic; color: grey;" );
-  mLineEdit->setSizePolicy( QSizePolicy::MinimumExpanding, QSizePolicy::Minimum );
-  int width = mLineEdit->minimumSizeHint().width();
-  mLineEdit->setMinimumWidth( width );
+  mLabel = new QLabel( this );
+  mLabel->setStyleSheet( "font-style: italic; color: grey;" );
+  mLabel->setSizePolicy( QSizePolicy::MinimumExpanding, QSizePolicy::Minimum );
+  int width = mLabel->minimumSizeHint().width();
+  mLabel->setMinimumWidth( width );
 
   mButton = new QToolButton( this );
   mButton->setFixedSize( 30, 26 );
@@ -46,10 +45,10 @@ QgsGeometryWidget::QgsGeometryWidget( QWidget *parent )
   mButton->setSizePolicy( QSizePolicy::Minimum, QSizePolicy::Minimum );
   mButton->setIcon( QgsApplication::getThemeIcon( "/mActionOffsetCurve.png" ) );
 
-  layout->addWidget( mLineEdit );
+  layout->addWidget( mLabel );
   layout->addWidget( mButton );
 
-  setFocusProxy( mLineEdit );
+  setFocusProxy( mButton );
 
   mMenu = new QMenu( this );
 
@@ -79,10 +78,10 @@ QgsGeometryWidget::QgsGeometryWidget( QWidget *parent )
   mButton->setMenu( mMenu );
   mButton->setPopupMode( QToolButton::InstantPopup );
 
-  setGeometryValue( 0 );
+  setGeometryValue( QgsGeometry() );
 }
 
-void QgsGeometryWidget::setGeometryValue( QgsGeometry *geometry )
+void QgsGeometryWidget::setGeometryValue( const QgsGeometry *geometry )
 {
   setGeometryValue( !geometry ? QgsGeometry() : *geometry );
 }
@@ -95,8 +94,8 @@ void QgsGeometryWidget::setGeometryValue( const QgsGeometry& geometry )
   }
 
   mGeometry = geometry;
-  mLineEdit->setText( !mGeometry.isEmpty() ? QgsWKBTypes::displayString( mGeometry.geometry()->wkbType() )
-                      : tr( "Empty geometry" ) );
+  mLabel->setText( !mGeometry.isEmpty() ? QgsWKBTypes::displayString( mGeometry.geometry()->wkbType() )
+                   : tr( "Empty geometry" ) );
 
   mCopyGeoJsonAction->setEnabled( !mGeometry.isEmpty() );
   mCopyWktAction->setEnabled( !mGeometry.isEmpty() );
@@ -120,7 +119,8 @@ QList<QgsWKBTypes::Type> QgsGeometryWidget::acceptedTypes() const
 
 void QgsGeometryWidget::clearGeometry()
 {
-  mGeometry = QgsGeometry();
+  setGeometryValue( QgsGeometry() );
+  emit geometryChanged( QgsGeometry() );
 }
 
 void QgsGeometryWidget::copyWkt()
@@ -145,6 +145,7 @@ void QgsGeometryWidget::pasteTriggered()
   {
     setGeometryValue( mPastedGeom.data() );
     mPastedGeom.reset();
+    emit geometryChanged( mGeometry );
   }
 }
 

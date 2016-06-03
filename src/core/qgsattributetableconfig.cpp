@@ -38,6 +38,7 @@ void QgsAttributeTableConfig::update( const QgsFields& fields )
   QStringList columns;
 
   bool containsActionColumn = false;
+  bool containsGeometryColumn = false;
 
   for ( int i = mColumns.count() - 1; i >= 0; --i )
   {
@@ -57,6 +58,10 @@ void QgsAttributeTableConfig::update( const QgsFields& fields )
     {
       containsActionColumn = true;
     }
+    else if ( column.mType == Geometry )
+    {
+      containsGeometryColumn = true;
+    }
   }
 
   Q_FOREACH ( const QgsField& field, fields )
@@ -72,6 +77,15 @@ void QgsAttributeTableConfig::update( const QgsFields& fields )
     }
   }
 
+  if ( !containsGeometryColumn )
+  {
+    ColumnConfig geometryConfig;
+
+    geometryConfig.mType = Geometry;
+    geometryConfig.mHidden = true;
+
+    mColumns.append( geometryConfig );
+  }
   if ( !containsActionColumn )
   {
     ColumnConfig actionConfig;
@@ -114,6 +128,26 @@ void QgsAttributeTableConfig::setActionWidgetStyle( const ActionWidgetStyle& act
   mActionWidgetStyle = actionWidgetStyle;
 }
 
+bool QgsAttributeTableConfig::geometryWidgetVisible() const
+{
+  Q_FOREACH ( const ColumnConfig& columnConfig, mColumns )
+  {
+    if ( columnConfig.mType == Geometry && columnConfig.mHidden == false )
+      return true;
+  }
+  return false;
+}
+
+void QgsAttributeTableConfig::setGeometryWidgetVisible( bool visible )
+{
+  for ( int i = 0; i < mColumns.size(); ++i )
+  {
+    if ( mColumns.at( i ).mType == Geometry )
+    {
+      mColumns[i].mHidden = !visible;
+    }
+  }
+}
 
 void QgsAttributeTableConfig::readXml( const QDomNode& node )
 {
@@ -135,6 +169,10 @@ void QgsAttributeTableConfig::readXml( const QDomNode& node )
       if ( columnElement.attribute( "type" ) == "actions" )
       {
         column.mType = Action;
+      }
+      else if ( columnElement.attribute( "type" ) == "geometry" )
+      {
+        column.mType = Geometry;
       }
       else
       {
@@ -205,6 +243,10 @@ void QgsAttributeTableConfig::writeXml( QDomNode& node ) const
     if ( column.mType == Action )
     {
       columnElement.setAttribute( "type", "actions" );
+    }
+    else if ( column.mType == Geometry )
+    {
+      columnElement.setAttribute( "type", "geometry" );
     }
     else
     {

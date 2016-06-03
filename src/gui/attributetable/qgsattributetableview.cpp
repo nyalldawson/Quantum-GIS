@@ -32,6 +32,7 @@
 #include "qgslogger.h"
 #include "qgsmapcanvas.h"
 #include "qgsfeatureselectionmodel.h"
+#include "qgsgeometrywidget.h"
 
 QgsAttributeTableView::QgsAttributeTableView( QWidget *parent )
     : QTableView( parent )
@@ -199,6 +200,21 @@ QWidget* QgsAttributeTableView::createActionWidget( QgsFeatureId fid )
   return container;
 }
 
+QWidget* QgsAttributeTableView::createGeometryWidget( QgsFeatureId fid )
+{
+  QgsFeature f;
+  if ( mFilterModel->layerCache()->featureAtId( fid, f ) )
+  {
+    QgsGeometryWidget* widget = new QgsGeometryWidget( this );
+    widget->setGeometryValue( f.constGeometry() );
+    return widget;
+  }
+  else
+  {
+    return nullptr;
+  }
+}
+
 void QgsAttributeTableView::closeEvent( QCloseEvent *e )
 {
   Q_UNUSED( e );
@@ -223,12 +239,20 @@ void QgsAttributeTableView::mouseReleaseEvent( QMouseEvent *event )
 void QgsAttributeTableView::mouseMoveEvent( QMouseEvent *event )
 {
   QModelIndex index = indexAt( event->pos() );
-  if ( index.data( QgsAttributeTableFilterModel::TypeRole ) == QgsAttributeTableFilterModel::ColumnTypeActionButton )
+  QVariant type = index.data( QgsAttributeTableFilterModel::TypeRole );
+  if ( type == QgsAttributeTableFilterModel::ColumnTypeActionButton )
   {
     Q_ASSERT( index.isValid() );
 
     if ( !indexWidget( index ) )
       setIndexWidget( index, createActionWidget( mFilterModel->data( index, QgsAttributeTableModel::FeatureIdRole ).toLongLong() ) );
+  }
+  else if ( type == QgsAttributeTableFilterModel::ColumnTypeGeometry )
+  {
+    Q_ASSERT( index.isValid() );
+
+    if ( !indexWidget( index ) )
+      setIndexWidget( index, createGeometryWidget( mFilterModel->data( index, QgsAttributeTableModel::FeatureIdRole ).toLongLong() ) );
   }
 
   setSelectionMode( QAbstractItemView::NoSelection );
@@ -393,4 +417,12 @@ void QgsAttributeTableView::updateActionImage( QWidget* widget )
   QPainter painter( &image );
   widget->render( &painter );
   mTableDelegate->setActionWidgetImage( image );
+}
+
+void QgsAttributeTableView::updateGeometryWidgetImage( QWidget* widget )
+{
+  QImage image( widget->size(), QImage::Format_ARGB32_Premultiplied );
+  QPainter painter( &image );
+  widget->render( &painter );
+  mTableDelegate->setGeometryWidgetImage( image );
 }

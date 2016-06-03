@@ -102,6 +102,16 @@ class CORE_EXPORT QgsAttributeTableConfig
     void setActionWidgetStyle( const ActionWidgetStyle& actionWidgetStyle );
 
     /**
+     * Returns true if the geometry widget is visible
+     */
+    bool geometryWidgetVisible() const;
+
+    /**
+     * Set if the geometry widget is visible
+     */
+    void setGeometryWidgetVisible( bool visible );
+
+    /**
      * Serialize to XML on layer save
      */
     void writeXml( QDomNode& node ) const;
