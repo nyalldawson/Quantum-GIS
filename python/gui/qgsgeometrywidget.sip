@@ -9,11 +9,11 @@ public:
     explicit QgsGeometryWidget( QWidget *parent = 0 );
     ~QgsGeometryWidget();
 
-    void setGeometryValue( QgsGeometry* geometry );
+    void setGeometryValue( QgsGeometry geometry );
 
-    QgsGeometry* geometryValue() const;
+    QgsGeometry geometryValue() const;
 
-    void setAcceptedTypes( const QList<QGis::WkbType>& types );
+    void setAcceptedTypes( const QList<QgsWkbTypes::Type>& types );
 
   public slots:
 
@@ -21,5 +21,5 @@ public:
     void copyWkt();
     void copyGeoJson();
     void pasteTriggered();
-    
+
 };

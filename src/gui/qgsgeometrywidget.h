@@ -17,13 +17,13 @@
 #define QGSGEOMETRYWIDGET_H
 
 #include "qgis.h"
+#include "qgsgeometry.h"
 #include <QList>
 #include <QWidget>
 
 class QLineEdit;
 class QToolButton;
 class QMenu;
-class QgsGeometry;
 
 class GUI_EXPORT QgsGeometryWidget : public QWidget
 {
@@ -31,14 +31,13 @@ class GUI_EXPORT QgsGeometryWidget : public QWidget
 
   public:
 
-    explicit QgsGeometryWidget( QWidget *parent = 0 );
-    ~QgsGeometryWidget();
+    explicit QgsGeometryWidget( QWidget *parent = nullptr );
 
-    void setGeometryValue( QgsGeometry* geometry );
+    void setGeometryValue( const QgsGeometry& geometry );
 
-    QgsGeometry* geometryValue() const;
+    QgsGeometry geometryValue() const;
 
-    void setAcceptedTypes( const QList<QGis::WkbType>& types );
+    void setAcceptedTypes( const QList<QgsWkbTypes::Type>& types );
 
   public slots:
 
@@ -48,19 +47,19 @@ class GUI_EXPORT QgsGeometryWidget : public QWidget
     void pasteTriggered();
 
   private:
-    QLineEdit* mLineEdit;
-    QToolButton* mButton;
-    QMenu* mMenu;
-    QAction* mClearAction;
-    QAction* mCopyWktAction;
-    QAction* mCopyGeoJsonAction;
-    QAction* mPasteAction;
-    QgsGeometry* mGeometry;
-    QgsGeometry* mPastedGeom;
-    QList<QGis::WkbType> mAcceptedTypes;
+    QLineEdit* mLineEdit = nullptr;
+    QToolButton* mButton = nullptr;
+    QMenu* mMenu = nullptr;
+    QAction* mClearAction = nullptr;
+    QAction* mCopyWktAction = nullptr;
+    QAction* mCopyGeoJsonAction = nullptr;
+    QAction* mPasteAction = nullptr;
+    QgsGeometry mGeometry;
+    QgsGeometry mPastedGeom;
+    QList<QgsWkbTypes::Type> mAcceptedTypes;
 
     void fetchGeomFromClipboard();
-    bool typeIsAcceptable( QGis::WkbType type ) const;
+    bool typeIsAcceptable( QgsWkbTypes::Type type ) const;
 
   private slots:
 
