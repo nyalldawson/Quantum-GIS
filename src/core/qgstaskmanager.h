@@ -348,8 +348,36 @@ class CORE_EXPORT QgsTask : public QObject
 
 };
 
-
 Q_DECLARE_OPERATORS_FOR_FLAGS( QgsTask::Flags )
+
+
+///@cond PRIVATE
+
+class QgsTaskRunnableWrapper : public QThread
+{
+    Q_OBJECT
+
+  public:
+
+    explicit QgsTaskRunnableWrapper( QgsTask *task, QThread::Priority priority )
+      : mTask( task )
+      , mPriority( priority )
+    {
+      task->moveToThread( this );
+      connect( this, &QgsTaskRunnableWrapper::finished, this, &QgsTaskRunnableWrapper::deleteLater );
+    }
+
+    void run() override;
+
+  private:
+
+    QgsTask *mTask = nullptr;
+    QThread::Priority mPriority = QThread::NormalPriority;
+
+};
+
+///@endcond
+
 
 /**
  * \ingroup core
@@ -402,22 +430,20 @@ class CORE_EXPORT QgsTaskManager : public QObject
     /**
      * Adds a task to the manager. Ownership of the task is transferred
      * to the manager, and the task manager will be responsible for starting
-     * the task. The priority argument can be used to control the run queue's
-     * order of execution, with larger numbers
-     * taking precedence over lower priority numbers.
+     * the task. The \a priority argument can be used to control the run queue's
+     * order of execution.
      * \returns unique task ID
      */
-    long addTask( QgsTask *task SIP_TRANSFER, int priority = 0 );
+    long addTask( QgsTask *task SIP_TRANSFER, QThread::Priority priority = QThread::NormalPriority );
 
     /**
      * Adds a task to the manager, using a full task definition (including dependency
      * handling). Ownership of the task is transferred to the manager, and the task
-     * manager will be responsible for starting the task. The priority argument can
-     * be used to control the run queue's order of execution, with larger numbers
-     * taking precedence over lower priority numbers.
+     * manager will be responsible for starting the task. The \a priority argument can
+     * be used to control the run queue's order of execution.
      * \returns unique task ID
      */
-    long addTask( const TaskDefinition &task SIP_TRANSFER, int priority = 0 );
+    long addTask( const TaskDefinition &task SIP_TRANSFER, QThread::Priority priority = QThread::NormalPriority );
 
     /**
      * Returns the task with matching ID.
@@ -558,11 +584,10 @@ class CORE_EXPORT QgsTaskManager : public QObject
 
     struct TaskInfo
     {
-      TaskInfo( QgsTask *task = nullptr, int priority = 0 );
+      TaskInfo( QgsTask *task = nullptr, QThread::Priority priority = QThread::NormalPriority );
       QgsTask *task = nullptr;
       QAtomicInt added;
-      int priority;
-      QgsTaskRunnableWrapper *runnable = nullptr;
+      QThread::Priority priority = QThread::NormalPriority;
     };
 
     mutable QMutex *mTaskMutex;
@@ -586,7 +611,7 @@ class CORE_EXPORT QgsTaskManager : public QObject
     long addTaskPrivate( QgsTask *task,
                          QgsTaskList dependencies,
                          bool isSubTask,
-                         int priority );
+                         QThread::Priority priority );
 
     bool cleanupAndDeleteTask( QgsTask *task );
 

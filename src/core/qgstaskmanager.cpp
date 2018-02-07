@@ -43,6 +43,9 @@ QgsTask::~QgsTask()
 
 void QgsTask::start()
 {
+  // Task must be run in thread it has affinity to
+  Q_ASSERT( thread() == QThread::currentThread() );
+
   mNotFinishedMutex.lock();
   mStartCount++;
   Q_ASSERT( mStartCount == 1 );
@@ -312,33 +315,6 @@ void QgsTask::terminated()
 }
 
 
-///@cond PRIVATE
-
-class QgsTaskRunnableWrapper : public QRunnable
-{
-  public:
-
-    explicit QgsTaskRunnableWrapper( QgsTask *task )
-      : mTask( task )
-    {
-      setAutoDelete( true );
-    }
-
-    void run() override
-    {
-      Q_ASSERT( mTask );
-      mTask->start();
-    }
-
-  private:
-
-    QgsTask *mTask = nullptr;
-
-};
-
-///@endcond
-
-
 
 //
 // QgsTaskManager
@@ -371,12 +347,12 @@ QgsTaskManager::~QgsTaskManager()
   delete mTaskMutex;
 }
 
-long QgsTaskManager::addTask( QgsTask *task, int priority )
+long QgsTaskManager::addTask( QgsTask *task, QThread::Priority priority )
 {
   return addTaskPrivate( task, QgsTaskList(), false, priority );
 }
 
-long QgsTaskManager::addTask( const QgsTaskManager::TaskDefinition &definition, int priority )
+long QgsTaskManager::addTask( const QgsTaskManager::TaskDefinition &definition, QThread::Priority priority )
 {
   return addTaskPrivate( definition.task,
                          definition.dependentTasks,
@@ -385,7 +361,7 @@ long QgsTaskManager::addTask( const QgsTaskManager::TaskDefinition &definition, 
 }
 
 
-long QgsTaskManager::addTaskPrivate( QgsTask *task, QgsTaskList dependencies, bool isSubTask, int priority )
+long QgsTaskManager::addTaskPrivate( QgsTask *task, QgsTaskList dependencies, bool isSubTask, QThread::Priority priority )
 {
   long taskId = mNextTaskId++;
 
@@ -640,11 +616,11 @@ void QgsTaskManager::taskStatusChanged( int status )
     return;
 
 
-#if QT_VERSION >= 0x050500
+#if 0// QT_VERSION >= 0x050500
   mTaskMutex->lock();
   QgsTaskRunnableWrapper *runnable = mTasks.value( id ).runnable;
   mTaskMutex->unlock();
-  QThreadPool::globalInstance()->cancel( runnable );
+  runnable->cancel();
 #endif
 
   if ( status == QgsTask::Terminated || status == QgsTask::Complete )
@@ -716,9 +692,9 @@ bool QgsTaskManager::cleanupAndDeleteTask( QgsTask *task )
   long id = taskId( task );
   if ( id < 0 )
     return false;
-
+#if 0
   QgsTaskRunnableWrapper *runnable = mTasks.value( id ).runnable;
-
+#endif
   task->disconnect( this );
 
   mTaskMutex->lock();
@@ -747,8 +723,8 @@ bool QgsTaskManager::cleanupAndDeleteTask( QgsTask *task )
   }
   else
   {
-#if QT_VERSION >= 0x050500
-    QThreadPool::globalInstance()->cancel( runnable );
+#if 0 // QT_VERSION >= 0x050500
+    //QThreadPool::globalInstance()->cancel( runnable );
 #endif
     if ( isParent )
     {
@@ -780,7 +756,8 @@ void QgsTaskManager::processQueue()
     QgsTask *task = it.value().task;
     if ( task && task->mStatus == QgsTask::Queued && dependenciesSatisfied( it.key() ) && it.value().added.testAndSetRelaxed( 0, 1 ) )
     {
-      QThreadPool::globalInstance()->start( it.value().runnable, it.value().priority );
+      QgsTaskRunnableWrapper *thread = new QgsTaskRunnableWrapper( task, it.value().priority );
+      thread->start();
     }
 
     if ( task && ( task->mStatus != QgsTask::Complete && task->mStatus != QgsTask::Terminated ) )
@@ -830,9 +807,17 @@ void QgsTaskManager::cancelDependentTasks( long taskId )
   }
 }
 
-QgsTaskManager::TaskInfo::TaskInfo( QgsTask *task, int priority )
+QgsTaskManager::TaskInfo::TaskInfo( QgsTask *task, QThread::Priority priority )
   : task( task )
   , added( 0 )
   , priority( priority )
-  , runnable( new QgsTaskRunnableWrapper( task ) )
-{}
+{
+}
+
+void QgsTaskRunnableWrapper::run()
+{
+  setPriority( mPriority );
+  Q_ASSERT( mTask );
+  QTimer::singleShot( 1, mTask, [ = ] { mTask->start(); } );
+  exec();
+}
