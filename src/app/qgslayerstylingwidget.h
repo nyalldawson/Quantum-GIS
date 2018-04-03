@@ -72,6 +72,8 @@ class APP_EXPORT QgsMapLayerStyleCommand : public QUndoCommand
     QDomNode mXml;
     QDomNode mLastState;
     QTime mTime;
+    bool mFirstRun = true;
+
 };
 
 class APP_EXPORT QgsLayerStylingWidget : public QWidget, private Ui::QgsLayerStylingWidgetBase

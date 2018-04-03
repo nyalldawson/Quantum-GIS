@@ -549,6 +549,11 @@ void QgsMapLayerStyleCommand::undo()
 
 void QgsMapLayerStyleCommand::redo()
 {
+  if ( mFirstRun )
+  {
+    mFirstRun = false;
+    return;
+  }
   QString error;
   QgsReadWriteContext context = QgsReadWriteContext();
   mLayer->readStyle( mXml, error, context );
