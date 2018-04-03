@@ -82,8 +82,11 @@ class GUI_EXPORT QgsRendererPropertiesDialog : public QDialog, private Ui::QgsRe
     /**
      * Emitted when something on the widget has changed.
      * All widgets will fire this event to notify of an internal change.
+     *
+     * If \a recomposeOnly is true, then the renderer change only requires a map recomposition
+     * and not a full layer redraw.
      */
-    void widgetChanged();
+    void widgetChanged( bool recomposeOnly = false );
 
     /**
      * Emit when you require a panel to be show in the interface.

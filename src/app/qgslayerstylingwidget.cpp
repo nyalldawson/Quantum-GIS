@@ -66,6 +66,7 @@ QgsLayerStylingWidget::QgsLayerStylingWidget( QgsMapCanvas *canvas, const QList<
   mLiveApplyCheck->setChecked( settings.value( QStringLiteral( "UI/autoApplyStyling" ), true ).toBool() );
 
   mAutoApplyTimer = new QTimer( this );
+  mAutoApplyTimer->setProperty( "redrawType", NoRedraw ); // always default to no redraw if we can get away with it
   mAutoApplyTimer->setSingleShot( true );
 
   mUndoWidget = new QgsUndoWidget( this, mMapCanvas );
@@ -80,10 +81,15 @@ QgsLayerStylingWidget::QgsLayerStylingWidget( QgsMapCanvas *canvas, const QList<
   connect( mUndoButton, &QAbstractButton::pressed, this, &QgsLayerStylingWidget::undo );
   connect( mRedoButton, &QAbstractButton::pressed, this, &QgsLayerStylingWidget::redo );
 
-  connect( mAutoApplyTimer, &QTimer::timeout, this, &QgsLayerStylingWidget::apply );
+  connect( mAutoApplyTimer, &QTimer::timeout, this, [ = ]
+  {
+    RedrawType type = static_cast< RedrawType >( mAutoApplyTimer->property( "redrawType" ).toInt() );
+    apply( type );
+    mAutoApplyTimer->setProperty( "redrawType", NoRedraw ); // always default to no redraw if we can get away with it
+  } );
 
   connect( mOptionsListWidget, &QListWidget::currentRowChanged, this, &QgsLayerStylingWidget::updateCurrentWidgetLayer );
-  connect( mButtonBox->button( QDialogButtonBox::Apply ), &QAbstractButton::clicked, this, &QgsLayerStylingWidget::apply );
+  connect( mButtonBox->button( QDialogButtonBox::Apply ), &QAbstractButton::clicked, this, [ = ] { apply( LayerRepaint ); } );
   connect( mLayerCombo, &QgsMapLayerComboBox::layerChanged, this, &QgsLayerStylingWidget::setLayer );
   connect( mLiveApplyCheck, &QAbstractButton::toggled, this, &QgsLayerStylingWidget::liveApplyToggled );
 
@@ -225,7 +231,7 @@ void QgsLayerStylingWidget::setLayer( QgsMapLayer *layer )
   mCurrentLayer->writeStyle( mLastStyleXml, doc, errorMsg, QgsReadWriteContext() );
 }
 
-void QgsLayerStylingWidget::apply()
+void QgsLayerStylingWidget::apply( const RedrawType redraw )
 {
   if ( !mCurrentLayer )
     return;
@@ -276,17 +282,39 @@ void QgsLayerStylingWidget::apply()
   {
     emit styleChanged( mCurrentLayer );
     QgsProject::instance()->setDirty( true );
-    mCurrentLayer->triggerRepaint();
+    switch ( redraw )
+    {
+      case LayerRepaint:
+        mCurrentLayer->triggerRepaint();
+        break;
+
+      case RecomposeCanvas:
+        mMapCanvas->refresh();
+        break;
+
+      case NoRedraw:
+        break;
+    }
   }
   connect( mCurrentLayer, &QgsMapLayer::styleChanged, this, &QgsLayerStylingWidget::updateCurrentWidgetLayer );
 }
 
-void QgsLayerStylingWidget::autoApply()
+void QgsLayerStylingWidget::autoApply( RedrawType redraw )
 {
   if ( mLiveApplyCheck->isChecked() && !mBlockAutoApply )
   {
-    mAutoApplyTimer->start( 100 );
+    if ( redraw == LayerRepaint && static_cast< RedrawType >( mAutoApplyTimer->property( "redrawType" ).toInt() ) != LayerRepaint )
+    {
+      // a layer repaint trumps the inexpensive canvas recomposition
+      mAutoApplyTimer->setProperty( "redrawType", LayerRepaint );
+    }
+    else if ( redraw == RecomposeCanvas && static_cast< RedrawType >( mAutoApplyTimer->property( "redrawType" ).toInt() ) == NoRedraw )
+    {
+      // a map canvas recompose trumps NoRedraw
+      mAutoApplyTimer->setProperty( "redrawType", RecomposeCanvas );
+    }
   }
+  mAutoApplyTimer->start( 100 );
 }
 
 void QgsLayerStylingWidget::undo()
@@ -346,7 +374,7 @@ void QgsLayerStylingWidget::updateCurrentWidgetLayer()
     QgsMapLayerConfigWidget *panel = mUserPages[row]->createWidget( mCurrentLayer, mMapCanvas, true, mWidgetStack );
     if ( panel )
     {
-      connect( panel, &QgsPanelWidget::widgetChanged, this, &QgsLayerStylingWidget::autoApply );
+      connect( panel, &QgsPanelWidget::widgetChanged, this, [ = ] { autoApply(); } );
       mWidgetStack->setMainPanel( panel );
     }
   }
@@ -367,7 +395,7 @@ void QgsLayerStylingWidget::updateCurrentWidgetLayer()
         QgsRendererPropertiesDialog *styleWidget = new QgsRendererPropertiesDialog( vlayer, QgsStyle::defaultStyle(), true, mStackedWidget );
         styleWidget->setMapCanvas( mMapCanvas );
         styleWidget->setDockMode( true );
-        connect( styleWidget, &QgsRendererPropertiesDialog::widgetChanged, this, &QgsLayerStylingWidget::autoApply );
+        connect( styleWidget, &QgsRendererPropertiesDialog::widgetChanged, this, [ = ]( bool recomposeOnly ) { autoApply( recomposeOnly ? RecomposeCanvas : LayerRepaint ); } );
         QgsPanelWidgetWrapper *wrapper = new QgsPanelWidgetWrapper( styleWidget, mStackedWidget );
         wrapper->setDockMode( true );
         connect( styleWidget, &QgsRendererPropertiesDialog::showPanel, wrapper, &QgsPanelWidget::openPanel );
@@ -380,7 +408,7 @@ void QgsLayerStylingWidget::updateCurrentWidgetLayer()
         {
           mLabelingWidget = new QgsLabelingWidget( nullptr, mMapCanvas, mWidgetStack );
           mLabelingWidget->setDockMode( true );
-          connect( mLabelingWidget, &QgsLabelingWidget::widgetChanged, this, &QgsLayerStylingWidget::autoApply );
+          connect( mLabelingWidget, &QgsLabelingWidget::widgetChanged, this, [ = ] { autoApply(); } );
         }
         mLabelingWidget->setLayer( vlayer );
         mWidgetStack->setMainPanel( mLabelingWidget );
@@ -393,7 +421,7 @@ void QgsLayerStylingWidget::updateCurrentWidgetLayer()
         {
           mVector3DWidget = new QgsVectorLayer3DRendererWidget( nullptr, mMapCanvas, mWidgetStack );
           mVector3DWidget->setDockMode( true );
-          connect( mVector3DWidget, &QgsVectorLayer3DRendererWidget::widgetChanged, this, &QgsLayerStylingWidget::autoApply );
+          connect( mVector3DWidget, &QgsVectorLayer3DRendererWidget::widgetChanged, this, [ = ] { autoApply( NoRedraw ); } );
         }
         mVector3DWidget->setLayer( vlayer );
         mWidgetStack->setMainPanel( mVector3DWidget );
@@ -443,7 +471,7 @@ void QgsLayerStylingWidget::updateCurrentWidgetLayer()
           }
         }
         mRasterStyleWidget->setDockMode( true );
-        connect( mRasterStyleWidget, &QgsPanelWidget::widgetChanged, this, &QgsLayerStylingWidget::autoApply );
+        connect( mRasterStyleWidget, &QgsPanelWidget::widgetChanged, this, [ = ] { autoApply(); } );
         mWidgetStack->setMainPanel( mRasterStyleWidget );
         break;
       }
@@ -452,7 +480,7 @@ void QgsLayerStylingWidget::updateCurrentWidgetLayer()
       {
         QgsRasterTransparencyWidget *transwidget = new QgsRasterTransparencyWidget( rlayer, mMapCanvas, mWidgetStack );
         transwidget->setDockMode( true );
-        connect( transwidget, &QgsPanelWidget::widgetChanged, this, &QgsLayerStylingWidget::autoApply );
+        connect( transwidget, &QgsPanelWidget::widgetChanged, this, [ = ] { autoApply(); } );
         mWidgetStack->setMainPanel( transwidget );
         break;
       }
@@ -465,10 +493,10 @@ void QgsLayerStylingWidget::updateCurrentWidgetLayer()
             mRasterStyleWidget = new QgsRendererRasterPropertiesWidget( rlayer, mMapCanvas, mWidgetStack );
             mRasterStyleWidget->syncToLayer( rlayer );
           }
-          connect( mRasterStyleWidget, &QgsPanelWidget::widgetChanged, this, &QgsLayerStylingWidget::autoApply );
+          connect( mRasterStyleWidget, &QgsPanelWidget::widgetChanged, this, [ = ] { autoApply(); } );
 
           QgsRasterHistogramWidget *widget = new QgsRasterHistogramWidget( rlayer, mWidgetStack );
-          connect( widget, &QgsPanelWidget::widgetChanged, this, &QgsLayerStylingWidget::autoApply );
+          connect( widget, &QgsPanelWidget::widgetChanged, this, [ = ] { autoApply(); } );
           QString name = mRasterStyleWidget->currentRenderWidget()->renderer()->type();
           widget->setRendererWidget( name, mRasterStyleWidget->currentRenderWidget() );
           widget->setDockMode( true );

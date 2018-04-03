@@ -121,14 +121,14 @@ QgsRendererPropertiesDialog::QgsRendererPropertiesDialog( QgsVectorLayer *layer,
   syncToLayer();
 
   QList<QWidget *> widgets;
-  widgets << mOpacityWidget
-          << cboRenderers
+  widgets << cboRenderers
           << checkboxEnableOrderBy
-          << mBlendModeComboBox
           << mFeatureBlendComboBox
           << mEffectWidget;
 
   connectValueChanged( widgets, SIGNAL( widgetChanged() ) );
+  connect( mOpacityWidget, &QgsOpacityWidget::opacityChanged, this, [ = ] { emit widgetChanged( true ); } );
+  connect( mBlendModeComboBox, static_cast<void ( QComboBox::* )( int )>( &QComboBox::currentIndexChanged ), this, [ = ] { emit widgetChanged( true ); } );
   connect( mEffectWidget, &QgsPanelWidget::showPanel, this, &QgsRendererPropertiesDialog::openPanel );
 }
 
@@ -258,7 +258,7 @@ void QgsRendererPropertiesDialog::rendererChanged()
       changeOrderBy( mActiveWidget->renderer()->orderBy(), mActiveWidget->renderer()->orderByEnabled() );
       connect( mActiveWidget, &QgsRendererWidget::layerVariablesChanged, this, &QgsRendererPropertiesDialog::layerVariablesChanged );
     }
-    connect( mActiveWidget, &QgsPanelWidget::widgetChanged, this, &QgsRendererPropertiesDialog::widgetChanged );
+    connect( mActiveWidget, &QgsPanelWidget::widgetChanged, this, [ = ] { emit widgetChanged(); } );
     connect( mActiveWidget, &QgsPanelWidget::showPanel, this, &QgsRendererPropertiesDialog::openPanel );
     w->setDockMode( mDockMode );
   }

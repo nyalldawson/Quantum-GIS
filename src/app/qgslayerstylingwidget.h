@@ -91,6 +91,13 @@ class APP_EXPORT QgsLayerStylingWidget : public QWidget, private Ui::QgsLayerSty
       Symbology3D,
     };
 
+    enum RedrawType
+    {
+      LayerRepaint, //!< Force repaint of layer (discard cached renders)
+      RecomposeCanvas, //!< Only a recompose of the canvas is required, existing render cache can be reused
+      NoRedraw, //!< No layer redraw required
+    };
+
     QgsLayerStylingWidget( QgsMapCanvas *canvas, const QList<QgsMapLayerConfigWidgetFactory *> &pages, QWidget *parent = nullptr );
     ~QgsLayerStylingWidget() override;
     QgsMapLayer *layer() { return mCurrentLayer; }
@@ -110,8 +117,8 @@ class APP_EXPORT QgsLayerStylingWidget : public QWidget, private Ui::QgsLayerSty
 
   public slots:
     void setLayer( QgsMapLayer *layer );
-    void apply();
-    void autoApply();
+    void apply( RedrawType redraw = LayerRepaint );
+    void autoApply( RedrawType redraw = LayerRepaint );
     void undo();
     void redo();
     void updateCurrentWidgetLayer();
