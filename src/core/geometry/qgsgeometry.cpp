@@ -1859,6 +1859,59 @@ QgsGeometry QgsGeometry::convexHull() const
   return QgsGeometry( std::move( cHull ) );
 }
 
+QgsGeometry QgsGeometry::alphaShape( const double alpha ) const
+{
+  if ( !d->geometry )
+  {
+    return QgsGeometry();
+  }
+
+  // extract vertices
+  std::unique_ptr< QgsMultiPoint > mp = qgis::make_unique< QgsMultiPoint >();
+  for ( auto pointIt = vertices_begin(); pointIt != vertices_end(); ++pointIt )
+    mp->addGeometry( ( *pointIt ).clone() );
+  const QgsGeometry multiPoint( std::move( mp ) );
+
+  // calculate delaunay triangulation
+  QgsGeometry delaunay = multiPoint.delaunayTriangulation();
+  if ( !delaunay )
+  {
+    QgsGeometry res;
+    res.mLastError = delaunay.lastError();
+    return res;
+  }
+
+  const QgsGeometryCollection *collection = qgsgeometry_cast< const QgsGeometryCollection * >( delaunay.constGet() );
+  QVector< QgsGeometry > parts;
+  for ( int i = 0; i < collection->numGeometries(); ++i )
+  {
+    const QgsPolygon *triangle = qgsgeometry_cast< const QgsPolygon * >( collection->geometryN( i ) );
+    if ( !triangle )
+      continue;
+
+    const QgsLineString *exterior = qgsgeometry_cast< const QgsLineString * >( triangle->exteriorRing() );
+    if ( !exterior )
+      continue;
+    double radius = 0;
+    double centerX = 0;
+    double centerY = 0;
+    QgsGeometryUtils::circleCenterRadius( exterior->pointN( 0 ), exterior->pointN( 1 ), exterior->pointN( 2 ), radius, centerX, centerY );
+    if ( radius > alpha )
+      continue;
+
+    parts.append( QgsGeometry( triangle->clone() ) );
+  }
+
+  if ( QgsWkbTypes::geometryType( wkbType() ) == QgsWkbTypes::PolygonGeometry )
+  {
+    // (multi)polygon input geometry - in this case the alpha shape should completely
+    // enclose the input polygons (i.e. it grows polygons only)
+    parts.append( *this );
+  }
+
+  return QgsGeometry::unaryUnion( parts );
+}
+
 QgsGeometry QgsGeometry::voronoiDiagram( const QgsGeometry &extent, double tolerance, bool edgesOnly ) const
 {
   if ( !d->geometry )

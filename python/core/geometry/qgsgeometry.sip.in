@@ -1021,6 +1021,18 @@ If the input is a NULL geometry, the output will also be a NULL geometry.
 
 If an error was encountered while creating the result, more information can be retrieved
 by calling `error()` on the returned geometry.
+
+.. seealso:: :py:func:`alphaShape`
+%End
+
+    QgsGeometry alphaShape( double alpha ) const;
+%Docstring
+Calculates an alpha shape (concave hull) for the geometry, using the specified ``alpha``
+threshold.
+
+.. versionadded:: 3.2
+
+.. seealso:: :py:func:`convexHull`
 %End
 
     QgsGeometry voronoiDiagram( const QgsGeometry &extent = QgsGeometry(), double tolerance = 0.0, bool edgesOnly = false ) const;

@@ -1039,8 +1039,19 @@ class CORE_EXPORT QgsGeometry
      *
      * If an error was encountered while creating the result, more information can be retrieved
      * by calling `error()` on the returned geometry.
+     *
+     * \see alphaShape()
      */
     QgsGeometry convexHull() const;
+
+    /**
+     * Calculates an alpha shape (concave hull) for the geometry, using the specified \a alpha
+     * threshold.
+     *
+     * \since QGIS 3.2
+     * \see convexHull()
+     */
+    QgsGeometry alphaShape( double alpha ) const;
 
     /**
      * Creates a Voronoi diagram for the nodes contained within the geometry.
