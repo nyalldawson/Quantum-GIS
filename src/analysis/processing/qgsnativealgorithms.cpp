@@ -73,6 +73,7 @@
 #include "qgsalgorithmtransform.h"
 #include "qgsalgorithmtranslate.h"
 #include "qgsalgorithmuniquevalueindex.h"
+#include "qgsalgorithmwedgebuffers.h"
 
 
 ///@cond PRIVATE
@@ -173,6 +174,7 @@ void QgsNativeAlgorithms::loadAlgorithms()
   addAlgorithm( new QgsTransectAlgorithm() );
   addAlgorithm( new QgsTransformAlgorithm() );
   addAlgorithm( new QgsTranslateAlgorithm() );
+  addAlgorithm( new QgsWedgeBuffersAlgorithm() );
 }
 
 
