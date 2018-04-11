@@ -708,3 +708,220 @@ QgsGeometry QgsInternalGeometryEngine::densifyByDistance( double distance ) cons
     return QgsGeometry( densifyGeometry( mGeometry, -1, distance ) );
   }
 }
+
+QgsGeometry QgsInternalGeometryEngine::visibilityPolygon(QgsPoint position, const QVector<QgsLineString *> &segments) const
+{
+    if ( !mGeometry )
+    {
+      return QgsGeometry();
+    }
+
+    double minX = position.x();
+    double maxX = position.x();
+    double minY = position.y();
+    double maxY = position.y();
+
+    const unsigned int segmentSize = segments.size() + 4; // 5????
+
+    struct Segment
+    {
+      Segment( double x1, double y1, double x2, double y2 )
+          : x1( x1 )
+          , y1( y1 )
+          , x2( x2 )
+          , y2( y2 )
+      {}
+      double x1;
+      double y1;
+      double x2;
+      double y2;
+    };
+    std::vector< Segment > bounded;
+    bounded.reserve( segmentSize );
+
+    for ( int i = 0; i < segments.size(); ++i)
+    {
+      const double x1 = segments.at( i )->xAt( 0 );
+      const double y1 = segments.at( i )->yAt( 0 );
+      const double x2 = segments.at( i )->xAt( 1 );
+      const double y2 = segments.at( i )->yAt( 1 );
+
+      minX = std::min( std::min( minX, x1 ), x2 );
+      minY = std::min( std::min( minY, y1 ), y2 );
+      maxX = std::max( std::max( maxX, x1 ), x2 );
+      maxY = std::max( std::max( maxY, y1 ), y2 );
+
+      bounded.emplace_back( Segment( x1, y1, x2, y2 ) );
+        }
+
+    bounded.emplace_back( Segment( minX, minY, maxX, minY ) );
+    bounded.emplace_back( Segment( maxX, minY, maxX, maxY ) );
+    bounded.emplace_back( Segment( maxX, maxY, minX, maxY ) );
+    bounded.emplace_back( Segment( minX, maxY, minX, minY ) );
+
+    struct Point
+    {
+      Point ( unsigned int i,
+              unsigned int j,
+              double angle )
+          : i(i )
+          , j( j )
+          , angle( angle )
+      {}
+      unsigned int i;
+      unsigned int j;
+      double angle;
+    };
+                    // sort points by angle
+    auto sortPoints = [position, bounded]()->std::vector< Point >
+    {
+      std::vector< Point > points;
+      points.reserve( bounded.size() * 2 );
+      for ( unsigned int i = 0; i < bounded.size(); ++i )
+      {
+        const double startAngle = 180 / M_PI * QgsGeometryUtils::lineAngle( bounded.at( i ).x1,
+                                                                            bounded.at( i ).y1,
+                                                                            position.x(),
+                                                                            position.y() );
+        points.emplace_back( Point( i, 0, startAngle  ) );
+        const double endAngle = 180 / M_PI * QgsGeometryUtils::lineAngle( bounded.at( i ).x2,
+                                                                            bounded.at( i ).y2,
+                                                                            position.x(),
+                                                                            position.y() );
+        points.emplace_back( Point( i, 1, endAngle  ) );
+      }
+
+      std::sort( points.begin(), points.end(), []( const Point & a, const Point & b ) -> bool
+      {
+        return a.angle < b.angle; // maybe flip?
+      } );
+      return points;
+
+    };
+
+    auto points = sortPoints();
+
+    std::vector < int > map;
+    map.resize( bounded.size() );
+    std::fill( map.begin(), map.end(), -1 );
+
+    std::vector < int > heap;
+
+    auto getParent = []( int index )->int
+    {
+        return std::floor((index-1)/2.0);
+    };
+
+    auto lessThan = []( int index1, int index2, QgsPoint position, const std::vector< Segment >& segments, QgsPoint destination )->bool
+    {
+        QgsPoint inter1;
+        bool isIntersection1 = false;
+        QgsGeometryUtils::segmentIntersection( QgsPoint( segments.at( index1 ).x1, segments.at( index1 ).y1 ),
+                                               QgsPoint( segments.at( index1 ).x2, segments.at( index1 ).y2 ),
+                                               position,
+                                                destination,
+                                               inter1, isIntersection1
+                                               );
+        QgsPoint inter2;
+        bool isIntersection2 = false;
+        QgsGeometryUtils::segmentIntersection( QgsPoint( segments.at( index2 ).x1, segments.at( index2 ).y1 ),
+                                               QgsPoint( segments.at( index2 ).x2, segments.at( index2 ).y2 ),
+                                               position,
+                                                destination,
+                                               inter2, isIntersection2
+                                               );
+
+        if ( inter1 != inter2 )
+        {
+            const double d1 = inter1.distance( position);
+            const double d2 = inter2.distance( position);
+            return d1 < d2;
+        }
+
+            int end1 = 0;
+            if ( inter1 == QgsPoint( segments.at( index1 ).x1, segments.at( index1 ).y1 ) )
+                end1 = 1;
+            int end2 = 0;
+            if ( inter2 == QgsPoint( segments.at( index2 ).x1, segments.at( index2 ).y1 ))
+                end2 = 1;
+            const double a1 = VisibilityPolygon.angle2(segments[index1][end1], inter1, position);
+            const double a2 = VisibilityPolygon.angle2(segments[index2][end2], inter2, position);
+            if (a1 < 180) {
+                if (a2 > 180) return true;
+                return a2 < a1;
+            }
+            return a1 < a2;
+    };
+
+    auto insert = [ &getParent, &lessThan ]( int index, std::vector < int >& heap, QgsPoint position, const std::vector< Segment >& segments, QgsPoint destination, std::vector< int >& map )
+    {
+        QgsPoint intersectionPoint;
+        bool isIntersection = false;
+        QgsGeometryUtils::segmentIntersection( QgsPoint( segments.at( index ).x1, segments.at( index ).y1 ),
+                                               QgsPoint( segments.at( index ).x2, segments.at( index ).y2 ),
+                                               position,
+                                               destination,
+                                               intersectionPoint, isIntersection
+                                               );
+        if ( !isIntersection )
+            return;
+
+        int cur = heap.size();
+        heap.emplace_back( index );
+        map[index] = cur;
+        while (cur > 0)
+        {
+            int parent = getParent(cur);
+            if (!lessThan(heap[cur], heap[parent], position, segments, destination))
+            {
+                break;
+            }
+            map[heap[parent]] = cur;
+            map[heap[cur]] = parent;
+            int temp = heap[cur];
+            heap[cur] = heap[parent];
+            heap[parent] = temp;
+            cur = parent;
+        }
+    };
+
+
+
+    QgsPoint start( position.x() + 1, position.y() );
+    for ( unsigned int i = 0; i < bounded.size(); ++i )
+    {
+      const double a1 = 180 / M_PI * QgsGeometryUtils::lineAngle( bounded.at( i ).x1, bounded.at( i ).y1, position.x(), position.y() );
+      const double a2 = 180 / M_PI * QgsGeometryUtils::lineAngle( bounded.at( i ).x2, bounded.at( i ).y2, position.x(), position.y() );
+      bool active = false;
+      if (a1 > -180 && a1 <= 0 && a2 <= 180 && a2 >= 0 && a2 - a1 > 180)
+          active = true;
+              else if (a2 > -180 && a2 <= 0 && a1 <= 180 && a1 >= 0 && a1 - a2 > 180)
+                  active = true;
+      if (active) {
+               insert(i, heap, position, bounded, start, map);
+              }
+
+    }
+
+
+                    //    auto sorted = sort();
+
+                        /*
+
+                        for (var i = 0; i < boundedLen; ++i) map[i] = -1;
+                        var heap = [];
+                        start[0] = position[0] + 1;
+                        start[1] = position[1];
+                        for (var i = 0; i < boundedLen; ++i) {
+                            var a1 = VisibilityPolygon.angle(bounded[i][0], position);
+                            var a2 = VisibilityPolygon.angle(bounded[i][1], position);
+                            var active = false;
+                            if (a1 > -180 && a1 <= 0 && a2 <= 180 && a2 >= 0 && a2 - a1 > 180) active = true;
+                            if (a2 > -180 && a2 <= 0 && a1 <= 180 && a1 >= 0 && a1 - a2 > 180) active = true;
+                            if (active) {
+                                VisibilityPolygon.insert(i, heap, position, bounded, start, map);
+                            }
+                        }*/
+
+return QgsGeometry();
+}

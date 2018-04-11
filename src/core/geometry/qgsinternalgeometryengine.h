@@ -18,8 +18,11 @@
 
 #define SIP_NO_FILE
 
+#include "qgspointxy.h"
+
 class QgsGeometry;
 class QgsAbstractGeometry;
+class QgsLineString;
 
 /**
  * \ingroup core
@@ -97,6 +100,9 @@ class QgsInternalGeometryEngine
      * \since QGIS 3.0
      */
     QgsGeometry densifyByDistance( double distance ) const;
+
+    QgsGeometry visibilityPolygon(QgsPoint point,
+                                   const QVector< QgsLineString* >& segments ) const;
 
   private:
     const QgsAbstractGeometry *mGeometry = nullptr;
