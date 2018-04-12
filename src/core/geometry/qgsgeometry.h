@@ -256,6 +256,10 @@ class CORE_EXPORT QgsGeometry
     //! Creates a new multipart geometry from a list of QgsGeometry objects
     static QgsGeometry collectGeometry( const QVector<QgsGeometry> &geometries );
 
+
+    static QgsGeometry visibilityPolygon( const QgsPoint &observer,
+                                          const QVector< QgsLineString * > walls );
+
     /**
      * Set the geometry, feeding in a geometry in GEOS format.
      * This class will take ownership of the buffer.

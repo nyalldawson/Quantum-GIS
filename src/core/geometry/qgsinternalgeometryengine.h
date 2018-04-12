@@ -101,8 +101,9 @@ class QgsInternalGeometryEngine
      */
     QgsGeometry densifyByDistance( double distance ) const;
 
-    QgsGeometry visibilityPolygon(QgsPoint point,
-                                   const QVector< QgsLineString* >& segments ) const;
+    static QgsGeometry visibilityPolygon( QgsPoint point,
+                                          const QVector< QgsLineString * > &segments,
+                                          bool addBoundingLines = false );
 
   private:
     const QgsAbstractGeometry *mGeometry = nullptr;

@@ -258,6 +258,11 @@ QgsGeometry QgsGeometry::collectGeometry( const QVector< QgsGeometry > &geometri
   return collected;
 }
 
+QgsGeometry QgsGeometry::visibilityPolygon( const QgsPoint &observer, const QVector<QgsLineString *> walls )
+{
+  return QgsInternalGeometryEngine::visibilityPolygon( observer, walls );
+}
+
 void QgsGeometry::fromWkb( unsigned char *wkb, int length )
 {
   QgsConstWkbPtr ptr( wkb, length );

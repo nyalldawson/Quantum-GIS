@@ -212,6 +212,10 @@ Creates a new multipart geometry from a list of QgsGeometry objects
 %End
 
 
+    static QgsGeometry visibilityPolygon( const QgsPoint &observer,
+                                          const QVector< QgsLineString * > walls );
+
+
 
     void fromWkb( const QByteArray &wkb );
 %Docstring

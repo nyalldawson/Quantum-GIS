@@ -27,6 +27,7 @@
 #include <QTransform>
 #include <memory>
 #include <queue>
+#include <set>
 
 QgsInternalGeometryEngine::QgsInternalGeometryEngine( const QgsGeometry &geometry )
   : mGeometry( geometry.constGet() )
@@ -709,219 +710,370 @@ QgsGeometry QgsInternalGeometryEngine::densifyByDistance( double distance ) cons
   }
 }
 
-QgsGeometry QgsInternalGeometryEngine::visibilityPolygon(QgsPoint position, const QVector<QgsLineString *> &segments) const
+
+struct QgsLineSegment
 {
-    if ( !mGeometry )
+  QgsLineSegment( QgsPointXY start, QgsPointXY end )
+    : start( start )
+    , end( end )
+  {}
+
+  QgsPointXY start;
+  QgsPointXY end;
+};
+
+
+/* Compare 2 line segments based on their distance from given point
+     * Assumes: (1) the line segments are intersected by some ray from the origin
+     *          (2) the line segments do not intersect except at their endpoints
+     *          (3) no line segment is collinear with the origin
+     */
+struct LineSegmentDistanceComparer
+{
+  QgsPointXY origin;
+
+  explicit LineSegmentDistanceComparer( QgsPointXY origin )
+    : origin( origin )
+  {}
+
+  /**
+   * Check whether the line segment x is closer to the origin than the
+   * line segment y.
+   * @param x line segment: left hand side of the comparison operator
+   * @param y line segment: right hand side of the comparison operator
+   * @return true iff x < y (x is closer than y)
+   */
+  bool operator()( const QgsLineSegment &x, const QgsLineSegment &y ) const
+  {
+    QgsPointXY a( x.start );
+    QgsPointXY b( x.end );
+    QgsPointXY c( y.start );
+    QgsPointXY d( y.end );
+
+    Q_ASSERT_X(
+      QgsGeometryUtils::leftOfLine( b.x(), b.y(), origin.x(), origin.y(), a.x(), a.y() ) != 0,
+      "line_segment_dist_comparer",
+      "AB must not be collinear with the origin." );
+    Q_ASSERT_X(
+      QgsGeometryUtils::leftOfLine( d.x(), d.y(), origin.x(), origin.y(), c.x(), c.y() ) != 0,
+      "line_segment_dist_comparer",
+      "CD must not be collinear with the origin." );
+
+    // sort the endpoints so that if there are common endpoints,
+    // they will be a and c
+    if ( b == c ||  b == d )
+      std::swap( a, b );
+    if ( a == d )
+      std::swap( c, d );
+
+    // cases with common endpoints
+    if ( a == c )
     {
-      return QgsGeometry();
+      const int oad = QgsGeometryUtils::leftOfLine( d.x(), d.y(), origin.x(), origin.y(), a.x(), a.y() );
+      const int oab = QgsGeometryUtils::leftOfLine( origin.x(), origin.y(), a.x(), a.y(), b.x(), b.y() );
+      if ( b == d || oad != oab )
+        return false;
+      return QgsGeometryUtils::leftOfLine( d.x(), d.y(), a.x(), a.y(), b.x(), b.y() ) != QgsGeometryUtils::leftOfLine( origin.x(), origin.y(), a.x(), a.y(), b.x(), b.y() );
     }
 
-    double minX = position.x();
-    double maxX = position.x();
-    double minY = position.y();
-    double maxY = position.y();
-
-    const unsigned int segmentSize = segments.size() + 4; // 5????
-
-    struct Segment
+    // cases without common endpoints
+    const int cda = QgsGeometryUtils::leftOfLine( a.x(), a.y(), c.x(), c.y(), d.x(), d.y() );
+    const int cdb = QgsGeometryUtils::leftOfLine( b.x(), b.y(), c.x(), c.y(), d.x(), d.y() );
+    if ( cdb == 0 && cda == 0 )
     {
-      Segment( double x1, double y1, double x2, double y2 )
-          : x1( x1 )
-          , y1( y1 )
-          , x2( x2 )
-          , y2( y2 )
-      {}
-      double x1;
-      double y1;
-      double x2;
-      double y2;
-    };
-    std::vector< Segment > bounded;
-    bounded.reserve( segmentSize );
-
-    for ( int i = 0; i < segments.size(); ++i)
+      return origin.sqrDist( a ) < origin.sqrDist( c );
+    }
+    else if ( cda == cdb ||
+              cda == 0 ||
+              cdb == 0 )
     {
-      const double x1 = segments.at( i )->xAt( 0 );
-      const double y1 = segments.at( i )->yAt( 0 );
-      const double x2 = segments.at( i )->xAt( 1 );
-      const double y2 = segments.at( i )->yAt( 1 );
-
-      minX = std::min( std::min( minX, x1 ), x2 );
-      minY = std::min( std::min( minY, y1 ), y2 );
-      maxX = std::max( std::max( maxX, x1 ), x2 );
-      maxY = std::max( std::max( maxY, y1 ), y2 );
-
-      bounded.emplace_back( Segment( x1, y1, x2, y2 ) );
-        }
-
-    bounded.emplace_back( Segment( minX, minY, maxX, minY ) );
-    bounded.emplace_back( Segment( maxX, minY, maxX, maxY ) );
-    bounded.emplace_back( Segment( maxX, maxY, minX, maxY ) );
-    bounded.emplace_back( Segment( minX, maxY, minX, minY ) );
-
-    struct Point
+      const int cdo = QgsGeometryUtils::leftOfLine( origin.x(), origin.y(), c.x(), c.y(), d.x(), d.y() );
+      return cdo == cda || cdo == cdb;
+    }
+    else
     {
-      Point ( unsigned int i,
-              unsigned int j,
-              double angle )
-          : i(i )
-          , j( j )
-          , angle( angle )
-      {}
-      unsigned int i;
-      unsigned int j;
-      double angle;
-    };
-                    // sort points by angle
-    auto sortPoints = [position, bounded]()->std::vector< Point >
+      const int abo = QgsGeometryUtils::leftOfLine( origin.x(), origin.y(), a.x(), a.y(), b.x(), b.y() );
+      return abo != QgsGeometryUtils::leftOfLine( c.x(), c.y(), a.x(), a.y(), b.x(), b.y() );
+    }
+  }
+};
+
+// compare angles clockwise starting at the positive y axis
+struct ClockwiseAngleComparer
+{
+  QgsPointXY vertex;
+
+  explicit ClockwiseAngleComparer( QgsPointXY origin )
+    : vertex( origin )
+  {}
+
+  bool operator()( QgsPointXY a, QgsPointXY b ) const
+  {
+    const bool is_a_left = a.x() < vertex.x();
+    const bool is_b_left = b.x() < vertex.x();
+    if ( is_a_left != is_b_left )
+      return is_b_left;
+
+    if ( qgsDoubleNear( a.x(), vertex.x() ) && qgsDoubleNear( b.x(), vertex.x() ) )
     {
-      std::vector< Point > points;
-      points.reserve( bounded.size() * 2 );
-      for ( unsigned int i = 0; i < bounded.size(); ++i )
+      if ( a.y() >= vertex.y() ||
+           b.y() >= vertex.y() )
       {
-        const double startAngle = 180 / M_PI * QgsGeometryUtils::lineAngle( bounded.at( i ).x1,
-                                                                            bounded.at( i ).y1,
-                                                                            position.x(),
-                                                                            position.y() );
-        points.emplace_back( Point( i, 0, startAngle  ) );
-        const double endAngle = 180 / M_PI * QgsGeometryUtils::lineAngle( bounded.at( i ).x2,
-                                                                            bounded.at( i ).y2,
-                                                                            position.x(),
-                                                                            position.y() );
-        points.emplace_back( Point( i, 1, endAngle  ) );
+        return b.y() < a.y();
       }
-
-      std::sort( points.begin(), points.end(), []( const Point & a, const Point & b ) -> bool
-      {
-        return a.angle < b.angle; // maybe flip?
-      } );
-      return points;
-
-    };
-
-    auto points = sortPoints();
-
-    std::vector < int > map;
-    map.resize( bounded.size() );
-    std::fill( map.begin(), map.end(), -1 );
-
-    std::vector < int > heap;
-
-    auto getParent = []( int index )->int
-    {
-        return std::floor((index-1)/2.0);
-    };
-
-    auto lessThan = []( int index1, int index2, QgsPoint position, const std::vector< Segment >& segments, QgsPoint destination )->bool
-    {
-        QgsPoint inter1;
-        bool isIntersection1 = false;
-        QgsGeometryUtils::segmentIntersection( QgsPoint( segments.at( index1 ).x1, segments.at( index1 ).y1 ),
-                                               QgsPoint( segments.at( index1 ).x2, segments.at( index1 ).y2 ),
-                                               position,
-                                                destination,
-                                               inter1, isIntersection1
-                                               );
-        QgsPoint inter2;
-        bool isIntersection2 = false;
-        QgsGeometryUtils::segmentIntersection( QgsPoint( segments.at( index2 ).x1, segments.at( index2 ).y1 ),
-                                               QgsPoint( segments.at( index2 ).x2, segments.at( index2 ).y2 ),
-                                               position,
-                                                destination,
-                                               inter2, isIntersection2
-                                               );
-
-        if ( inter1 != inter2 )
-        {
-            const double d1 = inter1.distance( position);
-            const double d2 = inter2.distance( position);
-            return d1 < d2;
-        }
-
-            int end1 = 0;
-            if ( inter1 == QgsPoint( segments.at( index1 ).x1, segments.at( index1 ).y1 ) )
-                end1 = 1;
-            int end2 = 0;
-            if ( inter2 == QgsPoint( segments.at( index2 ).x1, segments.at( index2 ).y1 ))
-                end2 = 1;
-            const double a1 = VisibilityPolygon.angle2(segments[index1][end1], inter1, position);
-            const double a2 = VisibilityPolygon.angle2(segments[index2][end2], inter2, position);
-            if (a1 < 180) {
-                if (a2 > 180) return true;
-                return a2 < a1;
-            }
-            return a1 < a2;
-    };
-
-    auto insert = [ &getParent, &lessThan ]( int index, std::vector < int >& heap, QgsPoint position, const std::vector< Segment >& segments, QgsPoint destination, std::vector< int >& map )
-    {
-        QgsPoint intersectionPoint;
-        bool isIntersection = false;
-        QgsGeometryUtils::segmentIntersection( QgsPoint( segments.at( index ).x1, segments.at( index ).y1 ),
-                                               QgsPoint( segments.at( index ).x2, segments.at( index ).y2 ),
-                                               position,
-                                               destination,
-                                               intersectionPoint, isIntersection
-                                               );
-        if ( !isIntersection )
-            return;
-
-        int cur = heap.size();
-        heap.emplace_back( index );
-        map[index] = cur;
-        while (cur > 0)
-        {
-            int parent = getParent(cur);
-            if (!lessThan(heap[cur], heap[parent], position, segments, destination))
-            {
-                break;
-            }
-            map[heap[parent]] = cur;
-            map[heap[cur]] = parent;
-            int temp = heap[cur];
-            heap[cur] = heap[parent];
-            heap[parent] = temp;
-            cur = parent;
-        }
-    };
-
-
-
-    QgsPoint start( position.x() + 1, position.y() );
-    for ( unsigned int i = 0; i < bounded.size(); ++i )
-    {
-      const double a1 = 180 / M_PI * QgsGeometryUtils::lineAngle( bounded.at( i ).x1, bounded.at( i ).y1, position.x(), position.y() );
-      const double a2 = 180 / M_PI * QgsGeometryUtils::lineAngle( bounded.at( i ).x2, bounded.at( i ).y2, position.x(), position.y() );
-      bool active = false;
-      if (a1 > -180 && a1 <= 0 && a2 <= 180 && a2 >= 0 && a2 - a1 > 180)
-          active = true;
-              else if (a2 > -180 && a2 <= 0 && a1 <= 180 && a1 >= 0 && a1 - a2 > 180)
-                  active = true;
-      if (active) {
-               insert(i, heap, position, bounded, start, map);
-              }
-
+      return a.y() < b.y();
     }
 
+    QgsVector oa = a - vertex;
+    QgsVector ob = b - vertex;
+    double det = oa.crossProduct( ob );
+    if ( qgsDoubleNear( det, 0.0 ) )
+    {
+      return oa.lengthSquared() < ob.lengthSquared();
+    }
+    return det < 0;
+  }
+};
 
-                    //    auto sorted = sort();
+struct ray
+{
+  QgsPointXY origin;
+  QgsVector direction;
 
-                        /*
+  ray() {}
+  ray( QgsPointXY origin, QgsVector direction )
+    : origin( origin )
+    , direction( direction )
+  {}
 
-                        for (var i = 0; i < boundedLen; ++i) map[i] = -1;
-                        var heap = [];
-                        start[0] = position[0] + 1;
-                        start[1] = position[1];
-                        for (var i = 0; i < boundedLen; ++i) {
-                            var a1 = VisibilityPolygon.angle(bounded[i][0], position);
-                            var a2 = VisibilityPolygon.angle(bounded[i][1], position);
-                            var active = false;
-                            if (a1 > -180 && a1 <= 0 && a2 <= 180 && a2 >= 0 && a2 - a1 > 180) active = true;
-                            if (a2 > -180 && a2 <= 0 && a1 <= 180 && a1 >= 0 && a1 - a2 > 180) active = true;
-                            if (active) {
-                                VisibilityPolygon.insert(i, heap, position, bounded, start, map);
-                            }
-                        }*/
+  /**
+   * Find the nearest intersection point of ray and line segment.
+   * @param segment
+   * @param out_point reference to a variable where the nearest
+   *        intersection point will be stored (can be changed even
+   *        when there is no intersection)
+   * @return true iff the ray intersects the line segment
+   */
+  bool intersects(
+    const QgsLineSegment &segment,
+    QgsPointXY &out_point ) const
+  {
+    QgsVector ao = origin - segment.start;
+    QgsVector ab = segment.end - segment.start;
+    double det = ab.crossProduct( direction );
+    if ( qgsDoubleNear( det, 0.0 ) )
+    {
+      const int abo = QgsGeometryUtils::leftOfLine( origin.x(), origin.y(), segment.start.x(), segment.start.y(), segment.end.x(), segment.end.y() );
+      if ( abo != 0 )
+        return false;
+      double dist_a = ao * direction;
+      double dist_b = ( origin - segment.end ) * direction;
 
-return QgsGeometry();
+      if ( dist_a > 0 && dist_b > 0 )
+        return false;
+      else if ( ( dist_a > 0 ) != ( dist_b > 0 ) )
+        out_point = origin;
+      else if ( dist_a > dist_b ) // at this point, both distances are negative
+        out_point = segment.start; // hence the nearest point is A
+      else
+        out_point = segment.end;
+      return true;
+    }
+
+    double u = ao.crossProduct( direction ) / det;
+    if ( u < 0.0 || 1.0 < u )
+      return false;
+
+    double t = -ab.crossProduct( ao ) / det;
+    out_point = origin + direction * t;
+    return qgsDoubleNear( t, 0.0 ) || t > 0;
+  }
+};
+
+struct visibility_event
+{
+  // events used in the visibility polygon algorithm
+  enum event_type
+  {
+    start_vertex,
+    end_vertex
+  };
+
+  event_type type;
+  QgsLineSegment segment;
+
+  visibility_event( event_type type, const QgsLineSegment &segment ) :
+    type( type ),
+    segment( segment ) {}
+
+  QgsPointXY point() const { return segment.start; }
+};
+
+/**
+ * Calculate visibility polygon vertices in clockwise order.
+     * Endpoints of the line segments (obstacles) can be ordered arbitrarily.
+     * Line segments collinear with the point are ignored.
+     * @param point - position of the observer
+     * @param begin iterator of the list of line segments (obstacles)
+     * @param end iterator of the list of line segments (obstacles)
+     * @return vector of vertices of the visibility polygon
+     */
+std::vector<QgsPointXY> visibility_polygon(
+  QgsPointXY point,
+  const std::vector< QgsLineSegment > &input )
+{
+  LineSegmentDistanceComparer cmp_dist{ point };
+  std::set<QgsLineSegment, LineSegmentDistanceComparer> state{ cmp_dist };
+  std::vector<visibility_event> events;
+
+  for ( auto begin = input.begin(); begin != input.end(); ++begin )
+  {
+    const QgsLineSegment &segment = *begin;
+
+    // Sort line segment endpoints and add them as events
+    // Skip line segments collinear with the point
+    const int pab = QgsGeometryUtils::leftOfLine( segment.end.x(), segment.end.y(), point.x(), point.y(), segment.start.x(), segment.start.y() );
+    if ( pab == 0 )
+    {
+      continue;
+    }
+    else if ( pab > 0 )
+    {
+      events.emplace_back( visibility_event::start_vertex, segment );
+      events.emplace_back(
+        visibility_event::end_vertex,
+        QgsLineSegment{ segment.end, segment.start } );
+    }
+    else
+    {
+      events.emplace_back(
+        visibility_event::start_vertex,
+        QgsLineSegment{ segment.end, segment.start } );
+      events.emplace_back( visibility_event::end_vertex, segment );
+    }
+
+    // Initialize state by adding line segments that are intersected
+    // by vertical ray from the point
+    QgsPointXY a = segment.start, b = segment.end;
+    if ( a.x() > b.x() )
+      std::swap( a, b );
+
+    const int abp = QgsGeometryUtils::leftOfLine( point.x(), point.y(), a.x(), a.y(), b.x(), b.y() );
+    if ( abp > 0 &&
+         ( qgsDoubleNear( b.x(), point.x() ) ||
+           ( a.x() < point.x() && point.x() < b.x() ) ) )
+    {
+      state.insert( segment );
+    }
+  }
+
+  // sort events by angle
+  ClockwiseAngleComparer cmp_angle{ point };
+  std::sort( events.begin(), events.end(), [&cmp_angle]( auto &&a, auto &&b )
+  {
+    // if the points are equal, sort end vertices first
+    if ( a.point() == b.point() )
+      return a.type == visibility_event::end_vertex &&
+             b.type == visibility_event::start_vertex;
+    return cmp_angle( a.point(), b.point() );
+  } );
+
+  // find the visibility polygon
+  std::vector<QgsPointXY> vertices;
+  for ( const visibility_event &event : events )
+  {
+    if ( event.type == visibility_event::end_vertex )
+      state.erase( event.segment );
+
+    if ( state.empty() )
+    {
+      vertices.push_back( event.point() );
+    }
+    else if ( cmp_dist( event.segment, *state.begin() ) )
+    {
+      // Nearest line segment has changed
+      // Compute the intersection point with this segment
+      QgsPointXY intersection;
+      ray ray{ point, event.point() - point };
+      auto nearest_segment = *state.begin();
+      bool intersects = ray.intersects( nearest_segment, intersection );
+      Q_ASSERT_X( intersects, "visibility",
+                  "Ray intersects line segment L if L is in the state" );
+
+      if ( event.type == visibility_event::start_vertex )
+      {
+        vertices.push_back( intersection );
+        vertices.push_back( event.point() );
+      }
+      else
+      {
+        vertices.push_back( event.point() );
+        vertices.push_back( intersection );
+      }
+    }
+
+    if ( event.type == visibility_event::start_vertex )
+      state.insert( event.segment );
+  }
+
+  // remove collinear points
+  auto top = vertices.begin();
+  for ( auto it = vertices.begin(); it != vertices.end(); ++it )
+  {
+    auto prev = top == vertices.begin() ? vertices.end() - 1 : top - 1;
+    auto next = it + 1 == vertices.end() ? vertices.begin() : it + 1;
+    if ( QgsGeometryUtils::leftOfLine( next->x(), next->y(), prev->x(), prev->y(), it->x(), it->y() ) != 0 )
+      *top++ = *it;
+  }
+  vertices.erase( top, vertices.end() );
+  return vertices;
+}
+
+QgsGeometry QgsInternalGeometryEngine::visibilityPolygon( QgsPoint position, const QVector<QgsLineString *> &lines, bool addBoundingLines )
+{
+  double xMin = position.x();
+  double xMax = position.x();
+  double yMin = position.y();
+  double yMax = position.y();
+
+  std::vector< QgsLineSegment > segments;
+  for ( const QgsLineString *line : lines )
+  {
+    for ( int i = 0; i < line->numPoints() - 1; ++i )
+    {
+      QgsPoint ptA = line->pointN( i );
+      QgsPoint ptB = line->pointN( i + 1 );
+      segments.emplace_back( QgsLineSegment( QgsPointXY( ptA ), QgsPointXY( ptB ) ) );
+
+      xMin = std::min( std::min( xMin, ptA.x() ), ptB.x() );
+      yMin = std::min( std::min( yMin, ptA.y() ), ptB.y() );
+      xMax = std::max( std::max( xMax, ptA.x() ), ptB.x() );
+      yMax = std::max( std::max( yMax, ptA.y() ), ptB.y() );
+    }
+  }
+
+  if ( addBoundingLines )
+  {
+    segments.emplace_back( QgsLineSegment( QgsPointXY( xMin, yMin ), QgsPointXY( xMin, yMax ) ) );
+    segments.emplace_back( QgsLineSegment( QgsPointXY( xMin, yMax ), QgsPointXY( xMax, yMax ) ) );
+    segments.emplace_back( QgsLineSegment( QgsPointXY( xMax, yMax ), QgsPointXY( xMax, yMin ) ) );
+    segments.emplace_back( QgsLineSegment( QgsPointXY( xMax, yMin ), QgsPointXY( xMin, yMin ) ) );
+  }
+
+  // here - need to check intersects
+
+  std::vector<QgsPointXY> vp = visibility_polygon(
+                                 QgsPointXY( position.x(), position.y() ),
+                                 segments );
+
+  QVector< QgsPoint > ringPoints;
+  for ( QgsPointXY v : vp )
+  {
+    ringPoints.append( QgsPoint( v.x(), v.y() ) );
+  }
+  ringPoints.append( ringPoints.at( 0 ) ); //close
+  std::unique_ptr< QgsLineString > ring = qgis::make_unique< QgsLineString >( ringPoints );
+  std::unique_ptr< QgsPolygon > poly = qgis::make_unique< QgsPolygon >();
+  poly->setExteriorRing( ring.release() );
+  return QgsGeometry( std::move( poly ) );
 }
