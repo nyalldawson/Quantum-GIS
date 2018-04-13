@@ -24,6 +24,11 @@ class CORE_EXPORT QgsLineSegment2D
   public:
 
     /**
+     * Constructor for a null line segment.
+     */
+    QgsLineSegment2D() = default;
+
+    /**
      * Constructor for a QgsLineSegment2D from the specified \a start point to
      * the \a end point.
      */
@@ -40,6 +45,11 @@ class CORE_EXPORT QgsLineSegment2D
       : mStart( QgsPointXY( x1, y1 ) )
       , mEnd( QgsPointXY( x2, y2 ) )
     {}
+
+  /**
+     * Returns true if the segment is a null segment, i.e. has zero length.
+     */
+    bool isNull() const;
 
     /**
      * Returns the length of the segment.
@@ -207,6 +217,11 @@ class CORE_EXPORT QgsLineSegment2D
     {
       std::swap( mStart, mEnd );
     }
+
+
+    bool intersects( const QgsLineSegment2D &other ) const;
+
+    bool cutBySegment( const QgsLineSegment2D &cutLine, QgsLineSegment2D &part1, QgsLineSegment2D &part2, QgsLineSegment2D &part3, QgsLineSegment2D &part4 ) const;
 
     //! Equality operator
     bool operator==( const QgsLineSegment2D &other ) const

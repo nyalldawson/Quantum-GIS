@@ -33,6 +33,11 @@ Constructor for a QgsLineSegment2D from the point (``x1``, ``y2``) to
 (``x2``, ``y2``).
 %End
 
+    bool isNull() const;
+%Docstring
+Returns true if the segment is a null segment, i.e. has zero length.
+%End
+
     double length() const;
 %Docstring
 Returns the length of the segment.
@@ -188,6 +193,11 @@ on the line, or exactly in line with the segment) and the result is undefined.
 %Docstring
 Reverses the line segment, so that the start and end points are flipped.
 %End
+
+
+    bool intersects( const QgsLineSegment2D &other ) const;
+
+    bool cutBySegment( const QgsLineSegment2D &cutLine, QgsLineSegment2D &part1, QgsLineSegment2D &part2, QgsLineSegment2D &part3, QgsLineSegment2D &part4 ) const;
 
     bool operator==( const QgsLineSegment2D &other ) const;
 

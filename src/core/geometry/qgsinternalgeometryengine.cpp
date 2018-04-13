@@ -987,6 +987,11 @@ std::vector<QgsPointXY> createVisibilityPolygon(
   for ( auto it = vertices.begin(); it != vertices.end(); ++it )
   {
     auto prev = top == vertices.begin() ? vertices.end() - 1 : top - 1;
+    if ( *prev == *it )
+    {
+      continue;
+    }
+
     auto next = it + 1 == vertices.end() ? vertices.begin() : it + 1;
     if ( QgsGeometryUtils::leftOfLine( next->x(), next->y(), prev->x(), prev->y(), it->x(), it->y() ) != 0 )
       *top++ = *it;
@@ -1002,16 +1007,48 @@ QgsGeometry QgsInternalGeometryEngine::visibilityPolygon( const QgsPoint &positi
   double yMin = position.y();
   double yMax = position.y();
 
-  // TODO - split lines on intersection!
-
+  // split lines on intersection
   std::vector< QgsLineSegment2D > segments;
+  std::function<void( const QgsLineSegment2D & )> addSegment;
+  addSegment = [&segments, &addSegment]( const QgsLineSegment2D & segment )
+  {
+    QgsLineSegment2D segment1;
+    QgsLineSegment2D segment2;
+    QgsLineSegment2D segment3;
+    QgsLineSegment2D segment4;
+
+    for ( const QgsLineSegment2D &other : segments )
+    {
+      if ( segment.cutBySegment( other, segment1, segment2, segment3, segment4 ) )
+      {
+        if ( !segment3.isNull() && !segment4.isNull() )
+        {
+          std::vector<QgsLineSegment2D>::iterator position = std::find( segments.begin(), segments.end(), other );
+          if ( position != segments.end() )
+            segments.erase( position );
+
+          addSegment( segment3 );
+          addSegment( segment4 );
+        }
+
+        if ( !segment1.isNull() )
+          addSegment( segment1 );
+        if ( !segment2.isNull() )
+          addSegment( segment2 );
+
+        return;
+      }
+    }
+    segments.emplace_back( segment );
+  };
+
   for ( const QgsLineString *line : lines )
   {
     for ( int i = 0; i < line->numPoints() - 1; ++i )
     {
       QgsPoint ptA = line->pointN( i );
       QgsPoint ptB = line->pointN( i + 1 );
-      segments.emplace_back( QgsLineSegment2D( QgsPointXY( ptA ), QgsPointXY( ptB ) ) );
+      addSegment( QgsLineSegment2D( QgsPointXY( ptA ), QgsPointXY( ptB ) ) );
 
       xMin = std::min( std::min( xMin, ptA.x() ), ptB.x() );
       yMin = std::min( std::min( yMin, ptA.y() ), ptB.y() );
@@ -1022,13 +1059,12 @@ QgsGeometry QgsInternalGeometryEngine::visibilityPolygon( const QgsPoint &positi
 
   if ( addBoundingLines )
   {
-    segments.emplace_back( QgsLineSegment2D( QgsPointXY( xMin, yMin ), QgsPointXY( xMin, yMax ) ) );
-    segments.emplace_back( QgsLineSegment2D( QgsPointXY( xMin, yMax ), QgsPointXY( xMax, yMax ) ) );
-    segments.emplace_back( QgsLineSegment2D( QgsPointXY( xMax, yMax ), QgsPointXY( xMax, yMin ) ) );
-    segments.emplace_back( QgsLineSegment2D( QgsPointXY( xMax, yMin ), QgsPointXY( xMin, yMin ) ) );
+    addSegment( QgsLineSegment2D( QgsPointXY( xMin, yMin ), QgsPointXY( xMin, yMax ) ) );
+    addSegment( QgsLineSegment2D( QgsPointXY( xMin, yMax ), QgsPointXY( xMax, yMax ) ) );
+    addSegment( QgsLineSegment2D( QgsPointXY( xMax, yMax ), QgsPointXY( xMax, yMin ) ) );
+    addSegment( QgsLineSegment2D( QgsPointXY( xMax, yMin ), QgsPointXY( xMin, yMin ) ) );
   }
 
-  // here - need to check intersects
   std::vector<QgsPointXY> vp = createVisibilityPolygon( QgsPointXY( position.x(), position.y() ), segments );
 
   QVector< QgsPoint > ringPoints;
