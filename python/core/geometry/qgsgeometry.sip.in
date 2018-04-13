@@ -229,6 +229,21 @@ need to be segmentized to convert to a standard Polygon geometry.
 .. versionadded:: 3.2
 %End
 
+    static QgsGeometry visibilityPolygon( const QgsPoint &observer,
+                                          const QVector<QgsLineString *> &walls,
+                                          bool addBoundingLines = true );
+%Docstring
+Calculates the polygon representing the area visible from an observer ``point``,
+considering the obstructing the line strings given by ``walls``.
+
+The algorithm assumes that the visibility polygon is bounded and does not extend infinitely. If the
+input line ``segments`` do not form a closed boundary, ``addBoundingLines`` should be set to true
+to automatically insert bounding lines calculated as the envelope containing the ``segments``. If the
+segments already represent a closed boundary, set ``addBoundingLines`` to false for optimal speed.
+
+.. versionadded:: 3.2
+%End
+
 
 
     void fromWkb( const QByteArray &wkb );

@@ -4385,6 +4385,36 @@ class TestQgsGeometry(unittest.TestCase):
             self.assertTrue(compareWkt(result, exp, 0.01),
                             "wedge buffer: mismatch Expected:\n{}\nGot:\n{}\n".format(exp, result))
 
+    def testVisibilityPolygon(self):
+        tests = [[QgsPoint(0, 0), 'MultiLineString()', False, ''],
+                 [QgsPoint(0, 0), 'MultiLineString((-250 -250,-250 250,250 250, 250 -250, -250 -250))', False, 'Polygon ((250 250, 250 -250, -250 -250, -250 250, 250 250))'],
+                 [QgsPoint(0, 0), 'MultiLineString((-250 -250,-250 250,250 250, 250 -250, -250 -250),(-50 50, 50 50,50 -50))', False, 'Polygon ((50 50, 50 -50, 250 -250, -250 -250, -250 250, -50 50, 50 50))'],
+                 [QgsPoint(0, 0),
+                  'MultiLineString((-250 -250,-250 250,250 250, 250 -250, -250 -250),(-50 50, 50 50,50 100,-50 100,-50 50))', False,
+                  'Polygon ((50 50, 250 250, 250 -250, -250 -250, -250 250, -50 50, 50 50))'],
+                 [QgsPoint(0, 0),
+                  'MultiLineString((-250 -250,-250 250,250 250, 250 -250, -250 -250),(-50 50, 0 100,50 50,0 200,-50 50))',
+                  False,
+                  'Polygon ((0 100, 50 50, 250 250, 250 -250, -250 -250, -250 250, -50 50, 0 100))'],
+                 [QgsPoint(0, 0),
+                  'MultiLineString((-50 50, 0 100,50 50,0 200,-50 50))',
+                  True,
+                  'Polygon ((0 100, 50 50, 50 0, -50 0, -50 200, -20 80, 0 100))']
+                 ]
+        for t in tests:
+            observer = t[0]
+            walls_geom = QgsGeometry.fromWkt(t[1])
+            multilinestring = walls_geom.constGet()
+            walls = []
+            for n in range(0, multilinestring.numGeometries()):
+                walls.append(multilinestring.geometryN(n))
+            add_bounds = t[2]
+            o = QgsGeometry.visibilityPolygon(observer, walls, add_bounds)
+            exp = t[3]
+            result = o.asWkt()
+            self.assertTrue(compareWkt(result, exp, 0.01),
+                            "visibilityPolygon: mismatch Expected:\n{}\nGot:\n{}\n".format(exp, result))
+
     def testHausdorff(self):
         tests = [["POLYGON((0 0, 0 2, 1 2, 2 2, 2 0, 0 0))", "POLYGON((0.5 0.5, 0.5 2.5, 1.5 2.5, 2.5 2.5, 2.5 0.5, 0.5 0.5))", 0.707106781186548],
                  ["LINESTRING (0 0, 2 1)", "LINESTRING (0 0, 2 0)", 1],

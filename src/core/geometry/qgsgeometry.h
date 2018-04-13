@@ -275,6 +275,21 @@ class CORE_EXPORT QgsGeometry
                                           double outerRadius, double innerRadius = 0 );
 
     /**
+     * Calculates the polygon representing the area visible from an observer \a point,
+     * considering the obstructing the line strings given by \a walls.
+     *
+     * The algorithm assumes that the visibility polygon is bounded and does not extend infinitely. If the
+     * input line \a segments do not form a closed boundary, \a addBoundingLines should be set to true
+     * to automatically insert bounding lines calculated as the envelope containing the \a segments. If the
+     * segments already represent a closed boundary, set \a addBoundingLines to false for optimal speed.
+     *
+     * \since QGIS 3.2
+     */
+    static QgsGeometry visibilityPolygon( const QgsPoint &observer,
+                                          const QVector<QgsLineString *> &walls,
+                                          bool addBoundingLines = true );
+
+    /**
      * Set the geometry, feeding in a geometry in GEOS format.
      * This class will take ownership of the buffer.
      * \note not available in Python bindings

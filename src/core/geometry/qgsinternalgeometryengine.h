@@ -102,6 +102,21 @@ class QgsInternalGeometryEngine
      */
     QgsGeometry densifyByDistance( double distance ) const;
 
+    /**
+     * Calculates the polygon representing the area visible from an observer \a point,
+     * considering the obstructing line strings given by \a segments.
+     *
+     * The algorithm assumes that the visibility polygon is bounded and does not extend infinitely. If the
+     * input line \a segments do not form a closed boundary, \a addBoundingLines should be set to true
+     * to automatically insert bounding lines calculated as the envelope containing the \a segments. If the
+     * segments already represent a closed boundary, set \a addBoundingLines to false for optimal speed.
+     *
+     * \since QGIS 3.2
+     */
+    static QgsGeometry visibilityPolygon( const QgsPoint &point,
+                                          const QVector< QgsLineString * > &segments,
+                                          bool addBoundingLines = false );
+
   private:
     const QgsAbstractGeometry *mGeometry = nullptr;
 };

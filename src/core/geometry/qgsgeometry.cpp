@@ -291,6 +291,11 @@ QgsGeometry QgsGeometry::createWedgeBuffer( const QgsPoint &center, const double
   return QgsGeometry( std::move( cp ) );
 }
 
+QgsGeometry QgsGeometry::visibilityPolygon( const QgsPoint &observer, const QVector<QgsLineString *> &walls, bool addBoundingLines )
+{
+  return QgsInternalGeometryEngine::visibilityPolygon( observer, walls, addBoundingLines );
+}
+
 void QgsGeometry::fromWkb( unsigned char *wkb, int length )
 {
   QgsConstWkbPtr ptr( wkb, length );

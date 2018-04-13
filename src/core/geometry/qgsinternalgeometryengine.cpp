@@ -27,6 +27,7 @@
 #include <QTransform>
 #include <memory>
 #include <queue>
+#include <set>
 
 QgsInternalGeometryEngine::QgsInternalGeometryEngine( const QgsGeometry &geometry )
   : mGeometry( geometry.constGet() )
@@ -857,4 +858,194 @@ bool QgsRay2D::intersects( const QgsLineSegment2D &segment, QgsPointXY &intersec
     }
   }
 }
+
+//
+// Visibility Polygon algorithm
+//
+// adapted for QGIS geometry classes from original work at https://github.com/trylock/visibility by trylock
+
+struct VisibilityEvent
+{
+  // events used in the visibility polygon algorithm
+  enum EventType
+  {
+    StartVertex,
+    EndVertex
+  };
+
+  EventType type;
+  QgsLineSegment2D segment;
+
+  VisibilityEvent( EventType type, const QgsLineSegment2D &segment ) :
+    type( type ),
+    segment( segment ) {}
+
+  QgsPointXY point() const { return segment.start(); }
+};
+
+std::vector<QgsPointXY> createVisibilityPolygon(
+  const QgsPointXY &point,
+  const std::vector< QgsLineSegment2D > &input )
+{
+  QgsLineSegmentDistanceComparer compareDist( point );
+  std::set<QgsLineSegment2D, QgsLineSegmentDistanceComparer> state( compareDist );
+  std::vector<VisibilityEvent> events;
+
+  for ( auto begin = input.begin(); begin != input.end(); ++begin )
+  {
+    const QgsLineSegment2D &segment = *begin;
+
+    // Sort line segment endpoints and add them as events
+    // Skip line segments collinear with the point
+    const int pab = QgsGeometryUtils::leftOfLine( segment.endX(), segment.endY(), point.x(), point.y(), segment.startX(), segment.startY() );
+    if ( pab == 0 )
+    {
+      continue;
+    }
+    else if ( pab > 0 )
+    {
+      events.emplace_back( VisibilityEvent::StartVertex, segment );
+      events.emplace_back(
+        VisibilityEvent::EndVertex,
+        QgsLineSegment2D{ segment.end(), segment.start() } );
+    }
+    else
+    {
+      events.emplace_back(
+        VisibilityEvent::StartVertex,
+        QgsLineSegment2D{ segment.end(), segment.start() } );
+      events.emplace_back( VisibilityEvent::EndVertex, segment );
+    }
+
+    // Initialize state by adding line segments that are intersected
+    // by vertical ray from the point
+    QgsLineSegment2D segment_ = segment;
+    if ( segment_.startX() > segment_.endX() )
+      segment_.reverse();
+
+    const int abp = segment_.pointLeftOfLine( point );
+    if ( abp > 0 &&
+         ( qgsDoubleNear( segment_.endX(), point.x() ) ||
+           ( segment_.startX() < point.x() && point.x() < segment_.endX() ) ) )
+    {
+      state.insert( segment );
+    }
+  }
+
+  // sort events by angle
+  QgsClockwiseAngleComparer compareAngle( point );
+  std::sort( events.begin(), events.end(), [&compareAngle]( const VisibilityEvent & a, const VisibilityEvent & b )
+  {
+    // if the points are equal, sort end vertices first
+    if ( a.point() == b.point() )
+      return a.type == VisibilityEvent::EndVertex &&
+             b.type == VisibilityEvent::StartVertex;
+    return compareAngle( a.point(), b.point() );
+  } );
+
+  // find the visibility polygon
+  std::vector<QgsPointXY> vertices;
+  vertices.reserve( events.size() * 2 );
+  for ( const VisibilityEvent &event : events )
+  {
+    if ( event.type == VisibilityEvent::EndVertex )
+      state.erase( event.segment );
+
+    if ( state.empty() )
+    {
+      vertices.push_back( event.point() );
+    }
+    else if ( compareDist( event.segment, *state.begin() ) )
+    {
+      // Nearest line segment has changed
+      // Compute the intersection point with this segment
+      QgsPointXY intersection;
+      QgsRay2D ray( point, event.point() - point );
+      const QgsLineSegment2D nearestSegment = *state.begin();
+      const bool intersects = ray.intersects( nearestSegment, intersection );
+      Q_ASSERT_X( intersects, "visibility",
+                  "Ray intersects line segment L if L is in the state" );
+
+      if ( event.type == VisibilityEvent::StartVertex )
+      {
+        vertices.push_back( intersection );
+        vertices.push_back( event.point() );
+      }
+      else
+      {
+        vertices.push_back( event.point() );
+        vertices.push_back( intersection );
+      }
+    }
+
+    if ( event.type == VisibilityEvent::StartVertex )
+      state.insert( event.segment );
+  }
+
+  // remove collinear points
+  auto top = vertices.begin();
+  for ( auto it = vertices.begin(); it != vertices.end(); ++it )
+  {
+    auto prev = top == vertices.begin() ? vertices.end() - 1 : top - 1;
+    auto next = it + 1 == vertices.end() ? vertices.begin() : it + 1;
+    if ( QgsGeometryUtils::leftOfLine( next->x(), next->y(), prev->x(), prev->y(), it->x(), it->y() ) != 0 )
+      *top++ = *it;
+  }
+  vertices.erase( top, vertices.end() );
+  return vertices;
+}
+
+QgsGeometry QgsInternalGeometryEngine::visibilityPolygon( const QgsPoint &position, const QVector<QgsLineString *> &lines, bool addBoundingLines )
+{
+  double xMin = position.x();
+  double xMax = position.x();
+  double yMin = position.y();
+  double yMax = position.y();
+
+  // TODO - split lines on intersection!
+
+  std::vector< QgsLineSegment2D > segments;
+  for ( const QgsLineString *line : lines )
+  {
+    for ( int i = 0; i < line->numPoints() - 1; ++i )
+    {
+      QgsPoint ptA = line->pointN( i );
+      QgsPoint ptB = line->pointN( i + 1 );
+      segments.emplace_back( QgsLineSegment2D( QgsPointXY( ptA ), QgsPointXY( ptB ) ) );
+
+      xMin = std::min( std::min( xMin, ptA.x() ), ptB.x() );
+      yMin = std::min( std::min( yMin, ptA.y() ), ptB.y() );
+      xMax = std::max( std::max( xMax, ptA.x() ), ptB.x() );
+      yMax = std::max( std::max( yMax, ptA.y() ), ptB.y() );
+    }
+  }
+
+  if ( addBoundingLines )
+  {
+    segments.emplace_back( QgsLineSegment2D( QgsPointXY( xMin, yMin ), QgsPointXY( xMin, yMax ) ) );
+    segments.emplace_back( QgsLineSegment2D( QgsPointXY( xMin, yMax ), QgsPointXY( xMax, yMax ) ) );
+    segments.emplace_back( QgsLineSegment2D( QgsPointXY( xMax, yMax ), QgsPointXY( xMax, yMin ) ) );
+    segments.emplace_back( QgsLineSegment2D( QgsPointXY( xMax, yMin ), QgsPointXY( xMin, yMin ) ) );
+  }
+
+  // here - need to check intersects
+  std::vector<QgsPointXY> vp = createVisibilityPolygon( QgsPointXY( position.x(), position.y() ), segments );
+
+  QVector< QgsPoint > ringPoints;
+  ringPoints.reserve( vp.size() );
+  for ( const QgsPointXY &v : vp )
+  {
+    ringPoints.append( QgsPoint( v.x(), v.y() ) );
+  }
+  if ( ringPoints.empty() )
+    return QgsGeometry();
+
+  ringPoints.append( ringPoints.at( 0 ) ); //close
+  std::unique_ptr< QgsLineString > ring = qgis::make_unique< QgsLineString >( ringPoints );
+  std::unique_ptr< QgsPolygon > poly = qgis::make_unique< QgsPolygon >();
+  poly->setExteriorRing( ring.release() );
+  return QgsGeometry( std::move( poly ) );
+}
+
+
 
