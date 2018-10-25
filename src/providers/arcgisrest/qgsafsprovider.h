@@ -80,6 +80,10 @@ class QgsAfsProvider : public QgsVectorDataProvider
     QString mLayerDescription;
     QgsLayerMetadata mLayerMetadata;
     QVariantMap mRendererDataMap;
+    bool mCreateCapability = false;
+    bool mDeleteCapability = false;
+    bool mUpdateCapability = false;
+
 };
 
 #endif // QGSAFSPROVIDER_H
