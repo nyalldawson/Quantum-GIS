@@ -329,6 +329,7 @@ void QgsBrowserDockWidget::showContextMenu( QPoint pt )
   }
 
   QgsDataItemGuiContext context;
+  context.setMessageBar( mMessageBar );
 
   const QList< QgsDataItemGuiProvider * > providers = QgsGui::instance()->dataItemGuiProviderRegistry()->providers();
   for ( QgsDataItemGuiProvider *provider : providers )
@@ -371,6 +372,16 @@ void QgsBrowserDockWidget::addFavoriteDirectory()
 void QgsBrowserDockWidget::addFavoriteDirectory( const QString &favDir, const QString &name )
 {
   mModel->addFavoriteDirectory( favDir, name );
+}
+
+void QgsBrowserDockWidget::setMessageBar( QgsMessageBar *bar )
+{
+  mMessageBar = bar;
+}
+
+QgsMessageBar *QgsBrowserDockWidget::messageBar()
+{
+  return mMessageBar;
 }
 
 void QgsBrowserDockWidget::removeFavorite()
