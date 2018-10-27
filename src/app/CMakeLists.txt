@@ -172,6 +172,8 @@ SET(QGIS_APP_SRCS
   qgsmaptoolregularpolygoncenterpoint.cpp
   qgsmaptoolregularpolygoncentercorner.cpp
 
+  browser/qgsinbuiltdataitemproviders.cpp
+
   layout/qgslayoutaddpagesdialog.cpp
   layout/qgslayoutapputils.cpp
   layout/qgslayoutatlaswidget.cpp
@@ -395,6 +397,8 @@ SET (QGIS_APP_MOC_HDRS
   qgsvectorlayerproperties.h
   qgsmapthemes.h
   qgshandlebadlayers.h
+
+  browser/qgsinbuiltdataitemproviders.h
 
   layout/qgslayoutaddpagesdialog.h
   layout/qgslayoutappmenuprovider.h
