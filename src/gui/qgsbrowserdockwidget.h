@@ -34,6 +34,7 @@ class QgsLayerItem;
 class QgsDataItem;
 class QgsBrowserProxyModel;
 class QgsMessageBar;
+class QgsDataItemGuiContext;
 
 /**
  * \ingroup gui
@@ -169,6 +170,8 @@ class GUI_EXPORT QgsBrowserDockWidget : public QgsDockWidget, private Ui::QgsBro
     int selectedItemsCount();
     //! Settings prefix (the object name)
     QString settingsSection() { return objectName().toLower(); }
+
+    QgsDataItemGuiContext createContext();
 
     QgsDockBrowserTreeView *mBrowserView = nullptr;
     QgsBrowserModel *mModel = nullptr;

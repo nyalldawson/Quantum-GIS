@@ -169,6 +169,16 @@ void QgsBrowserDockWidget::itemDoubleClicked( const QModelIndex &index )
   if ( !item )
     return;
 
+  QgsDataItemGuiContext context = createContext();
+
+  const QList< QgsDataItemGuiProvider * > providers = QgsGui::instance()->dataItemGuiProviderRegistry()->providers();
+  for ( QgsDataItemGuiProvider *provider : providers )
+  {
+    if ( provider->handleDoubleClick( item, context ) )
+      return;
+  }
+
+  // fallback to default handling
   if ( item->handleDoubleClick() )
     return;
   else
@@ -213,8 +223,7 @@ void QgsBrowserDockWidget::showContextMenu( QPoint pt )
     menu->addActions( actions );
   }
 
-  QgsDataItemGuiContext context;
-  context.setMessageBar( mMessageBar );
+  QgsDataItemGuiContext context = createContext();
 
   const QList< QgsDataItemGuiProvider * > providers = QgsGui::instance()->dataItemGuiProviderRegistry()->providers();
   for ( QgsDataItemGuiProvider *provider : providers )
@@ -503,6 +512,13 @@ int QgsBrowserDockWidget::selectedItemsCount()
     return selectionModel->selectedIndexes().size();
   }
   return 0;
+}
+
+QgsDataItemGuiContext QgsBrowserDockWidget::createContext()
+{
+  QgsDataItemGuiContext context;
+  context.setMessageBar( mMessageBar );
+  return context;
 }
 
 void QgsBrowserDockWidget::selectionChanged( const QItemSelection &selected, const QItemSelection &deselected )

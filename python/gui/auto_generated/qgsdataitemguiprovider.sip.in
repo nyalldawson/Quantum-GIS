@@ -99,7 +99,7 @@ and contains accessors for useful objects like the application message bar.
 The base class method has no effect.
 %End
 
-    virtual bool handleDrop( QgsDataItem *item, const QMimeData *data, Qt::DropAction action );
+    virtual bool handleDrop( QgsDataItem *item, const QMimeData *data, Qt::DropAction action, QgsDataItemGuiContext context );
 %Docstring
 Attempts to handle the mime ``data`` dropped on the specified ``item``.
 
@@ -113,6 +113,13 @@ Returns true if the drop operation was accepted.
 Returns true if the provider handles mime data drops on the given ``item``.
 
 .. seealso:: :py:func:`handleDrop`
+%End
+
+    virtual bool handleDoubleClick( QgsDataItem *item, QgsDataItemGuiContext context );
+%Docstring
+Called when a user double clicks on an ``item``. Providers should return true
+if the double-click was handled and do not want other providers to handle the
+double-click, and to prevent the default double-click behavior for items.
 %End
 
 };

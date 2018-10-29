@@ -121,13 +121,20 @@ class GUI_EXPORT QgsDataItemGuiProvider
      *
      * \see acceptDrop()
      */
-    virtual bool handleDrop( QgsDataItem *item, const QMimeData *data, Qt::DropAction action );
+    virtual bool handleDrop( QgsDataItem *item, const QMimeData *data, Qt::DropAction action, QgsDataItemGuiContext context );
 
     /**
      * Returns true if the provider handles mime data drops on the given \a item.
      * \see handleDrop()
      */
     virtual bool acceptDrop( QgsDataItem *item );
+
+    /**
+     * Called when a user double clicks on an \a item. Providers should return true
+     * if the double-click was handled and do not want other providers to handle the
+     * double-click, and to prevent the default double-click behavior for items.
+     */
+    virtual bool handleDoubleClick( QgsDataItem *item, QgsDataItemGuiContext context );
 
 };
 

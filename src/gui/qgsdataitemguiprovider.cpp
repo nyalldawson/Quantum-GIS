@@ -39,12 +39,17 @@ void QgsDataItemGuiProvider::populateContextMenu( QgsDataItem *, QMenu *, const 
 
 }
 
-bool QgsDataItemGuiProvider::handleDrop( QgsDataItem *, const QMimeData *, Qt::DropAction )
+bool QgsDataItemGuiProvider::handleDrop( QgsDataItem *, const QMimeData *, Qt::DropAction, QgsDataItemGuiContext )
 {
   return false;
 }
 
 bool QgsDataItemGuiProvider::acceptDrop( QgsDataItem * )
+{
+  return false;
+}
+
+bool QgsDataItemGuiProvider::handleDoubleClick( QgsDataItem *, QgsDataItemGuiContext )
 {
   return false;
 }
