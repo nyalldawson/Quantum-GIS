@@ -1019,6 +1019,7 @@ QgisApp::QgisApp( QSplashScreen *splash, bool restorePlugins, bool skipVersionCh
   endProfile();
 
   mBrowserModel = new QgsBrowserModel( this );
+  mBrowserModel->setDropHandler( QgsGui::dataItemGuiProviderRegistry() );
   mBrowserWidget = new QgsBrowserDockWidget( tr( "Browser" ), mBrowserModel, this );
   mBrowserWidget->setObjectName( QStringLiteral( "Browser" ) );
   mBrowserWidget->setMessageBar( mInfoBar );

@@ -9,7 +9,7 @@
 
 
 
-class QgsDataItemGuiProviderRegistry
+class QgsDataItemGuiProviderRegistry: QgsBrowserModelDropHandlerInterface
 {
 %Docstring
 This class keeps a list of data item GUI providers that may affect how QgsDataItems
@@ -47,6 +47,11 @@ is transferred to the registry.
 Removes a ``provider`` implementation from the registry.
 The provider object is automatically deleted.
 %End
+
+    virtual bool handleDrop( QgsDataItem *item, const QMimeData *data, Qt::DropAction action );
+
+    virtual bool acceptDrop( QgsDataItem *item );
+
 
   private:
     QgsDataItemGuiProviderRegistry( const QgsDataItemGuiProviderRegistry &rh );

@@ -99,6 +99,22 @@ and contains accessors for useful objects like the application message bar.
 The base class method has no effect.
 %End
 
+    virtual bool handleDrop( QgsDataItem *item, const QMimeData *data, Qt::DropAction action );
+%Docstring
+Attempts to handle the mime ``data`` dropped on the specified ``item``.
+
+Returns true if the drop operation was accepted.
+
+.. seealso:: :py:func:`acceptDrop`
+%End
+
+    virtual bool acceptDrop( QgsDataItem *item );
+%Docstring
+Returns true if the provider handles mime data drops on the given ``item``.
+
+.. seealso:: :py:func:`handleDrop`
+%End
+
 };
 
 /************************************************************************

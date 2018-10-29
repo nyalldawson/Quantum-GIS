@@ -18,6 +18,7 @@
 
 #include "qgis_gui.h"
 #include "qgis_sip.h"
+#include "qgsbrowsermodel.h"
 #include <QList>
 
 class QgsDataItemGuiProvider;
@@ -33,7 +34,7 @@ class QgsDataItemGuiProvider;
  *
  * \since QGIS 3.6
  */
-class GUI_EXPORT QgsDataItemGuiProviderRegistry
+class GUI_EXPORT QgsDataItemGuiProviderRegistry: public QgsBrowserModelDropHandlerInterface
 {
   public:
 
@@ -62,6 +63,9 @@ class GUI_EXPORT QgsDataItemGuiProviderRegistry
      * The provider object is automatically deleted.
      */
     void removeProvider( QgsDataItemGuiProvider *provider );
+
+    bool handleDrop( QgsDataItem *item, const QMimeData *data, Qt::DropAction action ) override;
+    bool acceptDrop( QgsDataItem *item ) override;
 
   private:
 #ifdef SIP_RUN

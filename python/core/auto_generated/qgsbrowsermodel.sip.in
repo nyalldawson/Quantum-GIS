@@ -9,6 +9,40 @@
 
 
 
+class QgsBrowserModelDropHandlerInterface
+{
+%Docstring
+
+An interface for classes which handle drop operations within a QgsBrowserModel.
+
+.. versionadded:: 3.6
+%End
+
+%TypeHeaderCode
+#include "qgsbrowsermodel.h"
+%End
+  public:
+
+    virtual ~QgsBrowserModelDropHandlerInterface();
+
+    virtual bool handleDrop( QgsDataItem *item, const QMimeData *data, Qt::DropAction action ) = 0;
+%Docstring
+Attempts to handle the mime ``data`` dropped on the specified ``item``.
+
+Returns true if the drop operation was accepted.
+
+.. seealso:: :py:func:`acceptDrop`
+%End
+
+    virtual bool acceptDrop( QgsDataItem *item ) = 0;
+%Docstring
+Returns true if the specified ``item`` accepts dropping mime data.
+
+.. seealso:: :py:func:`handleDrop`
+%End
+
+};
+
 class QgsBrowserModel : QAbstractItemModel
 {
 %Docstring
@@ -20,7 +54,7 @@ QgsBrowserModel is the foundation for the QGIS browser panel, and includes
 items for the different data providers and folders accessible to users.
 
 QgsBrowserModel models are not initially populated and use a deferred initialization
-approach. After constructing a QgsBrowserModel, a call must be made
+approach. After constructing a :py:class:`QgsBrowserModel`, a call must be made
 to initialize() in order to populate the model.
 %End
 
@@ -128,6 +162,16 @@ items, i.e. it does not fetch children.
 Returns true if the model has been initialized.
 
 .. seealso:: :py:func:`initialize`
+%End
+
+    void setDropHandler( QgsBrowserModelDropHandlerInterface *handler );
+%Docstring
+Sets the drop ``handler`` to use for the model. If a ``handler`` is set, the built in drop
+handling will be disabled and the handler will be used for drop operations instead.
+
+The handler must exist for the lifetime of this browser model.
+
+.. versionadded:: 3.6
 %End
 
   signals:

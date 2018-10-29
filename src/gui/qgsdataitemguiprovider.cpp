@@ -38,3 +38,13 @@ void QgsDataItemGuiProvider::populateContextMenu( QgsDataItem *, QMenu *, const 
 {
 
 }
+
+bool QgsDataItemGuiProvider::handleDrop( QgsDataItem *, const QMimeData *, Qt::DropAction )
+{
+  return false;
+}
+
+bool QgsDataItemGuiProvider::acceptDrop( QgsDataItem * )
+{
+  return false;
+}

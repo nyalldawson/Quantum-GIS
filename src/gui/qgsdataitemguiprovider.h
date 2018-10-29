@@ -23,6 +23,7 @@ class QString;
 class QgsDataItem;
 class QMenu;
 class QgsMessageBar;
+class QMimeData;
 
 /**
  * \class QgsDataItemGuiContext
@@ -112,6 +113,21 @@ class GUI_EXPORT QgsDataItemGuiProvider
      */
     virtual void populateContextMenu( QgsDataItem *item, QMenu *menu,
                                       const QList<QgsDataItem *> &selectedItems, QgsDataItemGuiContext context );
+
+    /**
+     * Attempts to handle the mime \a data dropped on the specified \a item.
+     *
+     * Returns true if the drop operation was accepted.
+     *
+     * \see acceptDrop()
+     */
+    virtual bool handleDrop( QgsDataItem *item, const QMimeData *data, Qt::DropAction action );
+
+    /**
+     * Returns true if the provider handles mime data drops on the given \a item.
+     * \see handleDrop()
+     */
+    virtual bool acceptDrop( QgsDataItem *item );
 
 };
 

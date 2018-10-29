@@ -55,3 +55,25 @@ void QgsDataItemGuiProviderRegistry::removeProvider( QgsDataItemGuiProvider *pro
   if ( index >= 0 )
     delete mProviders.takeAt( index );
 }
+
+bool QgsDataItemGuiProviderRegistry::handleDrop( QgsDataItem *item, const QMimeData *data, Qt::DropAction action )
+{
+  for ( QgsDataItemGuiProvider *provider : qgis::as_const( mProviders ) )
+  {
+    if ( provider->handleDrop( item, data, action ) )
+      return true;
+  }
+
+  return item && item->handleDrop( data, action );
+}
+
+bool QgsDataItemGuiProviderRegistry::acceptDrop( QgsDataItem *item )
+{
+  for ( QgsDataItemGuiProvider *provider : qgis::as_const( mProviders ) )
+  {
+    if ( provider->acceptDrop( item ) )
+      return true;
+  }
+
+  return item && item->acceptDrop();
+}

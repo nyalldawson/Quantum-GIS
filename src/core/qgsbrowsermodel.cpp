@@ -197,7 +197,9 @@ Qt::ItemFlags QgsBrowserModel::flags( const QModelIndex &index ) const
   if ( ptr->hasDragEnabled() )
     flags |= Qt::ItemIsDragEnabled;
 
-  if ( ptr->acceptDrop() )
+  if ( mDropHandler && mDropHandler->acceptDrop( ptr ) )
+    flags |= Qt::ItemIsDropEnabled;
+  else if ( ptr->acceptDrop() ) // fallback to default handling
     flags |= Qt::ItemIsDropEnabled;
 
   if ( ptr->capabilities2() & QgsDataItem::Rename )
@@ -371,6 +373,11 @@ void QgsBrowserModel::connectItem( QgsDataItem * )
   // deprecated, no use
 }
 
+void QgsBrowserModel::setDropHandler( QgsBrowserModelDropHandlerInterface *handler )
+{
+  mDropHandler = handler;
+}
+
 void QgsBrowserModel::reload()
 {
   // TODO: put items creating currently children in threads to deleteLater (does not seem urget because reload() is not used in QGIS)
@@ -528,7 +535,7 @@ void QgsBrowserModel::setupItemConnections( QgsDataItem *item )
            this, &QgsBrowserModel::itemStateChanged );
 
   // if it's a collection item, also forwards connectionsChanged
-  QgsDataCollectionItem *collectionItem = dynamic_cast<QgsDataCollectionItem *>( item );
+  QgsDataCollectionItem *collectionItem = qobject_cast<QgsDataCollectionItem *>( item );
   if ( collectionItem )
     connect( collectionItem, &QgsDataCollectionItem::connectionsChanged, this, &QgsBrowserModel::connectionsChanged );
 }
@@ -570,7 +577,10 @@ bool QgsBrowserModel::dropMimeData( const QMimeData *data, Qt::DropAction action
     return false;
   }
 
-  return destItem->handleDrop( data, action );
+  if ( mDropHandler )
+    return mDropHandler->handleDrop( destItem, data, action );
+  else // fallback to default handler
+    return destItem->handleDrop( data, action );
 }
 
 QgsDataItem *QgsBrowserModel::dataItem( const QModelIndex &idx ) const
@@ -628,7 +638,7 @@ void QgsBrowserModel::addFavoriteDirectory( const QString &directory, const QStr
 
 void QgsBrowserModel::removeFavorite( const QModelIndex &index )
 {
-  QgsDirectoryItem *item = dynamic_cast<QgsDirectoryItem *>( dataItem( index ) );
+  QgsDirectoryItem *item = qobject_cast<QgsDirectoryItem *>( dataItem( index ) );
   if ( !item )
     return;
 

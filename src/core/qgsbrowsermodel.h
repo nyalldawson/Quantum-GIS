@@ -50,6 +50,37 @@ class CORE_EXPORT QgsBrowserWatcher : public QFutureWatcher<QVector <QgsDataItem
 
 /**
  * \ingroup core
+ * \class QgsBrowserModelDropHandlerInterface
+ *
+ * An interface for classes which handle drop operations within a QgsBrowserModel.
+ *
+ * \since QGIS 3.6
+ */
+class CORE_EXPORT QgsBrowserModelDropHandlerInterface
+{
+  public:
+
+    virtual ~QgsBrowserModelDropHandlerInterface() = default;
+
+    /**
+     * Attempts to handle the mime \a data dropped on the specified \a item.
+     *
+     * Returns true if the drop operation was accepted.
+     *
+     * \see acceptDrop()
+     */
+    virtual bool handleDrop( QgsDataItem *item, const QMimeData *data, Qt::DropAction action ) = 0;
+
+    /**
+     * Returns true if the specified \a item accepts dropping mime data.
+     * \see handleDrop()
+     */
+    virtual bool acceptDrop( QgsDataItem *item ) = 0;
+
+};
+
+/**
+ * \ingroup core
  * \class QgsBrowserModel
  *
  * A model for showing available data sources and other items in a structured
@@ -148,6 +179,16 @@ class CORE_EXPORT QgsBrowserModel : public QAbstractItemModel
      */
     bool initialized() const { return mInitialized;  }
 
+    /**
+     * Sets the drop \a handler to use for the model. If a \a handler is set, the built in drop
+     * handling will be disabled and the handler will be used for drop operations instead.
+     *
+     * The handler must exist for the lifetime of this browser model.
+     *
+     * \since QGIS 3.6
+     */
+    void setDropHandler( QgsBrowserModelDropHandlerInterface *handler );
+
   signals:
     //! Emitted when item children fetch was finished
     void stateChanged( const QModelIndex &index, QgsDataItem::State oldState );
@@ -226,6 +267,8 @@ class CORE_EXPORT QgsBrowserModel : public QAbstractItemModel
   private:
     bool mInitialized = false;
     QMap< QString, QgsDataItem * > mDriveItems;
+
+    QgsBrowserModelDropHandlerInterface *mDropHandler = nullptr;
 
     void setupItemConnections( QgsDataItem *item );
 
