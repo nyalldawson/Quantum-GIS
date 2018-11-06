@@ -44,6 +44,7 @@ void QgsBrowserTreeView::showEvent( QShowEvent *e )
   Q_UNUSED( e );
   if ( model() )
     restoreState();
+
   QTreeView::showEvent( e );
 }
 
@@ -154,6 +155,44 @@ bool QgsBrowserTreeView::hasExpandedDescendant( const QModelIndex &index ) const
       return true;
   }
   return false;
+}
+
+void QgsBrowserTreeView::expandPath( const QString &str )
+{
+  auto path = QDir::cleanPath( str );
+  QStringList result( path );
+  while ( ( path = QFileInfo( path ).path() ).length() < result.last().length() )
+    result << path;
+  std::reverse( result.begin(), result.end() );
+
+  QString parentPath = result.at( 0 );
+  QDir current( parentPath );
+  QgsDirectoryItem *child = nullptr;
+  QgsDirectoryItem *first = nullptr;
+  QList< QgsDirectoryItem * > newItems;
+  for ( int i = 1; i < result.count(); ++i )
+  {
+    const QString p = result.at( i );
+
+    QString thisPath = current.filePath( p );
+    current = QDir( thisPath );
+    parentPath = thisPath;
+
+    QgsDirectoryItem *newDir = new QgsDirectoryItem( nullptr, p, thisPath );
+    newItems << newDir;
+    if ( child )
+      child->addChildItem( newDir );
+    if ( !first )
+      first = newDir;
+
+    child = newDir;
+  }
+
+  QgsDirectoryItem *root = mBrowserModel->driveItems().value( result.at( 0 ) );
+  newItems.insert( 0, root );
+  root->addChildItem( first, true );
+  for ( QgsDirectoryItem *i : newItems )
+    expand( mBrowserModel->findItem( i ) );
 }
 
 // rowsInserted signal is used to continue in state restoring

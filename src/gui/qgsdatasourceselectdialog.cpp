@@ -42,9 +42,12 @@ QgsDataSourceSelectDialog::QgsDataSourceSelectDialog( bool setFilterByLayerType,
   else
   {
     mBrowserTreeView->setModel( &mBrowserProxyModel );
+    mBrowserTreeView->setBrowserModel( &mBrowserModel );
     buttonBox->button( QDialogButtonBox::StandardButton::Ok )->setEnabled( false );
   }
   connect( mBrowserTreeView, &QgsBrowserTreeView::clicked, this, &QgsDataSourceSelectDialog::onLayerSelected );
+
+  mBrowserTreeView->expandPath( "/home/nyall/Temporary/ndvi" );
 }
 
 void QgsDataSourceSelectDialog::setLayerTypeFilter( QgsMapLayer::LayerType layerType )
@@ -53,6 +56,7 @@ void QgsDataSourceSelectDialog::setLayerTypeFilter( QgsMapLayer::LayerType layer
   mBrowserProxyModel.setLayerType( layerType );
   // reset model and button
   mBrowserTreeView->setModel( &mBrowserProxyModel );
+  mBrowserTreeView->setBrowserModel( &mBrowserModel );
   buttonBox->button( QDialogButtonBox::StandardButton::Ok )->setEnabled( false );
 }
 

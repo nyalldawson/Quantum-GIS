@@ -148,6 +148,15 @@ class CORE_EXPORT QgsBrowserModel : public QAbstractItemModel
      */
     bool initialized() const { return mInitialized;  }
 
+    /**
+     * Returns a map of the root drive items shown in the browser.
+     *
+     * The correspond to the top-level directory items shown.
+     *
+     * \since QGIS 3.6
+     */
+    QMap<QString, QgsDirectoryItem *> driveItems() const;
+
   signals:
     //! Emitted when item children fetch was finished
     void stateChanged( const QModelIndex &index, QgsDataItem::State oldState );
@@ -225,7 +234,7 @@ class CORE_EXPORT QgsBrowserModel : public QAbstractItemModel
 
   private:
     bool mInitialized = false;
-    QMap< QString, QgsDataItem * > mDriveItems;
+    QMap< QString, QgsDirectoryItem * > mDriveItems;
 
     void setupItemConnections( QgsDataItem *item );
 

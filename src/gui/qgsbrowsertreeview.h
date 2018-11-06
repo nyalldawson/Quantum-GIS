@@ -51,6 +51,8 @@ class GUI_EXPORT QgsBrowserTreeView : public QTreeView
     // Set section where to store settings (because we have 2 browser dock widgets)
     void setSettingsSection( const QString &section ) { mSettingsSection = section; }
 
+    void expandPath( const QString &path );
+
   protected slots:
     void rowsInserted( const QModelIndex &parentIndex, int start, int end ) override;
 
