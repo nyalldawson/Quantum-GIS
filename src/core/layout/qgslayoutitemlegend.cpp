@@ -159,6 +159,31 @@ void QgsLayoutItemLegend::draw( QgsLayoutItemRenderContext &context )
     painter->setClipRect( thisPaintRect );
   }
 
+  QList< QgsMapLayerStyleOverride > temporaryOverrides;
+  if ( linkedMap() )
+  {
+    const QMap<QString, QString> mapItemLayerOverides = linkedMap()->layerStyleOverridesToRender( createExpressionContext() );
+    if ( !mapItemLayerOverides.empty() )
+    {
+      const QList<QgsLayerTreeLayer *> layers = mLegendModel->rootGroup()->findLayers();
+      for ( QgsLayerTreeLayer *l : layers )
+      {
+        if ( !l->layer() )
+          continue;
+
+        QgsMapLayerStyleOverride styleOverride( l->layer() );
+        if ( mapItemLayerOverides.contains( l->layer()->id() ) )
+        {
+          styleOverride.setOverrideStyle( mapItemLayerOverides.value( l->layer()->id() ) );
+          // TODO -- refresh on restore of style
+          mLegendModel->refreshLayerLegend( l );
+        }
+        // TODO -- make sure funky stuff isn't happening here due to copying the scoped manager
+        temporaryOverrides << styleOverride;
+      }
+    }
+  }
+
   QgsLegendRenderer legendRenderer( mLegendModel.get(), mSettings );
   legendRenderer.setLegendSize( mSizeToContents ? QSize() : rect().size() );
 
