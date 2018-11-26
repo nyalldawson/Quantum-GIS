@@ -1155,7 +1155,21 @@ void QgsLayoutItem::drawFrame( QgsRenderContext &context )
   p->save();
   p->setPen( pen() );
   p->setBrush( Qt::NoBrush );
-  p->drawRect( QRectF( 0, 0, rect().width(), rect().height() ) );
+
+  QgsLayoutMeasurement mCornerRadius( 5, QgsUnitTypes::LayoutMillimeters );
+  //if corner radius set, then draw a rounded rectangle
+  if ( mCornerRadius.length() > 0 )
+  {
+    QPainterPath roundedRectPath;
+    const double radius = mLayout->convertToLayoutUnits( mCornerRadius );
+    roundedRectPath.addRoundedRect( QRectF( 0, 0, rect().width(), rect().height() ), radius, radius );
+    p->drawPath( roundedRectPath );
+  }
+  else
+  {
+    p->drawRect( QRectF( 0, 0, rect().width(), rect().height() ) );
+  }
+
   p->restore();
 }
 
@@ -1168,7 +1182,21 @@ void QgsLayoutItem::drawBackground( QgsRenderContext &context )
   p->save();
   p->setBrush( brush() );
   p->setPen( Qt::NoPen );
-  p->drawRect( QRectF( 0, 0, rect().width(), rect().height() ) );
+
+  QgsLayoutMeasurement mCornerRadius( 5, QgsUnitTypes::LayoutMillimeters );
+  //if corner radius set, then draw a rounded rectangle
+  if ( mCornerRadius.length() > 0 )
+  {
+    QPainterPath roundedRectPath;
+    const double radius = mLayout->convertToLayoutUnits( mCornerRadius );
+    roundedRectPath.addRoundedRect( QRectF( 0, 0, rect().width(), rect().height() ), radius, radius );
+    p->drawPath( roundedRectPath );
+  }
+  else
+  {
+    p->drawRect( QRectF( 0, 0, rect().width(), rect().height() ) );
+  }
+
   p->restore();
 }
 

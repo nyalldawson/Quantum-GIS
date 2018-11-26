@@ -124,6 +124,7 @@ A base class for objects which belong to a layout.
       BlendMode,
       ExcludeFromExports,
       FrameColor,
+      FrameRoundedCornerSize,
       BackgroundColor,
       //composer map
       MapRotation,

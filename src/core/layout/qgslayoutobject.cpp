@@ -56,6 +56,7 @@ void QgsLayoutObject::initPropertyDefinitions()
     { QgsLayoutObject::BlendMode, QgsPropertyDefinition( "dataDefinedBlendMode", QObject::tr( "Blend mode" ), QgsPropertyDefinition::BlendMode ) },
     { QgsLayoutObject::ExcludeFromExports, QgsPropertyDefinition( "dataDefinedExcludeExports", QObject::tr( "Exclude item from exports" ), QgsPropertyDefinition::Boolean ) },
     { QgsLayoutObject::FrameColor, QgsPropertyDefinition( "dataDefinedFrameColor", QObject::tr( "Frame color" ), QgsPropertyDefinition::ColorWithAlpha ) },
+    { QgsLayoutObject::FrameRoundedCornerSize, QgsPropertyDefinition( "dataDefinedFrameRoundedCornerSize", QObject::tr( "Frame corner size" ), QgsPropertyDefinition::DoublePositive ) },
     { QgsLayoutObject::BackgroundColor, QgsPropertyDefinition( "dataDefinedBackgroundColor", QObject::tr( "Background color" ), QgsPropertyDefinition::ColorWithAlpha ) },
     { QgsLayoutObject::MapRotation, QgsPropertyDefinition( "dataDefinedMapRotation", QObject::tr( "Map rotation" ), QgsPropertyDefinition::Rotation ) },
     { QgsLayoutObject::MapScale, QgsPropertyDefinition( "dataDefinedMapScale", QObject::tr( "Map scale" ), QgsPropertyDefinition::DoublePositive ) },

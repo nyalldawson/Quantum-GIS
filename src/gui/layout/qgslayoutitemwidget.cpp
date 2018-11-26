@@ -668,6 +668,7 @@ void QgsLayoutItemPropertiesWidget::initializeDataDefinedButtons()
   mConfigObject->initializeDataDefinedButton( mExcludePrintsDDBtn, QgsLayoutObject::ExcludeFromExports );
   mConfigObject->initializeDataDefinedButton( mItemFrameColorDDBtn, QgsLayoutObject::FrameColor );
   mConfigObject->initializeDataDefinedButton( mItemBackgroundColorDDBtn, QgsLayoutObject::BackgroundColor );
+  mConfigObject->initializeDataDefinedButton( mItemCornerSizeDDBtn, QgsLayoutObject::FrameRoundedCornerSize );
 }
 
 void QgsLayoutItemPropertiesWidget::populateDataDefinedButtons()

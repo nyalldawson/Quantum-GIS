@@ -152,6 +152,7 @@ class CORE_EXPORT QgsLayoutObject: public QObject, public QgsExpressionContextGe
       BlendMode, //!< Item blend mode
       ExcludeFromExports, //!< Exclude item from exports
       FrameColor, //!< Item frame color
+      FrameRoundedCornerSize, //!< Width of rounded corners on item frame
       BackgroundColor, //!< Item background color
       //composer map
       MapRotation, //!< Map rotation
