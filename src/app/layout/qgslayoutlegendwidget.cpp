@@ -1083,6 +1083,9 @@ void QgsLayoutLegendWidget::mItemTreeView_doubleClicked( const QModelIndex &idx 
   {
     return;
   }
+  QgsLayoutLegendItemPropertiesWidget *w = new QgsLayoutLegendItemPropertiesWidget();
+  openPanel( w );
+  return;
 
   QgsLayerTreeModel *model = mItemTreeView->layerTreeModel();
   QgsLayerTreeNode *currentNode = model->index2node( idx );
@@ -1176,4 +1179,11 @@ QMenu *QgsLayoutLegendMenuProvider::createContextMenu()
   }
 
   return menu;
+}
+
+QgsLayoutLegendItemPropertiesWidget::QgsLayoutLegendItemPropertiesWidget()
+  : QgsPanelWidget()
+{
+  setupUi( this );
+  setPanelTitle( tr( "Legend Item Properties" ) );
 }

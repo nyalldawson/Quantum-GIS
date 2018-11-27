@@ -19,10 +19,21 @@
 #define QGSLAYOUTLEGENDWIDGET_H
 
 #include "ui_qgslayoutlegendwidgetbase.h"
+#include "ui_qgslayoutlegenditempropertiesbase.h"
 #include "qgslayoutitemwidget.h"
 #include "qgslayoutitemlegend.h"
 #include <QWidget>
 #include <QItemDelegate>
+
+
+class QgsLayoutLegendItemPropertiesWidget: public QgsPanelWidget, private Ui::QgsLayoutLegendItemPropertiesBase
+{
+    Q_OBJECT
+
+  public:
+    explicit QgsLayoutLegendItemPropertiesWidget();
+
+};
 
 /**
  * \ingroup app
