@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>306</width>
+    <width>314</width>
     <height>385</height>
    </rect>
   </property>
@@ -20,152 +20,6 @@
    <string>Legend Options</string>
   </property>
   <layout class="QGridLayout" name="gridLayout_2">
-   <item row="1" column="0" colspan="2">
-    <widget class="QGroupBox" name="groupBox">
-     <property name="title">
-      <string>Custom Symbol</string>
-     </property>
-     <property name="checkable">
-      <bool>true</bool>
-     </property>
-     <layout class="QHBoxLayout" name="horizontalLayout">
-      <item>
-       <widget class="QgsSymbolButton" name="mShapeStyleButton">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="text">
-         <string>Change…</string>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </widget>
-   </item>
-   <item row="2" column="0" colspan="2">
-    <widget class="QgsCollapsibleGroupBoxBasic" name="mSpacingColGroupBox">
-     <property name="focusPolicy">
-      <enum>Qt::StrongFocus</enum>
-     </property>
-     <property name="title">
-      <string>Custom Spacing</string>
-     </property>
-     <property name="syncGroup" stdset="0">
-      <string notr="true">composeritem</string>
-     </property>
-     <property name="collapsed" stdset="0">
-      <bool>true</bool>
-     </property>
-     <layout class="QGridLayout" name="gridLayout" columnstretch="0,1,1">
-      <item row="2" column="0" colspan="3">
-       <widget class="QCheckBox" name="checkBox_2">
-        <property name="text">
-         <string>Override icon label space</string>
-        </property>
-       </widget>
-      </item>
-      <item row="5" column="2">
-       <widget class="QgsDoubleSpinBox" name="mIconLabelSpaceSpinBox">
-        <property name="enabled">
-         <bool>true</bool>
-        </property>
-        <property name="prefix">
-         <string/>
-        </property>
-        <property name="suffix">
-         <string> mm</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="0">
-       <spacer name="horizontalSpacer">
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
-        </property>
-        <property name="sizeType">
-         <enum>QSizePolicy::Fixed</enum>
-        </property>
-        <property name="sizeHint" stdset="0">
-         <size>
-          <width>20</width>
-          <height>2</height>
-         </size>
-        </property>
-       </spacer>
-      </item>
-      <item row="5" column="1">
-       <widget class="QLabel" name="label_121">
-        <property name="text">
-         <string>Line space</string>
-        </property>
-       </widget>
-      </item>
-      <item row="3" column="2">
-       <widget class="QgsDoubleSpinBox" name="mLineSpacingSpinBox">
-        <property name="enabled">
-         <bool>true</bool>
-        </property>
-        <property name="prefix">
-         <string/>
-        </property>
-        <property name="suffix">
-         <string> mm</string>
-        </property>
-       </widget>
-      </item>
-      <item row="3" column="1">
-       <widget class="QLabel" name="label_8">
-        <property name="toolTip">
-         <string>Space between symbol icon and symbol label (symbol label left margin).</string>
-        </property>
-        <property name="text">
-         <string>Icon label space</string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="0" colspan="3">
-       <widget class="QCheckBox" name="checkBox">
-        <property name="text">
-         <string>Override symbol space</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="1">
-       <widget class="QLabel" name="label_7">
-        <property name="toolTip">
-         <string>Space above symbol and symbol label.</string>
-        </property>
-        <property name="text">
-         <string>Symbol space</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="2">
-       <widget class="QgsDoubleSpinBox" name="mSymbolSpaceSpinBox">
-        <property name="enabled">
-         <bool>true</bool>
-        </property>
-        <property name="prefix">
-         <string/>
-        </property>
-        <property name="suffix">
-         <string> mm</string>
-        </property>
-       </widget>
-      </item>
-      <item row="4" column="0" colspan="3">
-       <widget class="QCheckBox" name="checkBox_3">
-        <property name="text">
-         <string>Override line space</string>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </widget>
-   </item>
    <item row="0" column="0">
     <widget class="QLabel" name="mTitleLabel">
      <property name="text">
@@ -179,7 +33,7 @@
    <item row="0" column="1">
     <widget class="QLineEdit" name="mTitleLineEdit"/>
    </item>
-   <item row="3" column="0">
+   <item row="2" column="0">
     <spacer name="verticalSpacer">
      <property name="orientation">
       <enum>Qt::Vertical</enum>
@@ -192,26 +46,39 @@
      </property>
     </spacer>
    </item>
+   <item row="1" column="0">
+    <widget class="QLabel" name="mTitleLabel_2">
+     <property name="text">
+      <string>Filtering</string>
+     </property>
+     <property name="buddy">
+      <cstring>mTitleLineEdit</cstring>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="1">
+    <widget class="QComboBox" name="comboBox">
+     <item>
+      <property name="text">
+       <string>Follow Legend Setting</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>Only Show Visible Items, Regardless of Legend Setting</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>Always Show all Items, Regardless of Legend Setting</string>
+      </property>
+     </item>
+    </widget>
+   </item>
   </layout>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>
-  <customwidget>
-   <class>QgsDoubleSpinBox</class>
-   <extends>QDoubleSpinBox</extends>
-   <header>qgsdoublespinbox.h</header>
-  </customwidget>
-  <customwidget>
-   <class>QgsCollapsibleGroupBoxBasic</class>
-   <extends>QGroupBox</extends>
-   <header location="global">qgscollapsiblegroupbox.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
-   <class>QgsSymbolButton</class>
-   <extends>QToolButton</extends>
-   <header>qgssymbolbutton.h</header>
-  </customwidget>
   <customwidget>
    <class>QgsPanelWidget</class>
    <extends>QWidget</extends>
