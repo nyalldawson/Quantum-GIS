@@ -490,6 +490,7 @@ void QgsColorButton::prepareMenu()
   mMenu->addSeparator();
   QgsColorWheel *colorWheel = new QgsColorWheel( mMenu );
   colorWheel->setColor( color() );
+  colorWheel->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
   QgsColorWidgetAction *colorAction = new QgsColorWidgetAction( colorWheel, mMenu, mMenu );
   colorAction->setDismissOnColorSelection( false );
   connect( colorAction, &QgsColorWidgetAction::colorChanged, this, &QgsColorButton::setColor );
@@ -551,6 +552,13 @@ void QgsColorButton::prepareMenu()
   QAction *chooseColorAction = new QAction( tr( "Choose Color…" ), this );
   mMenu->addAction( chooseColorAction );
   connect( chooseColorAction, &QAction::triggered, this, &QgsColorButton::showColorDialog );
+
+  // avoid oversized, clipped color wheel on first menu show.
+  QResizeEvent re( QSize(1, 1), mMenu->size());
+  qApp->sendEvent(mMenu, &re);
+  mMenu->adjustSize();
+  qApp->sendEvent(colorWheel, &re);
+  colorWheel->adjustSize();
 }
 
 void QgsColorButton::changeEvent( QEvent *e )
