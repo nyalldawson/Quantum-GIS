@@ -94,6 +94,7 @@ void QgsInterpolatePointAlgorithm::initParameters( const QVariantMap & )
 {
   std::unique_ptr< QgsProcessingParameterDistance> distance = qgis::make_unique< QgsProcessingParameterDistance >( QStringLiteral( "DISTANCE" ),
       QObject::tr( "Distance" ), 0.0, QStringLiteral( "INPUT" ), false, 0 );
+  distance->setMultiple( true );
   distance->setIsDynamic( true );
   distance->setDynamicPropertyDefinition( QgsPropertyDefinition( QStringLiteral( "DISTANCE" ), QObject::tr( "Distance" ), QgsPropertyDefinition::DoublePositive ) );
   distance->setDynamicLayerParameterName( QStringLiteral( "INPUT" ) );
@@ -108,27 +109,38 @@ QgsProcessingFeatureSource::Flag QgsInterpolatePointAlgorithm::sourceFlags() con
 
 bool QgsInterpolatePointAlgorithm::prepareAlgorithm( const QVariantMap &parameters, QgsProcessingContext &context, QgsProcessingFeedback * )
 {
-  mDistance = parameterAsDouble( parameters, QStringLiteral( "DISTANCE" ), context );
+  mDistance = parameterAsDoubleList( parameters, QStringLiteral( "DISTANCE" ), context );
   mDynamicDistance = QgsProcessingParameters::isDynamic( parameters, QStringLiteral( "DISTANCE" ) );
   if ( mDynamicDistance )
+  {
+    mDefaultDistance = QVariant::fromValue( mDistance );
     mDistanceProperty = parameters.value( QStringLiteral( "DISTANCE" ) ).value< QgsProperty >();
+  }
 
   return true;
 }
 
 QgsFeatureList QgsInterpolatePointAlgorithm::processFeature( const QgsFeature &feature, QgsProcessingContext &context, QgsProcessingFeedback * )
 {
-  QgsFeature f = feature;
-  if ( f.hasGeometry() )
+  QgsFeatureList res;
+  if ( feature.hasGeometry() )
   {
-    const QgsGeometry geometry = f.geometry();
-    double distance = mDistance;
+    const QgsGeometry geometry = feature.geometry();
+    QList< double > distance = mDistance;
     if ( mDynamicDistance )
-      distance = mDistanceProperty.valueAsDouble( context.expressionContext(), distance );
+      distance = mDistanceProperty.valueAsDoubleList( context.expressionContext(), mDefaultDistance );
 
-    f.setGeometry( geometry.interpolate( distance ) );
+    res.reserve( distance.count() );
+    for ( double d : qgis::as_const( distance ) )
+    {
+      QgsFeature f = feature;
+      f.setGeometry( geometry.interpolate( d ) );
+      res << f;
+    }
   }
-  return QgsFeatureList() << f;
+  else
+    res << feature;
+  return res;
 }
 
 ///@endcond

@@ -55,7 +55,8 @@ class QgsInterpolatePointAlgorithm : public QgsProcessingFeatureBasedAlgorithm
 
   private:
 
-    double mDistance = 0.0;
+    QList< double > mDistance;
+    QVariant mDefaultDistance;
     bool mDynamicDistance = false;
     QgsProperty mDistanceProperty;
 

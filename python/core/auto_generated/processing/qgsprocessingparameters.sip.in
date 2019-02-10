@@ -529,14 +529,37 @@ Evaluates the parameter with matching ``definitionand`` ``value`` to an expressi
     static double parameterAsDouble( const QgsProcessingParameterDefinition *definition, const QVariantMap &parameters, const QgsProcessingContext &context );
 %Docstring
 Evaluates the parameter with matching ``definition`` to a static double value.
+
+.. seealso:: :py:func:`parameterAsDoubleList`
 %End
 
     static double parameterAsDouble( const QgsProcessingParameterDefinition *definition, const QVariant &value, const QgsProcessingContext &context );
 %Docstring
 Evaluates the parameter with matching ``definition`` and ``value`` to a static double value.
 
+.. seealso:: :py:func:`parameterAsDoubleList`
+
 .. versionadded:: 3.4
 %End
+
+    static QList< double > parameterAsDoubleList( const QgsProcessingParameterDefinition *definition, const QVariantMap &parameters, const QgsProcessingContext &context );
+%Docstring
+Evaluates the parameter with matching ``definition`` to a static list of doubles.
+
+.. seealso:: :py:func:`parameterAsDouble`
+
+.. versionadded:: 3.8
+%End
+
+    static QList< double > parameterAsDoubleList( const QgsProcessingParameterDefinition *definition, const QVariant &value, const QgsProcessingContext &context );
+%Docstring
+Evaluates the parameter with matching ``definition`` and ``value`` to a static list of doubles.
+
+.. seealso:: :py:func:`parameterAsDouble`
+
+.. versionadded:: 3.8
+%End
+
 
     static int parameterAsInt( const QgsProcessingParameterDefinition *definition, const QVariantMap &parameters, const QgsProcessingContext &context );
 %Docstring
@@ -1437,7 +1460,8 @@ shown in the parameter's widget can be specified by setting the parameter's meta
                                            const QVariant &defaultValue = QVariant(),
                                            bool optional = false,
                                            double minValue = -DBL_MAX + 1,
-                                           double maxValue = DBL_MAX
+                                           double maxValue = DBL_MAX,
+                                           bool multiple = false
                                          );
 %Docstring
 Constructor for QgsProcessingParameterNumber.
@@ -1511,6 +1535,24 @@ Sets the acceptable data ``type`` for the parameter.
 Creates a new parameter using the definition from a script code.
 %End
 
+    bool multiple() const;
+%Docstring
+Returns whether the parameter supports multiple (list of number) inputs.
+
+.. seealso:: :py:func:`setMultiple`
+
+.. versionadded:: 3.8
+%End
+
+    void setMultiple( bool multiple );
+%Docstring
+Sets whether the parameter supports multiple (list of number) inputs.
+
+.. seealso:: :py:func:`multiple`
+
+.. versionadded:: 3.8
+%End
+
 };
 
 class QgsProcessingParameterDistance : QgsProcessingParameterNumber
@@ -1543,7 +1585,8 @@ setting the parameter's metadata. For example:
         const QString &parentParameterName = QString(),
         bool optional = false,
         double minValue = -DBL_MAX + 1,
-        double maxValue = DBL_MAX );
+        double maxValue = DBL_MAX,
+        bool multiple = false );
 %Docstring
 Constructor for QgsProcessingParameterDistance.
 %End

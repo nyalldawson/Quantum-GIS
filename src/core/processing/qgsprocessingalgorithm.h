@@ -576,8 +576,18 @@ class CORE_EXPORT QgsProcessingAlgorithm
 
     /**
      * Evaluates the parameter with matching \a name to a static double value.
+     *
+     * \see parameterAsDoubleList()
      */
     double parameterAsDouble( const QVariantMap &parameters, const QString &name, const QgsProcessingContext &context ) const;
+
+    /**
+     * Evaluates the parameter with matching \a name to a static list of doubles.
+     *
+     * \see parameterAsDouble()
+     * \since QGIS 3.8
+     */
+    QList< double > parameterAsDoubleList( const QVariantMap &parameters, const QString &name, const QgsProcessingContext &context );
 
     /**
      * Evaluates the parameter with matching \a name to a static integer value.

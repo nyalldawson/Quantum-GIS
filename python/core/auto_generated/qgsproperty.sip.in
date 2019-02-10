@@ -397,6 +397,8 @@ Calculates the current value of the property and interprets it as a double.
 
 .. seealso:: :py:func:`value`
 
+.. seealso:: :py:func:`valueAsDoubleList`
+
 .. seealso:: :py:func:`valueAsString`
 
 .. seealso:: :py:func:`valueAsColor`
@@ -404,6 +406,32 @@ Calculates the current value of the property and interprets it as a double.
 .. seealso:: :py:func:`valueAsInt`
 
 .. seealso:: :py:func:`valueAsBool`
+%End
+
+
+    QList< double > valueAsDoubleList( const QgsExpressionContext &context, const QVariant &defaultValue = QVariant(), bool *ok /Out/ = 0 ) const;
+%Docstring
+Calculates the current value of the property and interprets it as a list of doubles.
+
+:param context: QgsExpressionContext to evaluate the property for.
+:param defaultValue: default double to return if the property cannot be calculated as a double
+
+:return: - value parsed to list of doubles
+         - ok: will be set to true if conversion was successful
+
+.. seealso:: :py:func:`value`
+
+.. seealso:: :py:func:`valueAsDouble`
+
+.. seealso:: :py:func:`valueAsString`
+
+.. seealso:: :py:func:`valueAsColor`
+
+.. seealso:: :py:func:`valueAsInt`
+
+.. seealso:: :py:func:`valueAsBool`
+
+.. versionadded:: 3.8
 %End
 
     int valueAsInt( const QgsExpressionContext &context, int defaultValue = 0, bool *ok /Out/ = 0 ) const;

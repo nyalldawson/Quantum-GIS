@@ -588,6 +588,55 @@ double QgsProperty::valueAsDouble( const QgsExpressionContext &context, double d
   }
 }
 
+QList<double> QgsProperty::valueAsDoubleList( const QgsExpressionContext &context, const QVariant &defaultValue, bool *ok ) const
+{
+  if ( ok )
+    *ok = false;
+
+  bool valOk = false;
+  QVariant val = value( context, defaultValue, &valOk );
+
+  if ( !valOk || !val.isValid() )
+    val = defaultValue;
+
+  QList< double > res;
+  if ( val.type() == QVariant::List || val.type() == QVariant::StringList )
+  {
+    const QVariantList list = val.value< QVariantList >();
+    res.reserve( list.size() );
+    for ( const QVariant &v : list )
+    {
+      double dbl = v.toDouble( &valOk );
+      if ( valOk )
+        res << dbl;
+    }
+    if ( ok )
+      *ok = true;
+    return res;
+  }
+
+  // maybe just a single number?
+  double dbl = val.toDouble( &valOk );
+  if ( valOk )
+  {
+    if ( ok )
+      *ok = true;
+    return QList< double >() << dbl;
+  }
+
+  // maybe a ; delimited string
+  const QStringList list = val.toString().split( ';' );
+  for ( const QString &v : list )
+  {
+    double dbl = v.trimmed().toDouble( &valOk );
+    if ( valOk )
+      res << dbl;
+  }
+  if ( ok )
+    *ok = true;
+  return res;
+}
+
 int QgsProperty::valueAsInt( const QgsExpressionContext &context, int defaultValue, bool *ok ) const
 {
   if ( ok )

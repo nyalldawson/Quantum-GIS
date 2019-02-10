@@ -598,14 +598,32 @@ class CORE_EXPORT QgsProcessingParameters
 
     /**
      * Evaluates the parameter with matching \a definition to a static double value.
+     * \see parameterAsDoubleList()
      */
     static double parameterAsDouble( const QgsProcessingParameterDefinition *definition, const QVariantMap &parameters, const QgsProcessingContext &context );
 
     /**
      * Evaluates the parameter with matching \a definition and \a value to a static double value.
+     * \see parameterAsDoubleList()
      * \since QGIS 3.4
      */
     static double parameterAsDouble( const QgsProcessingParameterDefinition *definition, const QVariant &value, const QgsProcessingContext &context );
+
+    /**
+     * Evaluates the parameter with matching \a definition to a static list of doubles.
+     *
+     * \see parameterAsDouble()
+     * \since QGIS 3.8
+     */
+    static QList< double > parameterAsDoubleList( const QgsProcessingParameterDefinition *definition, const QVariantMap &parameters, const QgsProcessingContext &context );
+
+    /**
+     * Evaluates the parameter with matching \a definition and \a value to a static list of doubles.
+     * \see parameterAsDouble()
+     * \since QGIS 3.8
+     */
+    static QList< double > parameterAsDoubleList( const QgsProcessingParameterDefinition *definition, const QVariant &value, const QgsProcessingContext &context );
+
 
     /**
      * Evaluates the parameter with matching \a definition to a static integer value.
@@ -1433,7 +1451,8 @@ class CORE_EXPORT QgsProcessingParameterNumber : public QgsProcessingParameterDe
                                            const QVariant &defaultValue = QVariant(),
                                            bool optional = false,
                                            double minValue = std::numeric_limits<double>::lowest() + 1,
-                                           double maxValue = std::numeric_limits<double>::max()
+                                           double maxValue = std::numeric_limits<double>::max(),
+                                           bool multiple = false
                                          );
 
     /**
@@ -1491,11 +1510,26 @@ class CORE_EXPORT QgsProcessingParameterNumber : public QgsProcessingParameterDe
      */
     static QgsProcessingParameterNumber *fromScriptCode( const QString &name, const QString &description, bool isOptional, const QString &definition ) SIP_FACTORY;
 
+    /**
+     * Returns whether the parameter supports multiple (list of number) inputs.
+     * \see setMultiple()
+     * \since QGIS 3.8
+     */
+    bool multiple() const;
+
+    /**
+     * Sets whether the parameter supports multiple (list of number) inputs.
+     * \see multiple()
+     * \since QGIS 3.8
+     */
+    void setMultiple( bool multiple );
+
   private:
 
     double mMin = std::numeric_limits<double>::lowest() + 1;
     double mMax = std::numeric_limits<double>::max();
     Type mDataType = Integer;
+    bool mMultiple = false;
 };
 
 /**
@@ -1529,7 +1563,8 @@ class CORE_EXPORT QgsProcessingParameterDistance : public QgsProcessingParameter
         const QString &parentParameterName = QString(),
         bool optional = false,
         double minValue = std::numeric_limits<double>::lowest() + 1,
-        double maxValue = std::numeric_limits<double>::max() );
+        double maxValue = std::numeric_limits<double>::max(),
+        bool multiple = false );
 
     /**
      * Returns the type name for the parameter class.

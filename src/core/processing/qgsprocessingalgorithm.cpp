@@ -562,6 +562,11 @@ double QgsProcessingAlgorithm::parameterAsDouble( const QVariantMap &parameters,
   return QgsProcessingParameters::parameterAsDouble( parameterDefinition( name ), parameters, context );
 }
 
+QList<double> QgsProcessingAlgorithm::parameterAsDoubleList( const QVariantMap &parameters, const QString &name, const QgsProcessingContext &context )
+{
+  return QgsProcessingParameters::parameterAsDoubleList( parameterDefinition( name ), parameters, context );
+}
+
 int QgsProcessingAlgorithm::parameterAsInt( const QVariantMap &parameters, const QString &name, const QgsProcessingContext &context ) const
 {
   return QgsProcessingParameters::parameterAsInt( parameterDefinition( name ), parameters, context );

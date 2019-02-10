@@ -146,6 +146,67 @@ double QgsProcessingParameters::parameterAsDouble( const QgsProcessingParameterD
   return val.toDouble();
 }
 
+QList<double> QgsProcessingParameters::parameterAsDoubleList( const QgsProcessingParameterDefinition *definition, const QVariantMap &parameters, const QgsProcessingContext &context )
+{
+  if ( !definition )
+    return QList< double >();
+
+  return parameterAsDoubleList( definition, parameters.value( definition->name() ), context );
+
+}
+
+QList<double> QgsProcessingParameters::parameterAsDoubleList( const QgsProcessingParameterDefinition *definition, const QVariant &value, const QgsProcessingContext &context )
+{
+  if ( !definition )
+    return QList< double >();
+
+  auto toDoubleList = [&context, definition]( const QVariant & value ) -> QList< double >
+  {
+    QVariant val = value;
+    if ( val.canConvert<QgsProperty>() )
+    {
+      val = val.value< QgsProperty >().value( context.expressionContext(), definition->defaultValue() );
+    }
+
+    QList< double > res;
+    bool ok = false;
+    if ( val.type() == QVariant::List || val.type() == QVariant::StringList )
+    {
+      const QVariantList list = val.value< QVariantList >();
+      res.reserve( list.size() );
+      for ( const QVariant &v : list )
+      {
+        double dbl = v.toDouble( &ok );
+        if ( ok )
+          res << dbl;
+      }
+      return res;
+    }
+
+    // maybe just a single number?
+    double dbl = val.toDouble( &ok );
+    if ( ok )
+      return QList< double >() << dbl;
+
+    // maybe a ; delimited string
+    const QStringList list = val.toString().split( ';' );
+    for ( const QString &v : list )
+    {
+      double dbl = v.trimmed().toDouble( &ok );
+      if ( ok )
+        res << dbl;
+    }
+    return res;
+  };
+
+  QList< double > res = toDoubleList( value );
+  if ( !res.isEmpty() )
+    return res;
+
+  // fall back to default
+  return toDoubleList( definition->defaultValue() );
+}
+
 int QgsProcessingParameters::parameterAsInt( const QgsProcessingParameterDefinition *definition, const QVariantMap &parameters, const QgsProcessingContext &context )
 {
   if ( !definition )
@@ -2589,11 +2650,12 @@ QgsProcessingParameterMultipleLayers *QgsProcessingParameterMultipleLayers::from
   return new QgsProcessingParameterMultipleLayers( name, description, layerType, defaultVal.isEmpty() ? QVariant() : defaultVal, isOptional );
 }
 
-QgsProcessingParameterNumber::QgsProcessingParameterNumber( const QString &name, const QString &description, Type type, const QVariant &defaultValue, bool optional, double minValue, double maxValue )
+QgsProcessingParameterNumber::QgsProcessingParameterNumber( const QString &name, const QString &description, Type type, const QVariant &defaultValue, bool optional, double minValue, double maxValue, bool multiple )
   : QgsProcessingParameterDefinition( name, description, defaultValue, optional )
   , mMin( minValue )
   , mMax( maxValue )
   , mDataType( type )
+  , mMultiple( multiple )
 {
   if ( mMin >= mMax )
   {
@@ -2733,6 +2795,16 @@ QgsProcessingParameterNumber *QgsProcessingParameterNumber::fromScriptCode( cons
 {
   return new QgsProcessingParameterNumber( name, description, Double, definition.isEmpty() ? QVariant()
          : ( definition.toLower().trimmed() == QStringLiteral( "none" ) ? QVariant() : definition ), isOptional );
+}
+
+bool QgsProcessingParameterNumber::multiple() const
+{
+  return mMultiple;
+}
+
+void QgsProcessingParameterNumber::setMultiple( bool multiple )
+{
+  mMultiple = multiple;
 }
 
 QgsProcessingParameterRange::QgsProcessingParameterRange( const QString &name, const QString &description, QgsProcessingParameterNumber::Type type, const QVariant &defaultValue, bool optional )
@@ -5124,8 +5196,8 @@ QgsProcessingParameterBand *QgsProcessingParameterBand::fromScriptCode( const QS
 // QgsProcessingParameterDistance
 //
 
-QgsProcessingParameterDistance::QgsProcessingParameterDistance( const QString &name, const QString &description, const QVariant &defaultValue, const QString &parentParameterName, bool optional, double minValue, double maxValue )
-  : QgsProcessingParameterNumber( name, description, Double, defaultValue, optional, minValue, maxValue )
+QgsProcessingParameterDistance::QgsProcessingParameterDistance( const QString &name, const QString &description, const QVariant &defaultValue, const QString &parentParameterName, bool optional, double minValue, double maxValue, bool multiple )
+  : QgsProcessingParameterNumber( name, description, Double, defaultValue, optional, minValue, maxValue, multiple )
   , mParentParameterName( parentParameterName )
 {
 

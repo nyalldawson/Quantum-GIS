@@ -410,12 +410,30 @@ class CORE_EXPORT QgsProperty
      * \param ok if specified, will be set to true if conversion was successful
      * \returns value parsed to double
      * \see value()
+     * \see valueAsDoubleList()
      * \see valueAsString()
      * \see valueAsColor()
      * \see valueAsInt()
      * \see valueAsBool()
      */
     double valueAsDouble( const QgsExpressionContext &context, double defaultValue = 0.0, bool *ok SIP_OUT = nullptr ) const;
+
+
+    /**
+     * Calculates the current value of the property and interprets it as a list of doubles.
+     * \param context QgsExpressionContext to evaluate the property for.
+     * \param defaultValue default double to return if the property cannot be calculated as a double
+     * \param ok if specified, will be set to true if conversion was successful
+     * \returns value parsed to list of doubles
+     * \see value()
+     * \see valueAsDouble()
+     * \see valueAsString()
+     * \see valueAsColor()
+     * \see valueAsInt()
+     * \see valueAsBool()
+     * \since QGIS 3.8
+     */
+    QList< double > valueAsDoubleList( const QgsExpressionContext &context, const QVariant &defaultValue = QVariant(), bool *ok SIP_OUT = nullptr ) const;
 
     /**
      * Calculates the current value of the property and interprets it as an integer.
