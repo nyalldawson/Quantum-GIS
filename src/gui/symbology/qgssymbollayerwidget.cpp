@@ -1726,7 +1726,7 @@ void QgsMarkerLineSymbolLayerWidget::setSymbolLayer( QgsSymbolLayer *layer )
   mSpinOffsetAlongLine->setValue( mLayer->offsetAlongLine() );
   mSpinOffsetAlongLine->blockSignals( false );
   chkRotateMarker->blockSignals( true );
-  chkRotateMarker->setChecked( mLayer->rotateMarker() );
+  chkRotateMarker->setChecked( mLayer->rotateSymbols() );
   chkRotateMarker->blockSignals( false );
   spinOffset->blockSignals( true );
   spinOffset->setValue( mLayer->offset() );
@@ -1787,7 +1787,7 @@ void QgsMarkerLineSymbolLayerWidget::setOffsetAlongLine( double val )
 
 void QgsMarkerLineSymbolLayerWidget::setRotate()
 {
-  mLayer->setRotateMarker( chkRotateMarker->isChecked() );
+  mLayer->setRotateSymbols( chkRotateMarker->isChecked() );
   emit changed();
 }
 
