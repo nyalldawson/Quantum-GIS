@@ -473,6 +473,11 @@ If ``selected`` is true then the symbol will be drawn using the "selected featur
 style and colors instead of the symbol's normal style.
 %End
 
+    void copyTemplateSymbolProperties( QgsTemplatedLineSymbolLayerBase *destLayer ) const;
+%Docstring
+Copies all common properties of this layer to another templated symbol layer.
+%End
+
 };
 
 class QgsMarkerLineSymbolLayer : QgsTemplatedLineSymbolLayerBase
@@ -621,7 +626,6 @@ serialized in the ``properties`` map (corresponding to the output from
 QgsHashedLineSymbolLayer.properties() ).
 %End
 
-
     virtual QString layerType() const;
 
     virtual void startRender( QgsSymbolRenderContext &context );
@@ -656,6 +660,20 @@ QgsHashedLineSymbolLayer.properties() ).
 
     virtual void setDataDefinedProperty( QgsSymbolLayer::Property key, const QgsProperty &property );
 
+
+    double hashAngle() const;
+%Docstring
+Returns the angle to use when drawing the hashed lines sections, in degrees clockwise.
+
+.. seealso:: :py:func:`setHashAngle`
+%End
+
+    void setHashAngle( double angle );
+%Docstring
+Sets the ``angle`` to use when drawing the hashed lines sections, in degrees clockwise.
+
+.. seealso:: :py:func:`hashAngle`
+%End
 
   protected:
 

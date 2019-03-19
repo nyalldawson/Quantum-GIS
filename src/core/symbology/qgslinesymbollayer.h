@@ -441,6 +441,11 @@ class CORE_EXPORT QgsTemplatedLineSymbolLayerBase : public QgsLineSymbolLayer
      */
     virtual void renderSymbol( const QPointF &point, const QgsFeature *feature, QgsRenderContext &context, int layer = -1, bool selected = false ) = 0;
 
+    /**
+     * Copies all common properties of this layer to another templated symbol layer.
+     */
+    void copyTemplateSymbolProperties( QgsTemplatedLineSymbolLayerBase *destLayer ) const;
+
   private:
 
     void renderPolylineInterval( const QPolygonF &points, QgsSymbolRenderContext &context );
@@ -601,7 +606,6 @@ class CORE_EXPORT QgsHashedLineSymbolLayer : public QgsTemplatedLineSymbolLayerB
      */
     static QgsSymbolLayer *create( const QgsStringMap &properties = QgsStringMap() ) SIP_FACTORY;
 
-
     QString layerType() const override;
     void startRender( QgsSymbolRenderContext &context ) override;
     void stopRender( QgsSymbolRenderContext &context ) override;
@@ -620,6 +624,20 @@ class CORE_EXPORT QgsHashedLineSymbolLayer : public QgsTemplatedLineSymbolLayerB
     bool hasDataDefinedProperties() const override;
     void setDataDefinedProperty( QgsSymbolLayer::Property key, const QgsProperty &property ) override;
 
+    /**
+     * Returns the angle to use when drawing the hashed lines sections, in degrees clockwise.
+     *
+     * \see setHashAngle()
+     */
+    double hashAngle() const;
+
+    /**
+     * Sets the \a angle to use when drawing the hashed lines sections, in degrees clockwise.
+     *
+     * \see hashAngle()
+     */
+    void setHashAngle( double angle );
+
   protected:
 
     void setSymbolLineAngle( double angle ) override;
@@ -637,6 +655,8 @@ class CORE_EXPORT QgsHashedLineSymbolLayer : public QgsTemplatedLineSymbolLayerB
     double mSymbolLineAngle = 0;
     double mSymbolAngle = 0;
     double mHashLength = 3;
+
+    double mHashAngle = 0;
 
 };
 

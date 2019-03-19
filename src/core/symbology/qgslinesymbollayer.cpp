@@ -763,71 +763,14 @@ QgsSymbolLayer *QgsMarkerLineSymbolLayer::create( const QgsStringMap &props )
   bool rotate = DEFAULT_MARKERLINE_ROTATE;
   double interval = DEFAULT_MARKERLINE_INTERVAL;
 
-
   if ( props.contains( QStringLiteral( "interval" ) ) )
     interval = props[QStringLiteral( "interval" )].toDouble();
   if ( props.contains( QStringLiteral( "rotate" ) ) )
     rotate = ( props[QStringLiteral( "rotate" )] == QLatin1String( "1" ) );
 
-  QgsMarkerLineSymbolLayer *x = new QgsMarkerLineSymbolLayer( rotate, interval );
-  if ( props.contains( QStringLiteral( "offset" ) ) )
-  {
-    x->setOffset( props[QStringLiteral( "offset" )].toDouble() );
-  }
-  if ( props.contains( QStringLiteral( "offset_unit" ) ) )
-  {
-    x->setOffsetUnit( QgsUnitTypes::decodeRenderUnit( props[QStringLiteral( "offset_unit" )] ) );
-  }
-  if ( props.contains( QStringLiteral( "interval_unit" ) ) )
-  {
-    x->setIntervalUnit( QgsUnitTypes::decodeRenderUnit( props[QStringLiteral( "interval_unit" )] ) );
-  }
-  if ( props.contains( QStringLiteral( "offset_along_line" ) ) )
-  {
-    x->setOffsetAlongLine( props[QStringLiteral( "offset_along_line" )].toDouble() );
-  }
-  if ( props.contains( QStringLiteral( "offset_along_line_unit" ) ) )
-  {
-    x->setOffsetAlongLineUnit( QgsUnitTypes::decodeRenderUnit( props[QStringLiteral( "offset_along_line_unit" )] ) );
-  }
-  if ( props.contains( ( QStringLiteral( "offset_along_line_map_unit_scale" ) ) ) )
-  {
-    x->setOffsetAlongLineMapUnitScale( QgsSymbolLayerUtils::decodeMapUnitScale( props[QStringLiteral( "offset_along_line_map_unit_scale" )] ) );
-  }
-
-  if ( props.contains( QStringLiteral( "offset_map_unit_scale" ) ) )
-  {
-    x->setOffsetMapUnitScale( QgsSymbolLayerUtils::decodeMapUnitScale( props[QStringLiteral( "offset_map_unit_scale" )] ) );
-  }
-  if ( props.contains( QStringLiteral( "interval_map_unit_scale" ) ) )
-  {
-    x->setIntervalMapUnitScale( QgsSymbolLayerUtils::decodeMapUnitScale( props[QStringLiteral( "interval_map_unit_scale" )] ) );
-  }
-
-  if ( props.contains( QStringLiteral( "placement" ) ) )
-  {
-    if ( props[QStringLiteral( "placement" )] == QLatin1String( "vertex" ) )
-      x->setPlacement( QgsTemplatedLineSymbolLayerBase::Vertex );
-    else if ( props[QStringLiteral( "placement" )] == QLatin1String( "lastvertex" ) )
-      x->setPlacement( QgsTemplatedLineSymbolLayerBase::LastVertex );
-    else if ( props[QStringLiteral( "placement" )] == QLatin1String( "firstvertex" ) )
-      x->setPlacement( QgsTemplatedLineSymbolLayerBase::FirstVertex );
-    else if ( props[QStringLiteral( "placement" )] == QLatin1String( "centralpoint" ) )
-      x->setPlacement( QgsTemplatedLineSymbolLayerBase::CentralPoint );
-    else if ( props[QStringLiteral( "placement" )] == QLatin1String( "curvepoint" ) )
-      x->setPlacement( QgsTemplatedLineSymbolLayerBase::CurvePoint );
-    else
-      x->setPlacement( QgsTemplatedLineSymbolLayerBase::Interval );
-  }
-
-  if ( props.contains( QStringLiteral( "ring_filter" ) ) )
-  {
-    x->setRingFilter( static_cast< RenderRingFilter>( props[QStringLiteral( "ring_filter" )].toInt() ) );
-  }
-
-  x->restoreOldDataDefinedProperties( props );
-
-  return x;
+  std::unique_ptr< QgsMarkerLineSymbolLayer > x = qgis::make_unique< QgsMarkerLineSymbolLayer >( rotate, interval );
+  setCommonProperties( x.get(), props );
+  return x.release();
 }
 
 QString QgsMarkerLineSymbolLayer::layerType() const
@@ -1017,6 +960,113 @@ QgsMapUnitScale QgsTemplatedLineSymbolLayerBase::mapUnitScale() const
     return mOffsetMapUnitScale;
   }
   return QgsMapUnitScale();
+}
+
+QgsStringMap QgsTemplatedLineSymbolLayerBase::properties() const
+{
+  QgsStringMap map;
+  map[QStringLiteral( "rotate" )] = ( rotateSymbols() ? QStringLiteral( "1" ) : QStringLiteral( "0" ) );
+  map[QStringLiteral( "interval" )] = QString::number( interval() );
+  map[QStringLiteral( "offset" )] = QString::number( mOffset );
+  map[QStringLiteral( "offset_along_line" )] = QString::number( offsetAlongLine() );
+  map[QStringLiteral( "offset_along_line_unit" )] = QgsUnitTypes::encodeUnit( offsetAlongLineUnit() );
+  map[QStringLiteral( "offset_along_line_map_unit_scale" )] = QgsSymbolLayerUtils::encodeMapUnitScale( offsetAlongLineMapUnitScale() );
+  map[QStringLiteral( "offset_unit" )] = QgsUnitTypes::encodeUnit( mOffsetUnit );
+  map[QStringLiteral( "offset_map_unit_scale" )] = QgsSymbolLayerUtils::encodeMapUnitScale( mOffsetMapUnitScale );
+  map[QStringLiteral( "interval_unit" )] = QgsUnitTypes::encodeUnit( intervalUnit() );
+  map[QStringLiteral( "interval_map_unit_scale" )] = QgsSymbolLayerUtils::encodeMapUnitScale( intervalMapUnitScale() );
+  if ( placement() == QgsTemplatedLineSymbolLayerBase::Vertex )
+    map[QStringLiteral( "placement" )] = QStringLiteral( "vertex" );
+  else if ( placement() == QgsTemplatedLineSymbolLayerBase::LastVertex )
+    map[QStringLiteral( "placement" )] = QStringLiteral( "lastvertex" );
+  else if ( placement() == QgsTemplatedLineSymbolLayerBase::FirstVertex )
+    map[QStringLiteral( "placement" )] = QStringLiteral( "firstvertex" );
+  else if ( placement() == QgsTemplatedLineSymbolLayerBase::CentralPoint )
+    map[QStringLiteral( "placement" )] = QStringLiteral( "centralpoint" );
+  else if ( placement() == QgsTemplatedLineSymbolLayerBase::CurvePoint )
+    map[QStringLiteral( "placement" )] = QStringLiteral( "curvepoint" );
+  else
+    map[QStringLiteral( "placement" )] = QStringLiteral( "interval" );
+
+  map[QStringLiteral( "ring_filter" )] = QString::number( static_cast< int >( mRingFilter ) );
+  return map;
+}
+
+void QgsTemplatedLineSymbolLayerBase::copyTemplateSymbolProperties( QgsTemplatedLineSymbolLayerBase *destLayer ) const
+{
+  destLayer->setSubSymbol( const_cast< QgsTemplatedLineSymbolLayerBase * >( this )->subSymbol()->clone() );
+  destLayer->setOffset( mOffset );
+  destLayer->setPlacement( placement() );
+  destLayer->setOffsetUnit( mOffsetUnit );
+  destLayer->setOffsetMapUnitScale( mOffsetMapUnitScale );
+  destLayer->setIntervalUnit( intervalUnit() );
+  destLayer->setIntervalMapUnitScale( intervalMapUnitScale() );
+  destLayer->setOffsetAlongLine( offsetAlongLine() );
+  destLayer->setOffsetAlongLineMapUnitScale( offsetAlongLineMapUnitScale() );
+  destLayer->setOffsetAlongLineUnit( offsetAlongLineUnit() );
+  destLayer->setRingFilter( mRingFilter );
+  copyDataDefinedProperties( destLayer );
+  copyPaintEffect( destLayer );
+}
+
+void QgsTemplatedLineSymbolLayerBase::setCommonProperties( QgsTemplatedLineSymbolLayerBase *destLayer, const QgsStringMap &properties )
+{
+  if ( properties.contains( QStringLiteral( "offset" ) ) )
+  {
+    destLayer->setOffset( properties[QStringLiteral( "offset" )].toDouble() );
+  }
+  if ( properties.contains( QStringLiteral( "offset_unit" ) ) )
+  {
+    destLayer->setOffsetUnit( QgsUnitTypes::decodeRenderUnit( properties[QStringLiteral( "offset_unit" )] ) );
+  }
+  if ( properties.contains( QStringLiteral( "interval_unit" ) ) )
+  {
+    destLayer->setIntervalUnit( QgsUnitTypes::decodeRenderUnit( properties[QStringLiteral( "interval_unit" )] ) );
+  }
+  if ( properties.contains( QStringLiteral( "offset_along_line" ) ) )
+  {
+    destLayer->setOffsetAlongLine( properties[QStringLiteral( "offset_along_line" )].toDouble() );
+  }
+  if ( properties.contains( QStringLiteral( "offset_along_line_unit" ) ) )
+  {
+    destLayer->setOffsetAlongLineUnit( QgsUnitTypes::decodeRenderUnit( properties[QStringLiteral( "offset_along_line_unit" )] ) );
+  }
+  if ( properties.contains( ( QStringLiteral( "offset_along_line_map_unit_scale" ) ) ) )
+  {
+    destLayer->setOffsetAlongLineMapUnitScale( QgsSymbolLayerUtils::decodeMapUnitScale( properties[QStringLiteral( "offset_along_line_map_unit_scale" )] ) );
+  }
+
+  if ( properties.contains( QStringLiteral( "offset_map_unit_scale" ) ) )
+  {
+    destLayer->setOffsetMapUnitScale( QgsSymbolLayerUtils::decodeMapUnitScale( properties[QStringLiteral( "offset_map_unit_scale" )] ) );
+  }
+  if ( properties.contains( QStringLiteral( "interval_map_unit_scale" ) ) )
+  {
+    destLayer->setIntervalMapUnitScale( QgsSymbolLayerUtils::decodeMapUnitScale( properties[QStringLiteral( "interval_map_unit_scale" )] ) );
+  }
+
+  if ( properties.contains( QStringLiteral( "placement" ) ) )
+  {
+    if ( properties[QStringLiteral( "placement" )] == QLatin1String( "vertex" ) )
+      destLayer->setPlacement( QgsTemplatedLineSymbolLayerBase::Vertex );
+    else if ( properties[QStringLiteral( "placement" )] == QLatin1String( "lastvertex" ) )
+      destLayer->setPlacement( QgsTemplatedLineSymbolLayerBase::LastVertex );
+    else if ( properties[QStringLiteral( "placement" )] == QLatin1String( "firstvertex" ) )
+      destLayer->setPlacement( QgsTemplatedLineSymbolLayerBase::FirstVertex );
+    else if ( properties[QStringLiteral( "placement" )] == QLatin1String( "centralpoint" ) )
+      destLayer->setPlacement( QgsTemplatedLineSymbolLayerBase::CentralPoint );
+    else if ( properties[QStringLiteral( "placement" )] == QLatin1String( "curvepoint" ) )
+      destLayer->setPlacement( QgsTemplatedLineSymbolLayerBase::CurvePoint );
+    else
+      destLayer->setPlacement( QgsTemplatedLineSymbolLayerBase::Interval );
+  }
+
+  if ( properties.contains( QStringLiteral( "ring_filter" ) ) )
+  {
+    destLayer->setRingFilter( static_cast< RenderRingFilter>( properties[QStringLiteral( "ring_filter" )].toInt() ) );
+  }
+
+  destLayer->restoreOldDataDefinedProperties( properties );
 }
 
 void QgsTemplatedLineSymbolLayerBase::renderPolylineInterval( const QPolygonF &points, QgsSymbolRenderContext &context )
@@ -1413,37 +1463,6 @@ void QgsTemplatedLineSymbolLayerBase::renderPolylineCentral( const QPolygonF &po
   }
 }
 
-
-QgsStringMap QgsMarkerLineSymbolLayer::properties() const
-{
-  QgsStringMap map;
-  map[QStringLiteral( "rotate" )] = ( rotateSymbols() ? QStringLiteral( "1" ) : QStringLiteral( "0" ) );
-  map[QStringLiteral( "interval" )] = QString::number( interval() );
-  map[QStringLiteral( "offset" )] = QString::number( mOffset );
-  map[QStringLiteral( "offset_along_line" )] = QString::number( offsetAlongLine() );
-  map[QStringLiteral( "offset_along_line_unit" )] = QgsUnitTypes::encodeUnit( offsetAlongLineUnit() );
-  map[QStringLiteral( "offset_along_line_map_unit_scale" )] = QgsSymbolLayerUtils::encodeMapUnitScale( offsetAlongLineMapUnitScale() );
-  map[QStringLiteral( "offset_unit" )] = QgsUnitTypes::encodeUnit( mOffsetUnit );
-  map[QStringLiteral( "offset_map_unit_scale" )] = QgsSymbolLayerUtils::encodeMapUnitScale( mOffsetMapUnitScale );
-  map[QStringLiteral( "interval_unit" )] = QgsUnitTypes::encodeUnit( intervalUnit() );
-  map[QStringLiteral( "interval_map_unit_scale" )] = QgsSymbolLayerUtils::encodeMapUnitScale( intervalMapUnitScale() );
-  if ( placement() == QgsTemplatedLineSymbolLayerBase::Vertex )
-    map[QStringLiteral( "placement" )] = QStringLiteral( "vertex" );
-  else if ( placement() == QgsTemplatedLineSymbolLayerBase::LastVertex )
-    map[QStringLiteral( "placement" )] = QStringLiteral( "lastvertex" );
-  else if ( placement() == QgsTemplatedLineSymbolLayerBase::FirstVertex )
-    map[QStringLiteral( "placement" )] = QStringLiteral( "firstvertex" );
-  else if ( placement() == QgsTemplatedLineSymbolLayerBase::CentralPoint )
-    map[QStringLiteral( "placement" )] = QStringLiteral( "centralpoint" );
-  else if ( placement() == QgsTemplatedLineSymbolLayerBase::CurvePoint )
-    map[QStringLiteral( "placement" )] = QStringLiteral( "curvepoint" );
-  else
-    map[QStringLiteral( "placement" )] = QStringLiteral( "interval" );
-
-  map[QStringLiteral( "ring_filter" )] = QString::number( static_cast< int >( mRingFilter ) );
-  return map;
-}
-
 QgsSymbol *QgsMarkerLineSymbolLayer::subSymbol()
 {
   return mMarker.get();
@@ -1464,21 +1483,9 @@ bool QgsMarkerLineSymbolLayer::setSubSymbol( QgsSymbol *symbol )
 
 QgsMarkerLineSymbolLayer *QgsMarkerLineSymbolLayer::clone() const
 {
-  QgsMarkerLineSymbolLayer *x = new QgsMarkerLineSymbolLayer( rotateSymbols(), interval() );
-  x->setSubSymbol( mMarker->clone() );
-  x->setOffset( mOffset );
-  x->setPlacement( placement() );
-  x->setOffsetUnit( mOffsetUnit );
-  x->setOffsetMapUnitScale( mOffsetMapUnitScale );
-  x->setIntervalUnit( intervalUnit() );
-  x->setIntervalMapUnitScale( intervalMapUnitScale() );
-  x->setOffsetAlongLine( offsetAlongLine() );
-  x->setOffsetAlongLineMapUnitScale( offsetAlongLineMapUnitScale() );
-  x->setOffsetAlongLineUnit( offsetAlongLineUnit() );
-  x->setRingFilter( mRingFilter );
-  copyDataDefinedProperties( x );
-  copyPaintEffect( x );
-  return x;
+  std::unique_ptr< QgsMarkerLineSymbolLayer > x = qgis::make_unique< QgsMarkerLineSymbolLayer >( rotateSymbols(), interval() );
+  copyTemplateSymbolProperties( x.get() );
+  return x.release();
 }
 
 void QgsMarkerLineSymbolLayer::toSld( QDomDocument &doc, QDomElement &element, const QgsStringMap &props ) const
@@ -1734,65 +1741,13 @@ QgsSymbolLayer *QgsHashedLineSymbolLayer::create( const QgsStringMap &props )
   if ( props.contains( QStringLiteral( "rotate" ) ) )
     rotate = ( props[QStringLiteral( "rotate" )] == QLatin1String( "1" ) );
 
-  QgsHashedLineSymbolLayer *x = new QgsHashedLineSymbolLayer( rotate, interval );
-  if ( props.contains( QStringLiteral( "offset" ) ) )
+  std::unique_ptr< QgsHashedLineSymbolLayer > x = qgis::make_unique< QgsHashedLineSymbolLayer >( rotate, interval );
+  setCommonProperties( x.get(), props );
+  if ( props.contains( QStringLiteral( "hash_angle" ) ) )
   {
-    x->setOffset( props[QStringLiteral( "offset" )].toDouble() );
+    x->setHashAngle( props[QStringLiteral( "hash_angle" )].toDouble() );
   }
-  if ( props.contains( QStringLiteral( "offset_unit" ) ) )
-  {
-    x->setOffsetUnit( QgsUnitTypes::decodeRenderUnit( props[QStringLiteral( "offset_unit" )] ) );
-  }
-  if ( props.contains( QStringLiteral( "interval_unit" ) ) )
-  {
-    x->setIntervalUnit( QgsUnitTypes::decodeRenderUnit( props[QStringLiteral( "interval_unit" )] ) );
-  }
-  if ( props.contains( QStringLiteral( "offset_along_line" ) ) )
-  {
-    x->setOffsetAlongLine( props[QStringLiteral( "offset_along_line" )].toDouble() );
-  }
-  if ( props.contains( QStringLiteral( "offset_along_line_unit" ) ) )
-  {
-    x->setOffsetAlongLineUnit( QgsUnitTypes::decodeRenderUnit( props[QStringLiteral( "offset_along_line_unit" )] ) );
-  }
-  if ( props.contains( ( QStringLiteral( "offset_along_line_map_unit_scale" ) ) ) )
-  {
-    x->setOffsetAlongLineMapUnitScale( QgsSymbolLayerUtils::decodeMapUnitScale( props[QStringLiteral( "offset_along_line_map_unit_scale" )] ) );
-  }
-
-  if ( props.contains( QStringLiteral( "offset_map_unit_scale" ) ) )
-  {
-    x->setOffsetMapUnitScale( QgsSymbolLayerUtils::decodeMapUnitScale( props[QStringLiteral( "offset_map_unit_scale" )] ) );
-  }
-  if ( props.contains( QStringLiteral( "interval_map_unit_scale" ) ) )
-  {
-    x->setIntervalMapUnitScale( QgsSymbolLayerUtils::decodeMapUnitScale( props[QStringLiteral( "interval_map_unit_scale" )] ) );
-  }
-
-  if ( props.contains( QStringLiteral( "placement" ) ) )
-  {
-    if ( props[QStringLiteral( "placement" )] == QLatin1String( "vertex" ) )
-      x->setPlacement( QgsTemplatedLineSymbolLayerBase::Vertex );
-    else if ( props[QStringLiteral( "placement" )] == QLatin1String( "lastvertex" ) )
-      x->setPlacement( QgsTemplatedLineSymbolLayerBase::LastVertex );
-    else if ( props[QStringLiteral( "placement" )] == QLatin1String( "firstvertex" ) )
-      x->setPlacement( QgsTemplatedLineSymbolLayerBase::FirstVertex );
-    else if ( props[QStringLiteral( "placement" )] == QLatin1String( "centralpoint" ) )
-      x->setPlacement( QgsTemplatedLineSymbolLayerBase::CentralPoint );
-    else if ( props[QStringLiteral( "placement" )] == QLatin1String( "curvepoint" ) )
-      x->setPlacement( QgsTemplatedLineSymbolLayerBase::CurvePoint );
-    else
-      x->setPlacement( QgsTemplatedLineSymbolLayerBase::Interval );
-  }
-
-  if ( props.contains( QStringLiteral( "ring_filter" ) ) )
-  {
-    x->setRingFilter( static_cast< RenderRingFilter>( props[QStringLiteral( "ring_filter" )].toInt() ) );
-  }
-
-  x->restoreOldDataDefinedProperties( props );
-
-  return x;
+  return x.release();
 }
 
 QString QgsHashedLineSymbolLayer::layerType() const
@@ -1820,51 +1775,17 @@ void QgsHashedLineSymbolLayer::stopRender( QgsSymbolRenderContext &context )
 
 QgsStringMap QgsHashedLineSymbolLayer::properties() const
 {
-  QgsStringMap map;
-  map[QStringLiteral( "rotate" )] = ( rotateSymbols() ? QStringLiteral( "1" ) : QStringLiteral( "0" ) );
-  map[QStringLiteral( "interval" )] = QString::number( interval() );
-  map[QStringLiteral( "offset" )] = QString::number( mOffset );
-  map[QStringLiteral( "offset_along_line" )] = QString::number( offsetAlongLine() );
-  map[QStringLiteral( "offset_along_line_unit" )] = QgsUnitTypes::encodeUnit( offsetAlongLineUnit() );
-  map[QStringLiteral( "offset_along_line_map_unit_scale" )] = QgsSymbolLayerUtils::encodeMapUnitScale( offsetAlongLineMapUnitScale() );
-  map[QStringLiteral( "offset_unit" )] = QgsUnitTypes::encodeUnit( mOffsetUnit );
-  map[QStringLiteral( "offset_map_unit_scale" )] = QgsSymbolLayerUtils::encodeMapUnitScale( mOffsetMapUnitScale );
-  map[QStringLiteral( "interval_unit" )] = QgsUnitTypes::encodeUnit( intervalUnit() );
-  map[QStringLiteral( "interval_map_unit_scale" )] = QgsSymbolLayerUtils::encodeMapUnitScale( intervalMapUnitScale() );
-  if ( placement() == Vertex )
-    map[QStringLiteral( "placement" )] = QStringLiteral( "vertex" );
-  else if ( placement() == LastVertex )
-    map[QStringLiteral( "placement" )] = QStringLiteral( "lastvertex" );
-  else if ( placement() == FirstVertex )
-    map[QStringLiteral( "placement" )] = QStringLiteral( "firstvertex" );
-  else if ( placement() == CentralPoint )
-    map[QStringLiteral( "placement" )] = QStringLiteral( "centralpoint" );
-  else if ( placement() == CurvePoint )
-    map[QStringLiteral( "placement" )] = QStringLiteral( "curvepoint" );
-  else
-    map[QStringLiteral( "placement" )] = QStringLiteral( "interval" );
-
-  map[QStringLiteral( "ring_filter" )] = QString::number( static_cast< int >( mRingFilter ) );
+  QgsStringMap map = QgsTemplatedLineSymbolLayerBase::properties();
+  map[ QStringLiteral( "hash_angle" ) ] = QString::number( mHashAngle );
   return map;
 }
 
 QgsHashedLineSymbolLayer *QgsHashedLineSymbolLayer::clone() const
 {
-  QgsHashedLineSymbolLayer *x = new QgsHashedLineSymbolLayer( rotateSymbols(), interval() );
-  x->setSubSymbol( mHashSymbol->clone() );
-  x->setOffset( mOffset );
-  x->setPlacement( placement() );
-  x->setOffsetUnit( mOffsetUnit );
-  x->setOffsetMapUnitScale( mOffsetMapUnitScale );
-  x->setIntervalUnit( intervalUnit() );
-  x->setIntervalMapUnitScale( intervalMapUnitScale() );
-  x->setOffsetAlongLine( offsetAlongLine() );
-  x->setOffsetAlongLineMapUnitScale( offsetAlongLineMapUnitScale() );
-  x->setOffsetAlongLineUnit( offsetAlongLineUnit() );
-  x->setRingFilter( mRingFilter );
-  copyDataDefinedProperties( x );
-  copyPaintEffect( x );
-  return x;
+  std::unique_ptr< QgsHashedLineSymbolLayer > x = qgis::make_unique< QgsHashedLineSymbolLayer >( rotateSymbols(), interval() );
+  copyTemplateSymbolProperties( x.get() );
+  x->setHashAngle( mHashAngle );
+  return x.release();
 }
 
 void QgsHashedLineSymbolLayer::setColor( const QColor &color )
@@ -1972,13 +1893,23 @@ void QgsHashedLineSymbolLayer::renderSymbol( const QPointF &point, const QgsFeat
   double w = 10; //context.convertToPainterUnits( mHashLength, widthUnit(), widthMapUnitScale() ) / 2.0;
 
   QgsPointXY center( point );
-  QgsPointXY start = center.project( w, 180 - ( mSymbolAngle + mSymbolLineAngle ) );
-  QgsPointXY end = center.project( -w, 180 - ( mSymbolAngle + mSymbolLineAngle ) );
+  QgsPointXY start = center.project( w, 180 - ( mSymbolAngle + mSymbolLineAngle + mHashAngle ) );
+  QgsPointXY end = center.project( -w, 180 - ( mSymbolAngle + mSymbolLineAngle + mHashAngle ) );
 
   QPolygonF points;
   points <<  QPointF( start.x(), start.y() ) << QPointF( end.x(), end.y() );
 
   mHashSymbol->renderPolyline( points, feature, context, layer, selected );
+}
+
+double QgsHashedLineSymbolLayer::hashAngle() const
+{
+  return mHashAngle;
+}
+
+void QgsHashedLineSymbolLayer::setHashAngle( double angle )
+{
+  mHashAngle = angle;
 }
 
 
