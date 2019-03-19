@@ -376,6 +376,45 @@ Creates a new QgsMarkerLineSymbolLayerWidget.
 
 
 
+class QgsHashedLineSymbolLayerWidget : QgsSymbolLayerWidget
+{
+
+%TypeHeaderCode
+#include "qgssymbollayerwidget.h"
+%End
+  public:
+
+    QgsHashedLineSymbolLayerWidget( QgsVectorLayer *vl, QWidget *parent /TransferThis/ = 0 );
+%Docstring
+Constructor for QgsHashedLineSymbolLayerWidget.
+
+:param vl: associated vector layer
+:param parent: parent widget
+%End
+
+    static QgsSymbolLayerWidget *create( QgsVectorLayer *vl ) /Factory/;
+%Docstring
+Creates a new QgsHashedLineSymbolLayerWidget.
+
+:param vl: associated vector layer
+%End
+
+    virtual void setSymbolLayer( QgsSymbolLayer *layer );
+
+    virtual QgsSymbolLayer *symbolLayer();
+
+
+  public slots:
+
+    void setInterval( double val );
+    void setOffsetAlongLine( double val );
+
+  protected:
+
+
+};
+
+
 
 
 class QgsSvgMarkerSymbolLayerWidget : QgsSymbolLayerWidget
