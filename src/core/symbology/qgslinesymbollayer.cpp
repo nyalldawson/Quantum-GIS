@@ -1747,6 +1747,16 @@ QgsSymbolLayer *QgsHashedLineSymbolLayer::create( const QgsStringMap &props )
   {
     x->setHashAngle( props[QStringLiteral( "hash_angle" )].toDouble() );
   }
+
+  if ( props.contains( QStringLiteral( "hash_length" ) ) )
+    x->setHashLength( props[QStringLiteral( "hash_length" )].toDouble() );
+
+  if ( props.contains( QStringLiteral( "hash_length_unit" ) ) )
+    x->setHashLengthUnit( QgsUnitTypes::decodeRenderUnit( props[QStringLiteral( "hash_length_unit" )] ) );
+
+  if ( props.contains( QStringLiteral( "hash_length_map_unit_scale" ) ) )
+    x->setHashLengthMapUnitScale( QgsSymbolLayerUtils::decodeMapUnitScale( props[QStringLiteral( "hash_length_map_unit_scale" )] ) );
+
   return x.release();
 }
 
@@ -1777,6 +1787,11 @@ QgsStringMap QgsHashedLineSymbolLayer::properties() const
 {
   QgsStringMap map = QgsTemplatedLineSymbolLayerBase::properties();
   map[ QStringLiteral( "hash_angle" ) ] = QString::number( mHashAngle );
+
+  map[QStringLiteral( "hash_length" )] = QString::number( mHashLength );
+  map[QStringLiteral( "hash_length_unit" )] = QgsUnitTypes::encodeUnit( mHashLengthUnit );
+  map[QStringLiteral( "hash_length_map_unit_scale" )] = QgsSymbolLayerUtils::encodeMapUnitScale( mHashLengthMapUnitScale );
+
   return map;
 }
 
@@ -1785,6 +1800,9 @@ QgsHashedLineSymbolLayer *QgsHashedLineSymbolLayer::clone() const
   std::unique_ptr< QgsHashedLineSymbolLayer > x = qgis::make_unique< QgsHashedLineSymbolLayer >( rotateSymbols(), interval() );
   copyTemplateSymbolProperties( x.get() );
   x->setHashAngle( mHashAngle );
+  x->setHashLength( mHashLength );
+  x->setHashLengthUnit( mHashLengthUnit );
+  x->setHashLengthMapUnitScale( mHashLengthMapUnitScale );
   return x.release();
 }
 

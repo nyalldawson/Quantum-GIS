@@ -406,6 +406,7 @@ class CORE_EXPORT QgsTemplatedLineSymbolLayerBase : public QgsLineSymbolLayer
     QgsUnitTypes::RenderUnit outputUnit() const FINAL;
     void setMapUnitScale( const QgsMapUnitScale &scale ) FINAL;
     QgsMapUnitScale mapUnitScale() const FINAL;
+    QgsStringMap properties() const override;
 
   protected:
 
@@ -445,6 +446,12 @@ class CORE_EXPORT QgsTemplatedLineSymbolLayerBase : public QgsLineSymbolLayer
      * Copies all common properties of this layer to another templated symbol layer.
      */
     void copyTemplateSymbolProperties( QgsTemplatedLineSymbolLayerBase *destLayer ) const;
+
+    /**
+     * Sets all common symbol properties in the \a destLayer, using the settings
+     * serialized in the \a properties map.
+     */
+    static void setCommonProperties( QgsTemplatedLineSymbolLayerBase *destLayer, const QgsStringMap &properties );
 
   private:
 
@@ -528,7 +535,6 @@ class CORE_EXPORT QgsMarkerLineSymbolLayer : public QgsTemplatedLineSymbolLayerB
     QString layerType() const override;
     void startRender( QgsSymbolRenderContext &context ) override;
     void stopRender( QgsSymbolRenderContext &context ) override;
-    QgsStringMap properties() const override;
     QgsMarkerLineSymbolLayer *clone() const override SIP_FACTORY;
     void toSld( QDomDocument &doc, QDomElement &element, const QgsStringMap &props ) const override;
     void setColor( const QColor &color ) override;
@@ -638,6 +644,50 @@ class CORE_EXPORT QgsHashedLineSymbolLayer : public QgsTemplatedLineSymbolLayerB
      */
     void setHashAngle( double angle );
 
+    /**
+     * Returns the length of hash symbols. Units are specified through hashLengthUnits().
+     * \see setHashLength()
+     * \see hashLengthUnit()
+     */
+    double hashLength() const { return mHashLength; }
+
+    /**
+     * Sets the \a length of hash symbols. Units are specified through setHashLengthUnit()
+     * \see hashLength()
+     * \see setHashLengthUnit()
+     */
+    void setHashLength( double length ) { mHashLength = length; }
+
+    /**
+     * Sets the \a unit for the length of hash symbols.
+     * \see hashLengthUnit()
+     * \see setHashLength()
+    */
+    void setHashLengthUnit( QgsUnitTypes::RenderUnit unit ) { mHashLengthUnit = unit; }
+
+    /**
+     * Returns the units for the length of hash symbols.
+     * \see setHashLengthUnit()
+     * \see hashLength()
+    */
+    QgsUnitTypes::RenderUnit hashLengthUnit() const { return mHashLengthUnit; }
+
+    /**
+     * Sets the map unit \a scale for the hash length.
+     * \see hashLengthMapUnitScale()
+     * \see setHashLengthUnit()
+     * \see setHashLength()
+     */
+    void setHashLengthMapUnitScale( const QgsMapUnitScale &scale ) { mHashLengthMapUnitScale = scale; }
+
+    /**
+     * Returns the map unit scale for the hash length.
+     * \see setHashLengthMapUnitScale()
+     * \see hashLengthUnit()
+     * \see hashLength()
+     */
+    const QgsMapUnitScale &hashLengthMapUnitScale() const { return mHashLengthMapUnitScale; }
+
   protected:
 
     void setSymbolLineAngle( double angle ) override;
@@ -654,9 +704,11 @@ class CORE_EXPORT QgsHashedLineSymbolLayer : public QgsTemplatedLineSymbolLayerB
 
     double mSymbolLineAngle = 0;
     double mSymbolAngle = 0;
-    double mHashLength = 3;
 
     double mHashAngle = 0;
+    double mHashLength = 3;
+    QgsUnitTypes::RenderUnit mHashLengthUnit = QgsUnitTypes::RenderMillimeters;
+    QgsMapUnitScale mHashLengthMapUnitScale;
 
 };
 

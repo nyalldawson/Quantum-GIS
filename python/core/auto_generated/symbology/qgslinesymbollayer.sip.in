@@ -437,6 +437,8 @@ Sets the map unit ``scale`` used for calculating the offset in map units along l
 
     virtual QgsMapUnitScale mapUnitScale() const ${SIP_FINAL};
 
+    virtual QgsStringMap properties() const;
+
 
   protected:
 
@@ -476,6 +478,12 @@ style and colors instead of the symbol's normal style.
     void copyTemplateSymbolProperties( QgsTemplatedLineSymbolLayerBase *destLayer ) const;
 %Docstring
 Copies all common properties of this layer to another templated symbol layer.
+%End
+
+    static void setCommonProperties( QgsTemplatedLineSymbolLayerBase *destLayer, const QgsStringMap &properties );
+%Docstring
+Sets all common symbol properties in the ``destLayer``, using the settings
+serialized in the ``properties`` map.
 %End
 
 };
@@ -530,8 +538,6 @@ Creates a new QgsMarkerLineSymbolLayer from an SLD XML DOM ``element``.
     virtual void startRender( QgsSymbolRenderContext &context );
 
     virtual void stopRender( QgsSymbolRenderContext &context );
-
-    virtual QgsStringMap properties() const;
 
     virtual QgsMarkerLineSymbolLayer *clone() const /Factory/;
 
@@ -673,6 +679,64 @@ Returns the angle to use when drawing the hashed lines sections, in degrees cloc
 Sets the ``angle`` to use when drawing the hashed lines sections, in degrees clockwise.
 
 .. seealso:: :py:func:`hashAngle`
+%End
+
+    double hashLength() const;
+%Docstring
+Returns the length of hash symbols. Units are specified through hashLengthUnits().
+
+.. seealso:: :py:func:`setHashLength`
+
+.. seealso:: :py:func:`hashLengthUnit`
+%End
+
+    void setHashLength( double length );
+%Docstring
+Sets the ``length`` of hash symbols. Units are specified through setHashLengthUnit()
+
+.. seealso:: :py:func:`hashLength`
+
+.. seealso:: :py:func:`setHashLengthUnit`
+%End
+
+    void setHashLengthUnit( QgsUnitTypes::RenderUnit unit );
+%Docstring
+Sets the ``unit`` for the length of hash symbols.
+
+.. seealso:: :py:func:`hashLengthUnit`
+
+.. seealso:: :py:func:`setHashLength`
+%End
+
+    QgsUnitTypes::RenderUnit hashLengthUnit() const;
+%Docstring
+Returns the units for the length of hash symbols.
+
+.. seealso:: :py:func:`setHashLengthUnit`
+
+.. seealso:: :py:func:`hashLength`
+%End
+
+    void setHashLengthMapUnitScale( const QgsMapUnitScale &scale );
+%Docstring
+Sets the map unit ``scale`` for the hash length.
+
+.. seealso:: :py:func:`hashLengthMapUnitScale`
+
+.. seealso:: :py:func:`setHashLengthUnit`
+
+.. seealso:: :py:func:`setHashLength`
+%End
+
+    const QgsMapUnitScale &hashLengthMapUnitScale() const;
+%Docstring
+Returns the map unit scale for the hash length.
+
+.. seealso:: :py:func:`setHashLengthMapUnitScale`
+
+.. seealso:: :py:func:`hashLengthUnit`
+
+.. seealso:: :py:func:`hashLength`
 %End
 
   protected:
