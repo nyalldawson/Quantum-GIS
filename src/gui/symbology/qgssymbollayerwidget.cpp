@@ -1861,6 +1861,7 @@ QgsHashedLineSymbolLayerWidget::QgsHashedLineSymbolLayerWidget( QgsVectorLayer *
   connect( mIntervalUnitWidget, &QgsUnitSelectionWidget::changed, this, &QgsHashedLineSymbolLayerWidget::mIntervalUnitWidget_changed );
   connect( mOffsetUnitWidget, &QgsUnitSelectionWidget::changed, this, &QgsHashedLineSymbolLayerWidget::mOffsetUnitWidget_changed );
   connect( mOffsetAlongLineUnitWidget, &QgsUnitSelectionWidget::changed, this, &QgsHashedLineSymbolLayerWidget::mOffsetAlongLineUnitWidget_changed );
+  connect( mHashLengthUnitWidget, &QgsUnitSelectionWidget::changed, this, &QgsHashedLineSymbolLayerWidget::hashLengthUnitWidgetChanged );
   mIntervalUnitWidget->setUnits( QgsUnitTypes::RenderUnitList() << QgsUnitTypes::RenderMillimeters << QgsUnitTypes::RenderMetersInMapUnits << QgsUnitTypes::RenderMapUnits << QgsUnitTypes::RenderPixels
                                  << QgsUnitTypes::RenderPoints << QgsUnitTypes::RenderInches );
   mOffsetUnitWidget->setUnits( QgsUnitTypes::RenderUnitList() << QgsUnitTypes::RenderMillimeters << QgsUnitTypes::RenderMetersInMapUnits << QgsUnitTypes::RenderMapUnits << QgsUnitTypes::RenderPixels
@@ -1894,6 +1895,8 @@ QgsHashedLineSymbolLayerWidget::QgsHashedLineSymbolLayerWidget( QgsVectorLayer *
 
   connect( spinInterval, static_cast < void ( QDoubleSpinBox::* )( double ) > ( &QDoubleSpinBox::valueChanged ), this, &QgsHashedLineSymbolLayerWidget::setInterval );
   connect( mSpinOffsetAlongLine, static_cast < void ( QDoubleSpinBox::* )( double ) > ( &QDoubleSpinBox::valueChanged ), this, &QgsHashedLineSymbolLayerWidget::setOffsetAlongLine );
+  connect( mSpinHashLength, static_cast < void ( QDoubleSpinBox::* )( double ) > ( &QDoubleSpinBox::valueChanged ), this, &QgsHashedLineSymbolLayerWidget::setHashLength );
+  connect( mHashRotationSpinBox, static_cast < void ( QDoubleSpinBox::* )( double ) > ( &QDoubleSpinBox::valueChanged ), this, &QgsHashedLineSymbolLayerWidget::setHashAngle );
   connect( chkRotateMarker, &QAbstractButton::clicked, this, &QgsHashedLineSymbolLayerWidget::setRotate );
   connect( spinOffset, static_cast < void ( QDoubleSpinBox::* )( double ) > ( &QDoubleSpinBox::valueChanged ), this, &QgsHashedLineSymbolLayerWidget::setOffset );
   connect( radInterval, &QAbstractButton::clicked, this, &QgsHashedLineSymbolLayerWidget::setPlacement );
@@ -1919,6 +1922,8 @@ void QgsHashedLineSymbolLayerWidget::setSymbolLayer( QgsSymbolLayer *layer )
   mSpinOffsetAlongLine->blockSignals( true );
   mSpinOffsetAlongLine->setValue( mLayer->offsetAlongLine() );
   mSpinOffsetAlongLine->blockSignals( false );
+  whileBlocking( mSpinHashLength )->setValue( mLayer->hashLength() );
+  whileBlocking( mHashRotationSpinBox )->setValue( mLayer->hashAngle() );
   chkRotateMarker->blockSignals( true );
   chkRotateMarker->setChecked( mLayer->rotateSymbols() );
   chkRotateMarker->blockSignals( false );
@@ -1952,6 +1957,9 @@ void QgsHashedLineSymbolLayerWidget::setSymbolLayer( QgsSymbolLayer *layer )
   mOffsetAlongLineUnitWidget->setMapUnitScale( mLayer->offsetAlongLineMapUnitScale() );
   mOffsetAlongLineUnitWidget->blockSignals( false );
 
+  whileBlocking( mHashLengthUnitWidget )->setUnit( mLayer->hashLengthUnit() );
+  whileBlocking( mHashLengthUnitWidget )->setMapUnitScale( mLayer->hashLengthMapUnitScale() );
+
   whileBlocking( mRingFilterComboBox )->setCurrentIndex( mRingFilterComboBox->findData( mLayer->ringFilter() ) );
 
   setPlacement(); // update gui
@@ -1978,6 +1986,18 @@ void QgsHashedLineSymbolLayerWidget::setInterval( double val )
 void QgsHashedLineSymbolLayerWidget::setOffsetAlongLine( double val )
 {
   mLayer->setOffsetAlongLine( val );
+  emit changed();
+}
+
+void QgsHashedLineSymbolLayerWidget::setHashLength( double val )
+{
+  mLayer->setHashLength( val );
+  emit changed();
+}
+
+void QgsHashedLineSymbolLayerWidget::setHashAngle( double val )
+{
+  mLayer->setHashAngle( val );
   emit changed();
 }
 
@@ -2041,6 +2061,16 @@ void QgsHashedLineSymbolLayerWidget::mOffsetAlongLineUnitWidget_changed()
   {
     mLayer->setOffsetAlongLineUnit( mOffsetAlongLineUnitWidget->unit() );
     mLayer->setOffsetAlongLineMapUnitScale( mOffsetAlongLineUnitWidget->getMapUnitScale() );
+  }
+  emit changed();
+}
+
+void QgsHashedLineSymbolLayerWidget::hashLengthUnitWidgetChanged()
+{
+  if ( mLayer )
+  {
+    mLayer->setHashLengthUnit( mHashLengthUnitWidget->unit() );
+    mLayer->setHashLengthMapUnitScale( mHashLengthUnitWidget->getMapUnitScale() );
   }
   emit changed();
 }

@@ -1908,7 +1908,7 @@ void QgsHashedLineSymbolLayer::setSymbolAngle( double angle )
 
 void QgsHashedLineSymbolLayer::renderSymbol( const QPointF &point, const QgsFeature *feature, QgsRenderContext &context, int layer, bool selected )
 {
-  double w = 10; //context.convertToPainterUnits( mHashLength, widthUnit(), widthMapUnitScale() ) / 2.0;
+  const double w = context.convertToPainterUnits( mHashLength, mHashLengthUnit, mHashLengthMapUnitScale ) / 2.0;
 
   QgsPointXY center( point );
   QgsPointXY start = center.project( w, 180 - ( mSymbolAngle + mSymbolLineAngle + mHashAngle ) );

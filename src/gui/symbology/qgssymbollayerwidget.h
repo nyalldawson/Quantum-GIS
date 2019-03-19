@@ -533,22 +533,22 @@ class GUI_EXPORT QgsHashedLineSymbolLayerWidget : public QgsSymbolLayerWidget, p
     void setSymbolLayer( QgsSymbolLayer *layer ) override;
     QgsSymbolLayer *symbolLayer() override;
 
-  public slots:
+  private slots:
 
     void setInterval( double val );
     void setOffsetAlongLine( double val );
+    void setHashLength( double val );
 
-  protected:
-
-    QgsHashedLineSymbolLayer *mLayer = nullptr;
-
-  private slots:
     void setRotate();
     void setOffset();
     void setPlacement();
     void mIntervalUnitWidget_changed();
     void mOffsetUnitWidget_changed();
     void mOffsetAlongLineUnitWidget_changed();
+    void hashLengthUnitWidgetChanged();
+  private:
+    QgsHashedLineSymbolLayer *mLayer = nullptr;
+
 
 };
 

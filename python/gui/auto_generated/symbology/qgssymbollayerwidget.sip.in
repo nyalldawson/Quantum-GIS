@@ -376,6 +376,7 @@ Creates a new QgsMarkerLineSymbolLayerWidget.
 
 
 
+
 class QgsHashedLineSymbolLayerWidget : QgsSymbolLayerWidget
 {
 
@@ -402,14 +403,6 @@ Creates a new QgsHashedLineSymbolLayerWidget.
     virtual void setSymbolLayer( QgsSymbolLayer *layer );
 
     virtual QgsSymbolLayer *symbolLayer();
-
-
-  public slots:
-
-    void setInterval( double val );
-    void setOffsetAlongLine( double val );
-
-  protected:
 
 
 };

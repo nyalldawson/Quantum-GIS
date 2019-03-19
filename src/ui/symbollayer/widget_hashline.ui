@@ -248,7 +248,7 @@
       </widget>
      </item>
      <item row="2" column="1">
-      <widget class="QgsDoubleSpinBox" name="spinOffset_2">
+      <widget class="QgsDoubleSpinBox" name="mHashRotationSpinBox">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
          <horstretch>1</horstretch>
@@ -256,19 +256,19 @@
         </sizepolicy>
        </property>
        <property name="suffix">
-        <string>°</string>
+        <string> °</string>
        </property>
        <property name="decimals">
         <number>2</number>
        </property>
        <property name="minimum">
-        <double>-999999999.000000000000000</double>
+        <double>-360.000000000000000</double>
        </property>
        <property name="maximum">
-        <double>999999999.000000000000000</double>
+        <double>360.000000000000000</double>
        </property>
        <property name="singleStep">
-        <double>0.200000000000000</double>
+        <double>0.500000000000000</double>
        </property>
       </widget>
      </item>
@@ -353,7 +353,7 @@
       </widget>
      </item>
      <item row="1" column="1">
-      <widget class="QgsDoubleSpinBox" name="mSpinOffsetAlongLine_2">
+      <widget class="QgsDoubleSpinBox" name="mSpinHashLength">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
          <horstretch>1</horstretch>
