@@ -861,12 +861,23 @@ void QgsTemplatedLineSymbolLayerBase::renderPolyline( const QPolygonF &points, Q
 
   if ( qgsDoubleNear( offset, 0.0 ) )
   {
-    if ( placement == QgsTemplatedLineSymbolLayerBase::Interval )
-      renderPolylineInterval( points, context );
-    else if ( placement == QgsTemplatedLineSymbolLayerBase::CentralPoint )
-      renderPolylineCentral( points, context );
-    else
-      renderPolylineVertex( points, context, placement );
+    switch ( placement )
+    {
+      case Interval:
+        renderPolylineInterval( points, context );
+        break;
+
+      case CentralPoint:
+        renderPolylineCentral( points, context );
+        break;
+
+      case Vertex:
+      case LastVertex:
+      case FirstVertex:
+      case CurvePoint:
+        renderPolylineVertex( points, context, placement );
+        break;
+    }
   }
   else
   {
@@ -877,12 +888,23 @@ void QgsTemplatedLineSymbolLayerBase::renderPolyline( const QPolygonF &points, Q
     {
       const QPolygonF &points2 = mline[ part ];
 
-      if ( placement == QgsTemplatedLineSymbolLayerBase::Interval )
-        renderPolylineInterval( points2, context );
-      else if ( placement == QgsTemplatedLineSymbolLayerBase::CentralPoint )
-        renderPolylineCentral( points2, context );
-      else
-        renderPolylineVertex( points2, context, placement );
+      switch ( placement )
+      {
+        case Interval:
+          renderPolylineInterval( points2, context );
+          break;
+
+        case CentralPoint:
+          renderPolylineCentral( points2, context );
+          break;
+
+        case Vertex:
+        case LastVertex:
+        case FirstVertex:
+        case CurvePoint:
+          renderPolylineVertex( points2, context, placement );
+          break;
+      }
     }
   }
 
@@ -975,18 +997,27 @@ QgsStringMap QgsTemplatedLineSymbolLayerBase::properties() const
   map[QStringLiteral( "offset_map_unit_scale" )] = QgsSymbolLayerUtils::encodeMapUnitScale( mOffsetMapUnitScale );
   map[QStringLiteral( "interval_unit" )] = QgsUnitTypes::encodeUnit( intervalUnit() );
   map[QStringLiteral( "interval_map_unit_scale" )] = QgsSymbolLayerUtils::encodeMapUnitScale( intervalMapUnitScale() );
-  if ( placement() == QgsTemplatedLineSymbolLayerBase::Vertex )
-    map[QStringLiteral( "placement" )] = QStringLiteral( "vertex" );
-  else if ( placement() == QgsTemplatedLineSymbolLayerBase::LastVertex )
-    map[QStringLiteral( "placement" )] = QStringLiteral( "lastvertex" );
-  else if ( placement() == QgsTemplatedLineSymbolLayerBase::FirstVertex )
-    map[QStringLiteral( "placement" )] = QStringLiteral( "firstvertex" );
-  else if ( placement() == QgsTemplatedLineSymbolLayerBase::CentralPoint )
-    map[QStringLiteral( "placement" )] = QStringLiteral( "centralpoint" );
-  else if ( placement() == QgsTemplatedLineSymbolLayerBase::CurvePoint )
-    map[QStringLiteral( "placement" )] = QStringLiteral( "curvepoint" );
-  else
-    map[QStringLiteral( "placement" )] = QStringLiteral( "interval" );
+  switch ( mPlacement )
+  {
+    case Vertex:
+      map[QStringLiteral( "placement" )] = QStringLiteral( "vertex" );
+      break;
+    case LastVertex:
+      map[QStringLiteral( "placement" )] = QStringLiteral( "lastvertex" );
+      break;
+    case FirstVertex:
+      map[QStringLiteral( "placement" )] = QStringLiteral( "firstvertex" );
+      break;
+    case CentralPoint:
+      map[QStringLiteral( "placement" )] = QStringLiteral( "centralpoint" );
+      break;
+    case CurvePoint:
+      map[QStringLiteral( "placement" )] = QStringLiteral( "curvepoint" );
+      break;
+    case Interval:
+      map[QStringLiteral( "placement" )] = QStringLiteral( "interval" );
+      break;
+  }
 
   map[QStringLiteral( "ring_filter" )] = QString::number( static_cast< int >( mRingFilter ) );
   return map;
@@ -1222,27 +1253,38 @@ void QgsTemplatedLineSymbolLayerBase::renderPolylineVertex( const QPolygonF &poi
     return;
   }
 
-  if ( placement == QgsTemplatedLineSymbolLayerBase::FirstVertex )
+  switch ( placement )
   {
-    i = 0;
-    maxCount = 1;
-  }
-  else if ( placement == QgsTemplatedLineSymbolLayerBase::LastVertex )
-  {
-    i = points.count() - 1;
-    maxCount = points.count();
-  }
-  else if ( placement == QgsTemplatedLineSymbolLayerBase::Vertex )
-  {
-    i = 0;
-    maxCount = points.count();
-    if ( points.first() == points.last() )
-      isRing = true;
-  }
-  else
-  {
-    delete context.renderContext().expressionContext().popScope();
-    return;
+    case FirstVertex:
+    {
+      i = 0;
+      maxCount = 1;
+      break;
+    }
+
+    case LastVertex:
+    {
+      i = points.count() - 1;
+      maxCount = points.count();
+      break;
+    }
+
+    case Vertex:
+    {
+      i = 0;
+      maxCount = points.count();
+      if ( points.first() == points.last() )
+        isRing = true;
+      break;
+    }
+
+    case Interval:
+    case CentralPoint:
+    case CurvePoint:
+    {
+      delete context.renderContext().expressionContext().popScope();
+      return;
+    }
   }
 
   if ( offsetAlongLine > 0 && ( placement == QgsTemplatedLineSymbolLayerBase::FirstVertex || placement == QgsTemplatedLineSymbolLayerBase::LastVertex ) )
@@ -1586,10 +1628,14 @@ QgsSymbolLayer *QgsMarkerLineSymbolLayer::createFromSld( QDomElement &element )
   {
     if ( it.key() == QLatin1String( "placement" ) )
     {
-      if ( it.value() == QLatin1String( "points" ) ) placement = QgsTemplatedLineSymbolLayerBase::Vertex;
-      else if ( it.value() == QLatin1String( "firstPoint" ) ) placement = QgsTemplatedLineSymbolLayerBase::FirstVertex;
-      else if ( it.value() == QLatin1String( "lastPoint" ) ) placement = QgsTemplatedLineSymbolLayerBase::LastVertex;
-      else if ( it.value() == QLatin1String( "centralPoint" ) ) placement = QgsTemplatedLineSymbolLayerBase::CentralPoint;
+      if ( it.value() == QLatin1String( "points" ) )
+        placement = QgsTemplatedLineSymbolLayerBase::Vertex;
+      else if ( it.value() == QLatin1String( "firstPoint" ) )
+        placement = QgsTemplatedLineSymbolLayerBase::FirstVertex;
+      else if ( it.value() == QLatin1String( "lastPoint" ) )
+        placement = QgsTemplatedLineSymbolLayerBase::LastVertex;
+      else if ( it.value() == QLatin1String( "centralPoint" ) )
+        placement = QgsTemplatedLineSymbolLayerBase::CentralPoint;
     }
     else if ( it.value() == QLatin1String( "rotateMarker" ) )
     {

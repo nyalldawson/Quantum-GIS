@@ -538,6 +538,7 @@ class GUI_EXPORT QgsHashedLineSymbolLayerWidget : public QgsSymbolLayerWidget, p
     void setInterval( double val );
     void setOffsetAlongLine( double val );
     void setHashLength( double val );
+    void setHashAngle( double val );
 
     void setRotate();
     void setOffset();
