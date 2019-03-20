@@ -1071,7 +1071,7 @@ void QgsTemplatedLineSymbolLayerBase::renderPolylineInterval( const QPolygonF &p
   }
 
   double painterUnitInterval = rc.convertToPainterUnits( interval, intervalUnit(), intervalMapUnitScale() );
-  lengthLeft = painterUnitInterval - rc.convertToPainterUnits( offsetAlongLine, intervalUnit(), intervalMapUnitScale() );
+  lengthLeft = painterUnitInterval - rc.convertToPainterUnits( offsetAlongLine, offsetAlongLineUnit(), offsetAlongLineMapUnitScale() );
 
   int pointNum = 0;
   for ( int i = 1; i < points.count(); ++i )
@@ -1956,11 +1956,24 @@ void QgsHashedLineSymbolLayer::setSymbolAngle( double angle )
 
 void QgsHashedLineSymbolLayer::renderSymbol( const QPointF &point, const QgsFeature *feature, QgsRenderContext &context, int layer, bool selected )
 {
-  const double w = context.convertToPainterUnits( mHashLength, mHashLengthUnit, mHashLengthMapUnitScale ) / 2.0;
+  double lineLength = mHashLength;
+  if ( mDataDefinedProperties.isActive( QgsSymbolLayer::PropertyLineDistance ) )
+  {
+    context.expressionContext().setOriginalValueVariable( mHashLength );
+    lineLength = mDataDefinedProperties.valueAsDouble( QgsSymbolLayer::PropertyLineDistance, context.expressionContext(), lineLength );
+  }
+  const double w = context.convertToPainterUnits( lineLength, mHashLengthUnit, mHashLengthMapUnitScale ) / 2.0;
+
+  double hashAngle = mHashAngle;
+  if ( mDataDefinedProperties.isActive( QgsSymbolLayer::PropertyLineAngle ) )
+  {
+    context.expressionContext().setOriginalValueVariable( mHashAngle );
+    hashAngle = mDataDefinedProperties.valueAsDouble( QgsSymbolLayer::PropertyLineAngle, context.expressionContext(), hashAngle );
+  }
 
   QgsPointXY center( point );
-  QgsPointXY start = center.project( w, 180 - ( mSymbolAngle + mSymbolLineAngle + mHashAngle ) );
-  QgsPointXY end = center.project( -w, 180 - ( mSymbolAngle + mSymbolLineAngle + mHashAngle ) );
+  QgsPointXY start = center.project( w, 180 - ( mSymbolAngle + mSymbolLineAngle + hashAngle ) );
+  QgsPointXY end = center.project( -w, 180 - ( mSymbolAngle + mSymbolLineAngle + hashAngle ) );
 
   QPolygonF points;
   points <<  QPointF( start.x(), start.y() ) << QPointF( end.x(), end.y() );

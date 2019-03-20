@@ -139,8 +139,8 @@ class CORE_EXPORT QgsSymbolLayer
       PropertyFillStyle, //!< Fill style (eg solid, dots)
       PropertyJoinStyle, //!< Line join style
       PropertySecondaryColor, //!< Secondary color (eg for gradient fills)
-      PropertyLineAngle, //!< Line angle
-      PropertyLineDistance, //!< Distance between lines
+      PropertyLineAngle, //!< Line angle, or angle of hash lines for hash line symbols
+      PropertyLineDistance, //!< Distance between lines, or length of lines for hash line symbols
       PropertyGradientType, //!< Gradient fill type
       PropertyCoordinateMode, //!< Gradient coordinate mode
       PropertyGradientSpread, //!< Gradient spread mode

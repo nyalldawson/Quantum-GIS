@@ -1970,8 +1970,8 @@ void QgsHashedLineSymbolLayerWidget::setSymbolLayer( QgsSymbolLayer *layer )
   registerDataDefinedButton( mLineOffsetDDBtn, QgsSymbolLayer::PropertyOffset );
   registerDataDefinedButton( mPlacementDDBtn, QgsSymbolLayer::PropertyPlacement );
   registerDataDefinedButton( mOffsetAlongLineDDBtn, QgsSymbolLayer::PropertyOffsetAlongLine );
-  registerDataDefinedButton( mHashLengthDDBtn, QgsSymbolLayer::PropertyWidth );
-  registerDataDefinedButton( mHashRotationDDBtn, QgsSymbolLayer::PropertyAngle );
+  registerDataDefinedButton( mHashLengthDDBtn, QgsSymbolLayer::PropertyLineDistance );
+  registerDataDefinedButton( mHashRotationDDBtn, QgsSymbolLayer::PropertyLineAngle );
 }
 
 QgsSymbolLayer *QgsHashedLineSymbolLayerWidget::symbolLayer()
