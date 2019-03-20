@@ -747,66 +747,6 @@ QgsTemplatedLineSymbolLayerBase::QgsTemplatedLineSymbolLayerBase( bool rotateSym
 
 }
 
-
-//
-// QgsMarkerLineSymbolLayer
-//
-
-QgsMarkerLineSymbolLayer::QgsMarkerLineSymbolLayer( bool rotateMarker, double interval )
-  : QgsTemplatedLineSymbolLayerBase( rotateMarker, interval )
-{
-  setSubSymbol( new QgsMarkerSymbol() );
-}
-
-QgsSymbolLayer *QgsMarkerLineSymbolLayer::create( const QgsStringMap &props )
-{
-  bool rotate = DEFAULT_MARKERLINE_ROTATE;
-  double interval = DEFAULT_MARKERLINE_INTERVAL;
-
-  if ( props.contains( QStringLiteral( "interval" ) ) )
-    interval = props[QStringLiteral( "interval" )].toDouble();
-  if ( props.contains( QStringLiteral( "rotate" ) ) )
-    rotate = ( props[QStringLiteral( "rotate" )] == QLatin1String( "1" ) );
-
-  std::unique_ptr< QgsMarkerLineSymbolLayer > x = qgis::make_unique< QgsMarkerLineSymbolLayer >( rotate, interval );
-  setCommonProperties( x.get(), props );
-  return x.release();
-}
-
-QString QgsMarkerLineSymbolLayer::layerType() const
-{
-  return QStringLiteral( "MarkerLine" );
-}
-
-void QgsMarkerLineSymbolLayer::setColor( const QColor &color )
-{
-  mMarker->setColor( color );
-  mColor = color;
-}
-
-QColor QgsMarkerLineSymbolLayer::color() const
-{
-  return mMarker ? mMarker->color() : mColor;
-}
-
-void QgsMarkerLineSymbolLayer::startRender( QgsSymbolRenderContext &context )
-{
-  mMarker->setOpacity( context.opacity() );
-
-  // if being rotated, it gets initialized with every line segment
-  QgsSymbol::RenderHints hints = nullptr;
-  if ( rotateSymbols() )
-    hints |= QgsSymbol::DynamicRotation;
-  mMarker->setRenderHints( hints );
-
-  mMarker->startRender( context.renderContext(), context.fields() );
-}
-
-void QgsMarkerLineSymbolLayer::stopRender( QgsSymbolRenderContext &context )
-{
-  mMarker->stopRender( context.renderContext() );
-}
-
 void QgsTemplatedLineSymbolLayerBase::renderPolyline( const QPolygonF &points, QgsSymbolRenderContext &context )
 {
   double offset = mOffset;
@@ -1522,6 +1462,68 @@ bool QgsMarkerLineSymbolLayer::setSubSymbol( QgsSymbol *symbol )
   mColor = mMarker->color();
   return true;
 }
+
+
+
+//
+// QgsMarkerLineSymbolLayer
+//
+
+QgsMarkerLineSymbolLayer::QgsMarkerLineSymbolLayer( bool rotateMarker, double interval )
+  : QgsTemplatedLineSymbolLayerBase( rotateMarker, interval )
+{
+  setSubSymbol( new QgsMarkerSymbol() );
+}
+
+QgsSymbolLayer *QgsMarkerLineSymbolLayer::create( const QgsStringMap &props )
+{
+  bool rotate = DEFAULT_MARKERLINE_ROTATE;
+  double interval = DEFAULT_MARKERLINE_INTERVAL;
+
+  if ( props.contains( QStringLiteral( "interval" ) ) )
+    interval = props[QStringLiteral( "interval" )].toDouble();
+  if ( props.contains( QStringLiteral( "rotate" ) ) )
+    rotate = ( props[QStringLiteral( "rotate" )] == QLatin1String( "1" ) );
+
+  std::unique_ptr< QgsMarkerLineSymbolLayer > x = qgis::make_unique< QgsMarkerLineSymbolLayer >( rotate, interval );
+  setCommonProperties( x.get(), props );
+  return x.release();
+}
+
+QString QgsMarkerLineSymbolLayer::layerType() const
+{
+  return QStringLiteral( "MarkerLine" );
+}
+
+void QgsMarkerLineSymbolLayer::setColor( const QColor &color )
+{
+  mMarker->setColor( color );
+  mColor = color;
+}
+
+QColor QgsMarkerLineSymbolLayer::color() const
+{
+  return mMarker ? mMarker->color() : mColor;
+}
+
+void QgsMarkerLineSymbolLayer::startRender( QgsSymbolRenderContext &context )
+{
+  mMarker->setOpacity( context.opacity() );
+
+  // if being rotated, it gets initialized with every line segment
+  QgsSymbol::RenderHints hints = nullptr;
+  if ( rotateSymbols() )
+    hints |= QgsSymbol::DynamicRotation;
+  mMarker->setRenderHints( hints );
+
+  mMarker->startRender( context.renderContext(), context.fields() );
+}
+
+void QgsMarkerLineSymbolLayer::stopRender( QgsSymbolRenderContext &context )
+{
+  mMarker->stopRender( context.renderContext() );
+}
+
 
 QgsMarkerLineSymbolLayer *QgsMarkerLineSymbolLayer::clone() const
 {
