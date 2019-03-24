@@ -502,20 +502,6 @@ class CORE_EXPORT QgsMarkerLineSymbolLayer : public QgsTemplatedLineSymbolLayerB
     QgsMarkerLineSymbolLayer( bool rotateMarker = DEFAULT_MARKERLINE_ROTATE,
                               double interval = DEFAULT_MARKERLINE_INTERVAL );
 
-    /**
-     * Defines how/where the marker should be placed on the line
-     * \deprecated Use QgsTemplatedLineSymbolLayerBase.Placement instead.
-     */
-    enum Placement
-    {
-      Interval,
-      Vertex,
-      LastVertex,
-      FirstVertex,
-      CentralPoint,
-      CurvePoint
-    };
-
     // static stuff
 
     /**

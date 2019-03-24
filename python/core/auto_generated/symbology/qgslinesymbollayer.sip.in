@@ -509,16 +509,6 @@ The ``rotateMarker`` argument specifies whether individual marker symbols
 should be rotated to match the line segment alignment.
 %End
 
-    enum Placement
-    {
-      Interval,
-      Vertex,
-      LastVertex,
-      FirstVertex,
-      CentralPoint,
-      CurvePoint
-    };
-
 
     static QgsSymbolLayer *create( const QgsStringMap &properties = QgsStringMap() ) /Factory/;
 %Docstring
