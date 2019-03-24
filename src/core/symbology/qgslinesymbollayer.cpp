@@ -1883,25 +1883,26 @@ bool QgsHashedLineSymbolLayer::setSubSymbol( QgsSymbol *symbol )
   return true;
 }
 
-void QgsHashedLineSymbolLayer::setWidth( double )
+void QgsHashedLineSymbolLayer::setWidth( const double width )
 {
-
+  mHashLength = width;
 }
 
 double QgsHashedLineSymbolLayer::width() const
 {
-  return mWidth;
+  return mHashLength;
 }
 
 double QgsHashedLineSymbolLayer::width( const QgsRenderContext &context ) const
 {
-  return mHashSymbol->width( context );
+  return context.convertToPainterUnits( mHashLength, mHashLengthUnit, mHashLengthMapUnitScale );
 }
 
 double QgsHashedLineSymbolLayer::estimateMaxBleed( const QgsRenderContext &context ) const
 {
-  return ( mHashSymbol->width( context ) / 2.0 ) +
-         context.convertToPainterUnits( std::fabs( mOffset ), mOffsetUnit, mOffsetMapUnitScale );
+  return ( mHashSymbol->width( context ) / 2.0 )
+         + context.convertToPainterUnits( mHashLength, mHashLengthUnit, mHashLengthMapUnitScale )
+         + context.convertToPainterUnits( std::fabs( mOffset ), mOffsetUnit, mOffsetMapUnitScale );
 }
 
 void QgsHashedLineSymbolLayer::setOutputUnit( QgsUnitTypes::RenderUnit unit )
