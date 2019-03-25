@@ -28,6 +28,7 @@
 #include "qgssymbollayerwidget.h"
 #include "qgsellipsesymbollayerwidget.h"
 #include "qgsvectorfieldsymbollayerwidget.h"
+#include "qgssinglesymbolrenderer.h"
 
 #include "qgslogger.h"
 #include "qgsapplication.h"
@@ -38,6 +39,8 @@
 #include "qgsimagecache.h"
 #include "qgsproject.h"
 #include "qgsguiutils.h"
+#include "qgsmemoryproviderutils.h"
+#include "qgsmaptoolpan.h"
 
 #include <QColorDialog>
 #include <QPainter>
@@ -244,6 +247,8 @@ QgsSymbolSelectorWidget::QgsSymbolSelectorWidget( QgsSymbol *symbol, QgsStyle *s
 
   layersTree->setMaximumHeight( static_cast< int >( Qgis::UI_SCALE_FACTOR * fontMetrics().height() * 7 ) );
   layersTree->setMinimumHeight( layersTree->maximumHeight() );
+  mPreviewCanvas->setMinimumHeight( layersTree->minimumHeight() );
+  mPreviewCanvas->setMaximumHeight( layersTree->minimumHeight() );
 
   // setup icons
   btnAddLayer->setIcon( QIcon( QgsApplication::iconPath( "symbologyAdd.svg" ) ) );
@@ -337,7 +342,11 @@ QgsSymbolSelectorWidget::QgsSymbolSelectorWidget( QgsSymbol *symbol, QgsStyle *s
     updatePreview();
     mBlockModified = false;
   } );
+
+  mPreviewCanvas->setMapTool( new QgsMapToolPan( mPreviewCanvas ) );
 }
+
+QgsSymbolSelectorWidget::~QgsSymbolSelectorWidget() = default;
 
 QMenu *QgsSymbolSelectorWidget::advancedMenu()
 {
@@ -441,8 +450,69 @@ void QgsSymbolSelectorWidget::updateUi()
 void QgsSymbolSelectorWidget::updatePreview()
 {
   std::unique_ptr< QgsSymbol > symbolClone( mSymbol->clone() );
+
+  QgsMapSettings s = mPreviewCanvas->mapSettings();
+
   QImage preview = symbolClone->bigSymbolPreviewImage( &mPreviewExpressionContext );
-  lblPreview->setPixmap( QPixmap::fromImage( preview ) );
+
+  QgsWkbTypes::GeometryType requiredType = QgsWkbTypes::UnknownGeometry;
+  switch ( symbolClone->type() )
+  {
+    case QgsSymbol::Marker:
+      requiredType = QgsWkbTypes::PointGeometry;
+      break;
+    case QgsSymbol::Line:
+      requiredType = QgsWkbTypes::LineGeometry;
+      break;
+    case QgsSymbol::Fill:
+      requiredType = QgsWkbTypes::PolygonGeometry;
+      break;
+
+    case QgsSymbol::Hybrid:
+      // ??
+      requiredType = QgsWkbTypes::PolygonGeometry;
+      break;
+  }
+
+  if ( !mSymbolPreviewLayer || mSymbolPreviewLayer->geometryType() != requiredType )
+  {
+    QgsGeometry previewGeom;
+    switch ( symbolClone->type() )
+    {
+      case QgsSymbol::Marker:
+        previewGeom = QgsGeometry::fromWkt( "Point( 0 0 )" );
+        break;
+      case QgsSymbol::Line:
+        previewGeom = QgsGeometry::fromWkt( "LineString( -10 -5, 0 5, 10 -5 )" );
+        break;
+      case QgsSymbol::Fill:
+      case QgsSymbol::Hybrid: // ?
+        previewGeom = QgsGeometry::fromWkt( "Polygon(( -10 -10, 10 -10, 10 10, -10 10, -10 -10 ))" );
+        break;
+    }
+
+    mSymbolPreviewLayer.reset( QgsMemoryProviderUtils::createMemoryLayer( QStringLiteral( "symbol_preview" ),
+                               QgsFields(), previewGeom.wkbType(),
+                               QgsCoordinateReferenceSystem( QStringLiteral( "EPSG:4326" ) ) ) );
+    QgsFeature f;
+    f.setGeometry( previewGeom );
+    mSymbolPreviewLayer->dataProvider()->addFeature( f );
+    mSymbolPreviewLayer->setRenderer( new QgsSingleSymbolRenderer( symbolClone.release() ) );
+
+    mPreviewCanvas->setLayers( QList< QgsMapLayer * >() << mSymbolPreviewLayer.get() );
+    mPreviewCanvas->setDestinationCrs( mSymbolPreviewLayer->crs() );
+
+    mPreviewCanvas->setScaleLocked( false );
+    mPreviewCanvas->setExtent( QgsRectangle( -15, -15, 15, 15 ) );
+    mPreviewCanvas->setScaleLocked( true );
+  }
+  else
+  {
+    static_cast< QgsSingleSymbolRenderer * >( mSymbolPreviewLayer->renderer() )->setSymbol( symbolClone.release() );
+  }
+  mSymbolPreviewLayer->triggerRepaint();
+  mPreviewCanvas->refresh();
+
   // Hope this is a appropriate place
   if ( !mBlockModified )
     emit symbolModified();

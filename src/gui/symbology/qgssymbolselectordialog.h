@@ -103,6 +103,8 @@ class GUI_EXPORT QgsSymbolSelectorWidget: public QgsPanelWidget, private Ui::Qgs
        */
     QgsSymbolSelectorWidget( QgsSymbol *symbol, QgsStyle *style, QgsVectorLayer *vl, QWidget *parent SIP_TRANSFERTHIS = nullptr );
 
+    ~QgsSymbolSelectorWidget() override;
+
     //! Returns menu for "advanced" button - create it if doesn't exist and show the advanced button
     QMenu *advancedMenu();
 
@@ -254,6 +256,8 @@ class GUI_EXPORT QgsSymbolSelectorWidget: public QgsPanelWidget, private Ui::Qgs
     QgsFeature mPreviewFeature;
     QgsExpressionContext mPreviewExpressionContext;
     bool mBlockModified = false;
+
+    std::unique_ptr< QgsVectorLayer > mSymbolPreviewLayer;
 
 };
 
