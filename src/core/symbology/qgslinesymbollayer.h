@@ -401,6 +401,70 @@ class CORE_EXPORT QgsTemplatedLineSymbolLayerBase : public QgsLineSymbolLayer
      */
     void setOffsetAlongLineMapUnitScale( const QgsMapUnitScale &scale ) { mOffsetAlongLineMapUnitScale = scale; }
 
+    /**
+     * Returns the length of line over which the line's direction is averaged when
+     * calculating individual symbol angles. Longer lengths smooth out angles from jagged lines to a greater extent.
+     *
+     * Units are retrieved through averageAngleUnit()
+     *
+     * \see setAverageAngleLength()
+     * \see averageAngleUnit()
+     * \see averageAngleMapUnitScale()
+     */
+    double averageAngleLength() const { return mAverageAngleLength; }
+
+    /**
+     * Sets the \a length of line over which the line's direction is averaged when
+     * calculating individual symbol angles. Longer lengths smooth out angles from jagged lines to a greater extent.
+     *
+     * Units are set through setAverageAngleUnit()
+     *
+     * \see averageAngleLength()
+     * \see setAverageAngleUnit()
+     * \see setAverageAngleMapUnitScale()
+     */
+    void setAverageAngleLength( double length ) { mAverageAngleLength = length; }
+
+    /**
+     * Sets the \a unit for the length over which the line's direction is averaged when
+     * calculating individual symbol angles.
+     *
+     * \see averageAngleUnit()
+     * \see setAverageAngleLength()
+     * \see setAverageAngleMapUnitScale()
+    */
+    void setAverageAngleUnit( QgsUnitTypes::RenderUnit unit ) { mAverageAngleLengthUnit = unit; }
+
+    /**
+     * Returns the unit for the length over which the line's direction is averaged when
+     * calculating individual symbol angles.
+     *
+     * \see setAverageAngleUnit()
+     * \see averageAngleLength()
+     * \see averageAngleMapUnitScale()
+    */
+    QgsUnitTypes::RenderUnit averageAngleUnit() const { return mAverageAngleLengthUnit; }
+
+    /**
+     * Sets the map unit \a scale for the length over which the line's direction is averaged when
+     * calculating individual symbol angles.
+     *
+     * \see averageAngleMapUnitScale()
+     * \see setAverageAngleLength()
+     * \see setAverageAngleUnit()
+    */
+    void setAverageAngleMapUnitScale( const QgsMapUnitScale &scale ) { mAverageAngleLengthMapUnitScale = scale; }
+
+    /**
+     * Returns the map unit scale for the length over which the line's direction is averaged when
+     * calculating individual symbol angles.
+     *
+     * \see setAverageAngleMapUnitScale()
+     * \see averageAngleLength()
+     * \see averageAngleUnit()
+    */
+    const QgsMapUnitScale &averageAngleMapUnitScale() const { return mAverageAngleLengthMapUnitScale; }
+
     void renderPolyline( const QPolygonF &points, QgsSymbolRenderContext &context ) FINAL;
     void renderPolygonStroke( const QPolygonF &points, QList<QPolygonF> *rings, QgsSymbolRenderContext &context ) FINAL;
     QgsUnitTypes::RenderUnit outputUnit() const FINAL;
@@ -481,6 +545,9 @@ class CORE_EXPORT QgsTemplatedLineSymbolLayerBase : public QgsLineSymbolLayer
     double mOffsetAlongLine = 0; //distance to offset along line before marker is drawn
     QgsUnitTypes::RenderUnit mOffsetAlongLineUnit = QgsUnitTypes::RenderMillimeters; //unit for offset along line
     QgsMapUnitScale mOffsetAlongLineMapUnitScale;
+    double mAverageAngleLength = 2;
+    QgsUnitTypes::RenderUnit mAverageAngleLengthUnit = QgsUnitTypes::RenderMillimeters;
+    QgsMapUnitScale mAverageAngleLengthMapUnitScale;
 };
 
 /**

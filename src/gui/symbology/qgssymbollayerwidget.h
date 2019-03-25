@@ -498,6 +498,8 @@ class GUI_EXPORT QgsMarkerLineSymbolLayerWidget : public QgsSymbolLayerWidget, p
     void mIntervalUnitWidget_changed();
     void mOffsetUnitWidget_changed();
     void mOffsetAlongLineUnitWidget_changed();
+    void averageAngleUnitChanged();
+    void setAverageAngle( double val );
 
 };
 
