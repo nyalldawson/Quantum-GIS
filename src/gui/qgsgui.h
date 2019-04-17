@@ -35,6 +35,7 @@ class QgsProcessingGuiRegistry;
 class QgsProcessingRecentAlgorithmLog;
 class QgsWindowManagerInterface;
 class QgsDataItemGuiProviderRegistry;
+class QgsHistoryProviderRegistry;
 
 /**
  * \ingroup gui
@@ -114,6 +115,12 @@ class GUI_EXPORT QgsGui
     static QgsDataItemGuiProviderRegistry *dataItemGuiProviderRegistry() SIP_KEEPREFERENCE;
 
     /**
+     * Returns the global history provider registry, used for tracking history providers.
+     * \since QGIS 3.8
+     */
+    static QgsHistoryProviderRegistry *historyProviderRegistry() SIP_KEEPREFERENCE;
+
+    /**
      * Register the widget to allow its position to be automatically saved and restored when open and closed.
      * Use this to avoid needing to call saveGeometry() and restoreGeometry() on your widget.
      */
@@ -167,6 +174,7 @@ class GUI_EXPORT QgsGui
     QgsProcessingGuiRegistry *mProcessingGuiRegistry = nullptr;
     QgsProcessingRecentAlgorithmLog *mProcessingRecentAlgorithmLog = nullptr;
     QgsDataItemGuiProviderRegistry *mDataItemGuiProviderRegistry = nullptr;
+    QgsHistoryProviderRegistry* mHistoryProviderRegistry = nullptr;
     std::unique_ptr< QgsWindowManagerInterface > mWindowManager;
 
 #ifdef SIP_RUN

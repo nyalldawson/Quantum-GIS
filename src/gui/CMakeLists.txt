@@ -156,6 +156,9 @@ SET(QGIS_GUI_SRCS
   editorwidgets/qgsvaluerelationsearchwidgetwrapper.cpp
   editorwidgets/qgsvaluerelationwidgetfactory.cpp
 
+  history/qgshistoryprovider.cpp
+  history/qgshistoryproviderregistry.cpp
+
   layertree/qgscustomlayerorderwidget.cpp
   layertree/qgslayertreeembeddedconfigwidget.cpp
   layertree/qgslayertreeembeddedwidgetregistry.cpp
@@ -709,6 +712,8 @@ SET(QGIS_GUI_MOC_HDRS
   editorwidgets/qgsvaluerelationsearchwidgetwrapper.h
   editorwidgets/qgsvaluerelationwidgetwrapper.h
 
+  history/qgshistoryproviderregistry.h
+
   layertree/qgscustomlayerorderwidget.h
   layertree/qgslayertreeembeddedconfigwidget.h
   layertree/qgslayertreeembeddedwidgetsimpl.h
@@ -861,6 +866,8 @@ SET(QGIS_GUI_HDRS
   editorwidgets/qgsuuidwidgetfactory.h
   editorwidgets/qgsvaluemapwidgetfactory.h
   editorwidgets/qgsvaluerelationwidgetfactory.h
+
+  history/qgshistoryprovider.h
 
   layertree/qgslayertreeembeddedconfigwidget.h
   layertree/qgslayertreeembeddedwidgetregistry.h

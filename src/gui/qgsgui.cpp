@@ -44,6 +44,7 @@
 #include "qgswindowmanagerinterface.h"
 #include "qgssettings.h"
 #include "qgsdataitemguiproviderregistry.h"
+#include "history/qgshistoryproviderregistry.h"
 
 QgsGui *QgsGui::instance()
 {
@@ -98,7 +99,12 @@ QgsProcessingRecentAlgorithmLog *QgsGui::processingRecentAlgorithmLog()
 
 QgsDataItemGuiProviderRegistry *QgsGui::dataItemGuiProviderRegistry()
 {
-  return instance()->mDataItemGuiProviderRegistry;
+    return instance()->mDataItemGuiProviderRegistry;
+}
+
+QgsHistoryProviderRegistry *QgsGui::historyProviderRegistry()
+{
+    return instance()->mHistoryProviderRegistry;
 }
 
 void QgsGui::enableAutoGeometryRestore( QWidget *widget, const QString &key )
@@ -143,6 +149,7 @@ QgsGui::~QgsGui()
   delete mEditorWidgetRegistry;
   delete mMapLayerActionRegistry;
   delete mSourceSelectProviderRegistry;
+  delete mHistoryProviderRegistry;
   delete mShortcutsManager;
   delete mNative;
   delete mWidgetStateHelper;
@@ -176,4 +183,5 @@ QgsGui::QgsGui()
   mProcessingRecentAlgorithmLog = new QgsProcessingRecentAlgorithmLog();
   mProcessingGuiRegistry = new QgsProcessingGuiRegistry();
   mDataItemGuiProviderRegistry = new QgsDataItemGuiProviderRegistry();
+  mHistoryProviderRegistry = new QgsHistoryProviderRegistry();
 }
