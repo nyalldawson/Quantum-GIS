@@ -162,42 +162,10 @@ LabelPosition::LabelPosition( const LabelPosition &other )
   mUpsideDownCharCount = other.mUpsideDownCharCount;
 }
 
-bool LabelPosition::isIn( double *bbox )
-{
-  int i;
-
-  for ( i = 0; i < 4; i++ )
-  {
-    if ( x[i] >= bbox[0] && x[i] <= bbox[2] &&
-         y[i] >= bbox[1] && y[i] <= bbox[3] )
-      return true;
-  }
-
-  if ( nextPart )
-    return nextPart->isIn( bbox );
-  else
-    return false;
-}
-
-bool LabelPosition::isIntersect( double *bbox )
-{
-  int i;
-
-  for ( i = 0; i < 4; i++ )
-  {
-    if ( x[i] >= bbox[0] && x[i] <= bbox[2] &&
-         y[i] >= bbox[1] && y[i] <= bbox[3] )
-      return true;
-  }
-
-  if ( nextPart )
-    return nextPart->isIntersect( bbox );
-  else
-    return false;
-}
-
 bool LabelPosition::intersects( const GEOSPreparedGeometry *geometry )
 {
+    // considers padding
+
   if ( !mGeos )
     createGeosGeom();
 
@@ -223,6 +191,8 @@ bool LabelPosition::intersects( const GEOSPreparedGeometry *geometry )
 
 bool LabelPosition::within( const GEOSPreparedGeometry *geometry )
 {
+    // considers padding
+
   if ( !mGeos )
     createGeosGeom();
 
@@ -246,21 +216,6 @@ bool LabelPosition::within( const GEOSPreparedGeometry *geometry )
   return true;
 }
 
-bool LabelPosition::isInside( double *bbox )
-{
-  for ( int i = 0; i < 4; i++ )
-  {
-    if ( !( x[i] >= bbox[0] && x[i] <= bbox[2] &&
-            y[i] >= bbox[1] && y[i] <= bbox[3] ) )
-      return false;
-  }
-
-  if ( nextPart )
-    return nextPart->isInside( bbox );
-  else
-    return true;
-}
-
 bool LabelPosition::isInConflict( LabelPosition *lp )
 {
   if ( this->probFeat == lp->probFeat ) // bugfix #1
@@ -274,6 +229,7 @@ bool LabelPosition::isInConflict( LabelPosition *lp )
 
 bool LabelPosition::isInConflictSinglePart( LabelPosition *lp )
 {
+    // considers padding
   if ( !mGeos )
     createGeosGeom();
 
@@ -370,6 +326,7 @@ FeaturePart *LabelPosition::getFeaturePart()
 
 void LabelPosition::getBoundingBox( double amin[2], double amax[2] ) const
 {
+    // considers padding
   if ( nextPart )
   {
     nextPart->getBoundingBox( amin, amax );
@@ -495,6 +452,8 @@ bool LabelPosition::removeOverlapCallback( LabelPosition *lp, void *ctx )
 
 double LabelPosition::getDistanceToPoint( double xp, double yp ) const
 {
+    // considers padding
+
   //first check if inside, if so then distance is -1
   double distance = ( containsPoint( xp, yp ) ? -1
                       : std::sqrt( minDistanceToPoint( xp, yp ) ) );
@@ -507,6 +466,8 @@ double LabelPosition::getDistanceToPoint( double xp, double yp ) const
 
 bool LabelPosition::crossesLine( PointSet *line ) const
 {
+    //considers padding
+
   if ( !mGeos )
     createGeosGeom();
 
@@ -536,6 +497,8 @@ bool LabelPosition::crossesLine( PointSet *line ) const
 
 bool LabelPosition::crossesBoundary( PointSet *polygon ) const
 {
+    // considers padding
+
   if ( !mGeos )
     createGeosGeom();
 
@@ -574,6 +537,8 @@ int LabelPosition::polygonIntersectionCost( PointSet *polygon ) const
 
 bool LabelPosition::intersectsWithPolygon( PointSet *polygon ) const
 {
+    // considers padding
+
   if ( !mGeos )
     createGeosGeom();
 
@@ -605,6 +570,7 @@ bool LabelPosition::intersectsWithPolygon( PointSet *polygon ) const
 
 double LabelPosition::polygonIntersectionCostForParts( PointSet *polygon ) const
 {
+    // considers padding
   if ( !mGeos )
     createGeosGeom();
 

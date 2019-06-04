@@ -100,20 +100,6 @@ namespace pal
       ~LabelPosition() override { delete nextPart; }
 
       /**
-       * \brief Is the labelposition in the bounding-box ? (intersect or inside????)
-       *
-       *\param bbox the bounding-box double[4] = {xmin, ymin, xmax, ymax}
-       */
-      bool isIn( double *bbox );
-
-      /**
-       * \brief Is the labelposition intersect the bounding-box ?
-       *
-       *\param bbox the bounding-box double[4] = {xmin, ymin, xmax, ymax}
-       */
-      bool isIntersect( double *bbox );
-
-      /**
        * Returns TRUE if the label position intersects a \a geometry.
        */
       bool intersects( const GEOSPreparedGeometry *geometry );
@@ -122,13 +108,6 @@ namespace pal
        * Returns TRUE if the label position is within a \a geometry.
        */
       bool within( const GEOSPreparedGeometry *geometry );
-
-      /**
-       * \brief Is the labelposition inside the bounding-box ?
-       *
-       *\param bbox the bounding-box double[4] = {xmin, ymin, xmax, ymax}
-       */
-      bool isInside( double *bbox );
 
       /**
        * \brief Check whether or not this overlap with another labelPosition

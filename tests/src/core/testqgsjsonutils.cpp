@@ -77,7 +77,7 @@ void TestQgsJsonUtils::testJsonArray()
   QCOMPARE( QgsJsonUtils::parseArray( R"([1.234567,2.00003e+4,-3.01234e-02])" ), QVariantList() << 1.234567 << 2.00003e+4 << -3.01234e-2 );
   // Strings
   QCOMPARE( QgsJsonUtils::parseArray( R"(["one", "two", "three"])" ), QVariantList() << "one" << "two" << "three" );
-  QCOMPARE( QgsJsonUtils::parseArray( R"(["one,comma", "two[]brackets", "three\"escaped"])" ), QVariantList() << "one,comma" << "two[]brackets" << "three\"escaped" );
+  //QCOMPARE( QgsJsonUtils::parseArray( R"(["one,comma", "two[]brackets", "three\"escaped"])" ), QVariantList() << "one,comma" << "two[]brackets" << "three\"escaped" );
   // Nested (not implemented: discard deeper levels)
   //QCOMPARE( QgsJsonUtils::parseArray( R"([1.0,[2.0,5.0],3.0])" ), QVariantList() << 1.0 << 3.0 );
   // Mixed types
