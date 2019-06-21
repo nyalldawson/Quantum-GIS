@@ -292,6 +292,7 @@ class QgsPalLayerSettings
       ObstacleFactor,
       ZIndex,
       CalloutDraw,
+      LabelsCanOverlapOtherLabels,
 
       // (data defined only)
       Show,
@@ -459,6 +460,8 @@ Returns the QgsExpression for this label settings. May be ``None`` if isExpressi
     ObstacleType obstacleType;
 
     double zIndex;
+
+    bool labelsCanOverlap;
 
     QString geometryGenerator;
 

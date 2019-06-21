@@ -457,7 +457,8 @@ void QgsTextFormatWidget::initWidget()
           << mGeometryGeneratorType
           << mBackgroundSymbolButton
           << mCalloutsDrawCheckBox
-          << mCalloutStyleComboBox;
+          << mCalloutStyleComboBox
+          << mCheckBoxLabelsMayOverlap;
   connectValueChanged( widgets, SLOT( updatePreview() ) );
 
   connect( mQuadrantBtnGrp, static_cast<void ( QButtonGroup::* )( int )>( &QButtonGroup::buttonClicked ), this, &QgsTextFormatWidget::updatePreview );
@@ -705,6 +706,7 @@ void QgsTextFormatWidget::populateDataDefinedButtons()
   registerDataDefinedButton( mLineDistanceDDBtn, QgsPalLayerSettings::LabelDistance );
   registerDataDefinedButton( mLineDistanceUnitDDBtn, QgsPalLayerSettings::DistanceUnits );
   registerDataDefinedButton( mPriorityDDBtn, QgsPalLayerSettings::Priority );
+  registerDataDefinedButton( mAllowOverlapDDBtn, QgsPalLayerSettings::LabelsCanOverlapOtherLabels );
 
   // TODO: is this necessary? maybe just use the data defined-only rotation?
   //mPointAngleDDBtn, QgsPalLayerSettings::OffsetRotation,

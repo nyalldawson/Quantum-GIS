@@ -404,6 +404,20 @@ class CORE_EXPORT QgsLabelFeature
      */
     void setSymbol( const QgsSymbol *symbol ) { mSymbol = symbol; }
 
+    /**
+    * Returns TRUE if this label can clash with other label positions.
+    * \see setClashesWithOtherLabels()
+    * \since QGIS 3.10
+    */
+    bool clashesWithOtherLabels() const { return mClashesWithOtherLabels; }
+
+    /**
+     * Sets whether this label can clash with other label positions.
+     * \see clashesWithOtherLabels()
+     * \since QGIS 3.10
+     */
+    void setClashesWithOtherLabels( bool clashesWithOtherLabels ) { mClashesWithOtherLabels = clashesWithOtherLabels; }
+
   protected:
     //! Pointer to PAL layer (assigned when registered to PAL)
     pal::Layer *mLayer = nullptr;
@@ -460,6 +474,8 @@ class CORE_EXPORT QgsLabelFeature
     pal::LabelInfo *mInfo = nullptr;
 
     pal::LineArrangementFlags mArrangementFlags = nullptr;
+
+    bool mClashesWithOtherLabels = true;
 
   private:
 

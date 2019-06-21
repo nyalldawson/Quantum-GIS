@@ -445,6 +445,7 @@ class CORE_EXPORT QgsPalLayerSettings
       ObstacleFactor = 89,
       ZIndex = 90,
       CalloutDraw = 100, //!< Show callout
+      LabelsCanOverlapOtherLabels = 102, //!< Whether labels are permitted to overlap other map labels
 
       // (data defined only)
       Show = 15,
@@ -870,6 +871,13 @@ class CORE_EXPORT QgsPalLayerSettings
 
     //! Z-Index of label, where labels with a higher z-index are rendered on top of labels with a lower z-index
     double zIndex;
+
+    /**
+     * TRUE if labels are permitted to overlap with other map labels.
+     *
+     * \since QGIS 3.10
+     */
+    bool labelsCanOverlap = false;
 
     //! The geometry generator expression. Null if disabled.
     QString geometryGenerator;

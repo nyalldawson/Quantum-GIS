@@ -5818,6 +5818,27 @@ font-style: italic;</string>
                           </layout>
                          </item>
                          <item>
+                          <layout class="QHBoxLayout" name="horizontalLayout_15">
+                           <property name="topMargin">
+                            <number>0</number>
+                           </property>
+                           <item>
+                            <widget class="QCheckBox" name="mCheckBoxLabelsMayOverlap">
+                             <property name="text">
+                              <string>Labels may overlap other labels</string>
+                             </property>
+                            </widget>
+                           </item>
+                           <item>
+                            <widget class="QgsPropertyOverrideButton" name="mAllowOverlapDDBtn">
+                             <property name="text">
+                              <string>…</string>
+                             </property>
+                            </widget>
+                           </item>
+                          </layout>
+                         </item>
+                         <item>
                           <widget class="QCheckBox" name="mPalShowAllLabelsForLayerChkBx">
                            <property name="text">
                             <string>Show all labels for this layer (including colliding labels)</string>
@@ -6747,6 +6768,8 @@ font-style: italic;</string>
   <tabstop>mFontMaxPixelDDBtn</tabstop>
   <tabstop>mZIndexSpinBox</tabstop>
   <tabstop>mZIndexDDBtn</tabstop>
+  <tabstop>mCheckBoxLabelsMayOverlap</tabstop>
+  <tabstop>mAllowOverlapDDBtn</tabstop>
   <tabstop>mPalShowAllLabelsForLayerChkBx</tabstop>
   <tabstop>mShowLabelDDBtn</tabstop>
   <tabstop>mAlwaysShowDDBtn</tabstop>

@@ -204,6 +204,7 @@ void QgsPalLayerSettings::initPropertyDefinitions()
     { QgsPalLayerSettings::RepeatDistanceUnit, QgsPropertyDefinition( "RepeatDistanceUnit", QObject::tr( "Repeat distance unit" ), QgsPropertyDefinition::RenderUnits, origin ) },
     { QgsPalLayerSettings::Priority, QgsPropertyDefinition( "Priority", QgsPropertyDefinition::DataTypeString, QObject::tr( "Label priority" ), QObject::tr( "double [0.0-10.0]" ), origin ) },
     { QgsPalLayerSettings::IsObstacle, QgsPropertyDefinition( "IsObstacle", QObject::tr( "Feature is a label obstacle" ), QgsPropertyDefinition::Boolean, origin ) },
+    { QgsPalLayerSettings::LabelsCanOverlapOtherLabels, QgsPropertyDefinition( "LabelsCanOverlapOtherLabels", QObject::tr( "Labels for this can overlap other labels" ), QgsPropertyDefinition::Boolean, origin ) },
     { QgsPalLayerSettings::ObstacleFactor, QgsPropertyDefinition( "ObstacleFactor", QgsPropertyDefinition::DataTypeNumeric, QObject::tr( "Obstacle factor" ), QObject::tr( "double [0.0-10.0]" ), origin ) },
     {
       QgsPalLayerSettings::PredefinedPositionOrder, QgsPropertyDefinition( "PredefinedPositionOrder", QgsPropertyDefinition::DataTypeString, QObject::tr( "Predefined position order" ),  QObject::tr( "Comma separated list of placements in order of priority<br>" )
@@ -396,6 +397,7 @@ QgsPalLayerSettings &QgsPalLayerSettings::operator=( const QgsPalLayerSettings &
   obstacleFactor = s.obstacleFactor;
   obstacleType = s.obstacleType;
   zIndex = s.zIndex;
+  labelsCanOverlap = s.labelsCanOverlap;
 
   mFormat = s.mFormat;
   mDataDefinedProperties = s.mDataDefinedProperties;
@@ -854,6 +856,7 @@ void QgsPalLayerSettings::readFromLayerCustomProperties( QgsVectorLayer *layer )
   obstacleFactor = layer->customProperty( QStringLiteral( "labeling/obstacleFactor" ), QVariant( 1.0 ) ).toDouble();
   obstacleType = static_cast< ObstacleType >( layer->customProperty( QStringLiteral( "labeling/obstacleType" ), QVariant( PolygonInterior ) ).toUInt() );
   zIndex = layer->customProperty( QStringLiteral( "labeling/zIndex" ), QVariant( 0.0 ) ).toDouble();
+  labelsCanOverlap = layer->customProperty( QStringLiteral( "labeling/labelsCanOverlap" ), QVariant( false ) ).toBool();
 
   mDataDefinedProperties.clear();
   if ( layer->customProperty( QStringLiteral( "labeling/ddProperties" ) ).isValid() )
@@ -1076,6 +1079,7 @@ void QgsPalLayerSettings::readXml( const QDomElement &elem, const QgsReadWriteCo
   obstacleFactor = renderingElem.attribute( QStringLiteral( "obstacleFactor" ), QStringLiteral( "1" ) ).toDouble();
   obstacleType = static_cast< ObstacleType >( renderingElem.attribute( QStringLiteral( "obstacleType" ), QString::number( PolygonInterior ) ).toUInt() );
   zIndex = renderingElem.attribute( QStringLiteral( "zIndex" ), QStringLiteral( "0.0" ) ).toDouble();
+  labelsCanOverlap = renderingElem.attribute( QStringLiteral( "labelsCanOverlap" ), QStringLiteral( "0" ) ).toInt();
 
   QDomElement ddElem = elem.firstChildElement( QStringLiteral( "dd_properties" ) );
   if ( !ddElem.isNull() )
@@ -1220,6 +1224,7 @@ QDomElement QgsPalLayerSettings::writeXml( QDomDocument &doc, const QgsReadWrite
   renderingElem.setAttribute( QStringLiteral( "obstacleFactor" ), obstacleFactor );
   renderingElem.setAttribute( QStringLiteral( "obstacleType" ), static_cast< unsigned int >( obstacleType ) );
   renderingElem.setAttribute( QStringLiteral( "zIndex" ), zIndex );
+  renderingElem.setAttribute( QStringLiteral( "labelsCanOverlap" ), labelsCanOverlap );
 
   QDomElement ddElem = doc.createElement( QStringLiteral( "dd_properties" ) );
   mDataDefinedProperties.writeXml( ddElem, sPropertyDefinitions );
@@ -2321,6 +2326,10 @@ void QgsPalLayerSettings::registerFeature( const QgsFeature &f, QgsRenderContext
     }
   }
   ( *labelFeature )->setObstacleFactor( featObstacleFactor );
+
+  context.expressionContext().setOriginalValueVariable( labelsCanOverlap );
+  bool evalLabelsCanOverlap = mDataDefinedProperties.value( QgsPalLayerSettings::LabelsCanOverlapOtherLabels, context.expressionContext(), labelsCanOverlap ).toBool();
+  ( *labelFeature )->setClashesWithOtherLabels( !evalLabelsCanOverlap );
 
   QVector< QgsPalLayerSettings::PredefinedPointPosition > positionOrder = predefinedPositionOrder;
   if ( positionOrder.isEmpty() )

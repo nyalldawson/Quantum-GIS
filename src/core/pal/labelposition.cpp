@@ -266,6 +266,11 @@ bool LabelPosition::isInConflict( LabelPosition *lp )
   if ( this->probFeat == lp->probFeat ) // bugfix #1
     return false; // always overlaping itself !
 
+  // if either this label doesn't cause collisions, or the other one doesn't, then we don't conflict!
+  if ( !this->feature->feature()->clashesWithOtherLabels() ||
+       !lp->feature->feature()->clashesWithOtherLabels() )
+    return false;
+
   if ( !nextPart && !lp->nextPart )
     return isInConflictSinglePart( lp );
   else

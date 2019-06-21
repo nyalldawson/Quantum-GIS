@@ -333,6 +333,7 @@ void QgsLabelingGui::setLayer( QgsMapLayer *mapLayer )
   mFontMaxPixelSpinBox->setValue( mSettings.fontMaxPixelSize );
 
   mZIndexSpinBox->setValue( mSettings.zIndex );
+  mCheckBoxLabelsMayOverlap->setChecked( mSettings.labelsCanOverlap );
 
   mDataDefinedProperties = mSettings.dataDefinedProperties();
 
@@ -528,6 +529,7 @@ QgsPalLayerSettings QgsLabelingGui::layerSettings()
   lyr.layerType = mLayer ? mLayer->geometryType() : mGeomType;
 
   lyr.zIndex = mZIndexSpinBox->value();
+  lyr.labelsCanOverlap = mCheckBoxLabelsMayOverlap->isChecked();
 
   lyr.setDataDefinedProperties( mDataDefinedProperties );
 
