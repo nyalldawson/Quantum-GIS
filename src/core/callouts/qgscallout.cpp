@@ -325,6 +325,15 @@ void QgsSimpleLineCallout::draw( QgsRenderContext &context, QRectF rect, const d
       context.expressionContext().setOriginalValueVariable( encodedAnchor );
       anchor = decodeAnchorPoint( dataDefinedProperties().valueAsString( QgsCallout::AnchorPointPosition, context.expressionContext(), encodedAnchor ) );
     }
+
+    double offsetFromAnchor = mOffsetFromAnchorDistance;
+    if ( dataDefinedProperties().isActive( QgsCallout::OffsetFromAnchor ) )
+    {
+      context.expressionContext().setOriginalValueVariable( offsetFromAnchor );
+      offsetFromAnchor = dataDefinedProperties().valueAsDouble( QgsCallout::OffsetFromAnchor, context.expressionContext(), offsetFromAnchor );
+    }
+    const double offsetFromAnchorPixels = context.convertToPainterUnits( offsetFromAnchor, mOffsetFromAnchorUnit, mOffsetFromAnchorScale );
+
     switch ( partAnchor.type() )
     {
       case QgsWkbTypes::PointGeometry:
@@ -348,8 +357,20 @@ void QgsSimpleLineCallout::draw( QgsRenderContext &context, QRectF rect, const d
             line = label.shortestLine( partAnchor.pointOnSurface() );
             break;
           case QgsCallout::PointOnExterior:
-            line = label.shortestLine( partAnchor );
+        {
+            QgsGeometry a = partAnchor;
+            if ( offsetFromAnchorPixels < 0 )
+            {
+                a = a.buffer( offsetFromAnchorPixels, 5 );
+                if ( a.isEmpty() )
+                {
+                  // can't possibly overlap by this much, the geometry eroded away to nothing. So just go to the fattest part instead.
+                  a = partAnchor.poleOfInaccessibility( std::max( partAnchor.boundingBox().width(), partAnchor.boundingBox().height() ) / 20.0 );
+                }
+            }
+            line = label.shortestLine( a );
             break;
+         }
           case QgsCallout::Centroid:
             line = label.shortestLine( partAnchor.centroid() );
             break;
@@ -374,14 +395,6 @@ void QgsSimpleLineCallout::draw( QgsRenderContext &context, QRectF rect, const d
     if ( minLengthPixels > 0 && line.length() < minLengthPixels )
       return; // too small!
 
-    double offsetFromAnchor = mOffsetFromAnchorDistance;
-    if ( dataDefinedProperties().isActive( QgsCallout::OffsetFromAnchor ) )
-    {
-      context.expressionContext().setOriginalValueVariable( offsetFromAnchor );
-      offsetFromAnchor = dataDefinedProperties().valueAsDouble( QgsCallout::OffsetFromAnchor, context.expressionContext(), offsetFromAnchor );
-    }
-    const double offsetFromAnchorPixels = context.convertToPainterUnits( offsetFromAnchor, mOffsetFromAnchorUnit, mOffsetFromAnchorScale );
-
     double offsetFromLabel = mOffsetFromLabelDistance;
     if ( dataDefinedProperties().isActive( QgsCallout::OffsetFromLabel ) )
     {
@@ -393,7 +406,7 @@ void QgsSimpleLineCallout::draw( QgsRenderContext &context, QRectF rect, const d
     {
       if ( QgsLineString *ls = qgsgeometry_cast< QgsLineString * >( line.get() ) )
       {
-        line = QgsGeometry( ls->curveSubstring( offsetFromLabelPixels, ls->length() - offsetFromAnchorPixels ) );
+        line = QgsGeometry( ls->curveSubstring( offsetFromLabelPixels, ls->length() - ( offsetFromAnchorPixels > 0 ? offsetFromAnchorPixels : 0 ) ) );
       }
     }
 

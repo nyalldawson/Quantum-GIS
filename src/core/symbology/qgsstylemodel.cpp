@@ -833,6 +833,8 @@ QgsStyleProxyModel::QgsStyleProxyModel( QgsStyle *style, QObject *parent )
   {
     if ( mSmartGroupId >= 0 )
       setSmartGroupId( mSmartGroupId );
+    if ( mTagId >= 0 )
+      setTagId( mTagId );
   } );
 }
 
