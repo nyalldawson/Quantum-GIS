@@ -36,6 +36,7 @@
     return QTest::qExec(&tc, argc, argv); \
   }
 
+// note - noop statement ((void)0) is included here so that calls to these methods end with a ;, matching QCOMPARE behavior
 
 #define QGSCOMPARENEAR(value,expected,epsilon) { \
     bool _xxxresult = qgsDoubleNear( value, expected, epsilon ); \
@@ -44,7 +45,7 @@
       qDebug( "Expecting %f got %f (diff %f > %f)", static_cast< double >( expected ), static_cast< double >( value ), std::fabs( static_cast< double >( expected ) - value ), static_cast< double >( epsilon ) ); \
     } \
     QVERIFY( qgsDoubleNear( value, expected, epsilon ) ); \
-  }
+  }((void)0)
 
 #define QGSCOMPARENOTNEAR(value,not_expected,epsilon) { \
     bool _xxxresult = qgsDoubleNear( value, not_expected, epsilon ); \
@@ -53,24 +54,24 @@
       qDebug( "Expecting %f to be differerent from %f (diff %f > %f)", static_cast< double >( value ), static_cast< double >( not_expected ), std::fabs( static_cast< double >( not_expected ) - value ), static_cast< double >( epsilon ) ); \
     } \
     QVERIFY( !qgsDoubleNear( value, not_expected, epsilon ) ); \
-  }
+  }((void)0)
 
 #define QGSCOMPARENEARPOINT(point1,point2,epsilon) { \
     QGSCOMPARENEAR( point1.x(), point2.x(), epsilon ); \
     QGSCOMPARENEAR( point1.y(), point2.y(), epsilon ); \
-  }
+  }((void)0)
 
 #define QGSCOMPARENEARRECTANGLE(rectangle1,rectangle2,epsilon) { \
     QGSCOMPARENEAR( rectangle1.xMinimum(), rectangle2.xMinimum(), epsilon ); \
     QGSCOMPARENEAR( rectangle1.xMaximum(), rectangle2.xMaximum(), epsilon ); \
     QGSCOMPARENEAR( rectangle1.yMinimum(), rectangle2.yMinimum(), epsilon ); \
     QGSCOMPARENEAR( rectangle1.yMaximum(), rectangle2.yMaximum(), epsilon ); \
-  }
+  }(void)
 
 //sometimes GML attributes are in a different order - but that's ok
 #define QGSCOMPAREGML(result,expected) { \
     QCOMPARE( result.replace( QStringLiteral("ts=\" \" cs=\",\""), QStringLiteral("cs=\",\" ts=\" \"") ), expected ); \
-  }
+  }((void)0)
 
 /**
  * QGIS unit test utilities.
