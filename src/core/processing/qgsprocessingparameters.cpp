@@ -5438,9 +5438,10 @@ QgsProcessingParameterBand *QgsProcessingParameterBand::fromScriptCode( const QS
 // QgsProcessingParameterDistance
 //
 
-QgsProcessingParameterDistance::QgsProcessingParameterDistance( const QString &name, const QString &description, const QVariant &defaultValue, const QString &parentParameterName, bool optional, double minValue, double maxValue )
+QgsProcessingParameterDistance::QgsProcessingParameterDistance( const QString &name, const QString &description, const QVariant &defaultValue, const QString &parentParameterName, bool optional, double minValue, double maxValue, QgsUnitTypes::UnitType unitType )
   : QgsProcessingParameterNumber( name, description, Double, defaultValue, optional, minValue, maxValue )
   , mParentParameterName( parentParameterName )
+  , mUnitType( unitType )
 {
 
 }
@@ -5480,11 +5481,37 @@ QString QgsProcessingParameterDistance::asPythonString( const QgsProcessing::Pyt
       if ( maximum() != std::numeric_limits<double>::max() )
         code += QStringLiteral( ", maxValue=%1" ).arg( maximum() );
       QgsProcessingContext c;
-      code += QStringLiteral( ", defaultValue=%1)" ).arg( valueAsPythonString( mDefault, c ) );
+      code += QStringLiteral( ", defaultValue=%1" ).arg( valueAsPythonString( mDefault, c ) );
+      switch ( mUnitType )
+      {
+        case QgsUnitTypes::TypeDistance:
+        case QgsUnitTypes::TypeUnknown:
+          break;
+        case QgsUnitTypes::TypeArea:
+          code += QStringLiteral( ", unitType=QgsUnitTypes.TypeArea" );
+          break;
+        case QgsUnitTypes::TypeVolume:
+          code += QStringLiteral( ", unitType=QgsUnitTypes.TypeVolume" );
+          break;
+      }
+      code += ')';
       return code;
     }
   }
   return QString();
+}
+
+QString QgsProcessingParameterDistance::asScriptCode() const
+{
+  QString code = QStringLiteral( "##%1=" ).arg( mName );
+  if ( mFlags & FlagOptional )
+    code += QStringLiteral( "optional " );
+  code += QStringLiteral( "distance " );
+
+  code += mParentParameterName + ' ';
+
+  code += mDefault.toString();
+  return code.trimmed();
 }
 
 QString QgsProcessingParameterDistance::parentParameterName() const
@@ -5502,6 +5529,7 @@ QVariantMap QgsProcessingParameterDistance::toVariantMap() const
   QVariantMap map = QgsProcessingParameterNumber::toVariantMap();
   map.insert( QStringLiteral( "parent" ), mParentParameterName );
   map.insert( QStringLiteral( "default_unit" ), static_cast< int >( mDefaultUnit ) );
+  map.insert( QStringLiteral( "unit_type" ), QgsUnitTypes::encodeUnitType( mUnitType ) );
   return map;
 }
 
@@ -5510,7 +5538,29 @@ bool QgsProcessingParameterDistance::fromVariantMap( const QVariantMap &map )
   QgsProcessingParameterNumber::fromVariantMap( map );
   mParentParameterName = map.value( QStringLiteral( "parent" ) ).toString();
   mDefaultUnit = static_cast< QgsUnitTypes::DistanceUnit>( map.value( QStringLiteral( "default_unit" ), QgsUnitTypes::DistanceUnknownUnit ).toInt() );
+  mUnitType = QgsUnitTypes::decodeUnitType( map.value( QStringLiteral( "unit_type" ), QStringLiteral( "distance" ) ).toString() );
   return true;
+}
+
+QgsProcessingParameterDistance *QgsProcessingParameterDistance::fromScriptCode( const QString &name, const QString &description, bool isOptional, const QString &definition )
+{
+  QRegularExpression re( QStringLiteral( "(.*?)\\s+(.*)$" ) );
+  QString def = definition;
+  QString parent;
+  QRegularExpressionMatch m = re.match( def );
+  if ( m.hasMatch() )
+  {
+    parent = m.captured( 1 ).trimmed();
+    def = m.captured( 2 );
+  }
+  else
+  {
+    parent = def;
+    def.clear();
+  }
+
+  return new QgsProcessingParameterDistance( name, description, definition.isEmpty() ? QVariant()
+         : ( def.toLower().trimmed() == QStringLiteral( "none" ) ? QVariant() : def ), parent, isOptional );
 }
 
 

@@ -1700,8 +1700,11 @@ Creates a new parameter using the definition from a script code.
 class QgsProcessingParameterDistance : QgsProcessingParameterNumber
 {
 %Docstring
-A double numeric parameter for distance values. Linked to a source layer or CRS parameter
+A double numeric parameter for distance, area or volume values. Linked to a source layer or CRS parameter
 to determine what units the distance values are in.
+
+The unitType parameter in the QgsProcessingParameterDistance constructor is used to specify
+whether the parameter refers to a distance, area or volume value.
 
 The number of decimals places shown in a distance parameter's widget can be specified by
 setting the parameter's metadata. For example:
@@ -1727,9 +1730,14 @@ setting the parameter's metadata. For example:
         const QString &parentParameterName = QString(),
         bool optional = false,
         double minValue = -DBL_MAX + 1,
-        double maxValue = DBL_MAX );
+        double maxValue = DBL_MAX,
+        QgsUnitTypes::UnitType unitType = QgsUnitTypes::TypeDistance );
 %Docstring
 Constructor for QgsProcessingParameterDistance.
+
+Since QGIS 3.10, the ``unitType`` argument specifies whether the parameter refers to a distance, area or volume
+value, using QgsUnitTypes.TypeDistance, QgsUnitTypes.TypeArea or QgsUnitTypes.TypeVolume
+respectively.
 %End
 
     static QString typeName();
@@ -1746,6 +1754,8 @@ Returns the type name for the parameter class.
 
     virtual QString asPythonString( QgsProcessing::PythonOutputType outputType = QgsProcessing::PythonQgsProcessingAlgorithmSubclass ) const;
 
+    virtual QString asScriptCode() const;
+
 
     QString parentParameterName() const;
 %Docstring
@@ -1759,6 +1769,24 @@ Returns the name of the parent parameter, or an empty string if this is not set.
 Sets the name of the parent layer parameter. Use an empty string if this is not required.
 
 .. seealso:: :py:func:`parentParameterName`
+%End
+
+    QgsUnitTypes::UnitType unitType() const;
+%Docstring
+Returns the unit type for the parameter (e.g. distance, area or volume).
+
+.. seealso:: :py:func:`setUnitType`
+
+.. versionadded:: 3.10
+%End
+
+    void setUnitType( QgsUnitTypes::UnitType type );
+%Docstring
+Sets the unit ``type`` for the parameter (e.g. distance, area or volume).
+
+.. seealso:: :py:func:`unitType`
+
+.. versionadded:: 3.10
 %End
 
     QgsUnitTypes::DistanceUnit defaultUnit() const;
@@ -1783,6 +1811,11 @@ Sets the default distance ``unit`` for the parameter.
 
     virtual bool fromVariantMap( const QVariantMap &map );
 
+
+    static QgsProcessingParameterDistance *fromScriptCode( const QString &name, const QString &description, bool isOptional, const QString &definition ) /Factory/;
+%Docstring
+Creates a new parameter using the definition from a script code.
+%End
 
 };
 

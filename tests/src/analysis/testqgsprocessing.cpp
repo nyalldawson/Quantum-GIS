@@ -3508,13 +3508,17 @@ void TestQgsProcessing::parameterDistance()
   // not optional!
   std::unique_ptr< QgsProcessingParameterDistance > def( new QgsProcessingParameterDistance( "non_optional", QString(), 5, QStringLiteral( "parent" ), false ) );
   QCOMPARE( def->parentParameterName(), QStringLiteral( "parent" ) );
+  QCOMPARE( def->unitType(), QgsUnitTypes::TypeDistance );
   def->setParentParameterName( QStringLiteral( "parent2" ) );
   QCOMPARE( def->defaultUnit(), QgsUnitTypes::DistanceUnknownUnit );
   def->setDefaultUnit( QgsUnitTypes::DistanceFeet );
   QCOMPARE( def->defaultUnit(), QgsUnitTypes::DistanceFeet );
+  def->setUnitType( QgsUnitTypes::TypeArea );
+  QCOMPARE( def->unitType(), QgsUnitTypes::TypeArea );
   std::unique_ptr< QgsProcessingParameterDistance > clone( def->clone() );
   QCOMPARE( clone->parentParameterName(), QStringLiteral( "parent2" ) );
   QCOMPARE( clone->defaultUnit(), QgsUnitTypes::DistanceFeet );
+  QCOMPARE( clone->unitType(), QgsUnitTypes::TypeArea );
 
   QCOMPARE( def->parentParameterName(), QStringLiteral( "parent2" ) );
   QVERIFY( def->checkValueIsAcceptable( 5 ) );
@@ -3572,13 +3576,28 @@ void TestQgsProcessing::parameterDistance()
   QCOMPARE( fromMap.minimum(), def->minimum() );
   QCOMPARE( fromMap.maximum(), def->maximum() );
   QCOMPARE( fromMap.dataType(), def->dataType() );
+  QCOMPARE( fromMap.unitType(), def->unitType() );
   QCOMPARE( fromMap.parentParameterName(), QStringLiteral( "parent2" ) );
   QCOMPARE( fromMap.defaultUnit(), QgsUnitTypes::DistanceFeet );
   def.reset( dynamic_cast< QgsProcessingParameterDistance *>( QgsProcessingParameters::parameterFromVariantMap( map ) ) );
   QVERIFY( dynamic_cast< QgsProcessingParameterDistance *>( def.get() ) );
 
+  QString pythonCode = def->asPythonString();
+  QCOMPARE( pythonCode, QStringLiteral( "QgsProcessingParameterDistance('non_optional', '', parentParameterName='parent2', minValue=11, maxValue=21, defaultValue=5, unitType=QgsUnitTypes.TypeArea)" ) );
+  QString code = def->asScriptCode();
+  QCOMPARE( code, QStringLiteral( "##non_optional=distance parent2 5" ) );
+  std::unique_ptr< QgsProcessingParameterDistance > fromCode;
+  fromCode.reset( dynamic_cast< QgsProcessingParameterDistance * >( QgsProcessingParameters::parameterFromScriptCode( code ) ) );
+  QVERIFY( fromCode.get() );
+  QCOMPARE( fromCode->name(), def->name() );
+  QCOMPARE( fromCode->description(), QStringLiteral( "non optional" ) );
+  QCOMPARE( fromCode->flags(), def->flags() );
+  QCOMPARE( fromCode->parentParameterName(), QStringLiteral( "parent2" ) );
+  QCOMPARE( fromCode->defaultValue().toInt(), 5 );
+
   // optional
   def.reset( new QgsProcessingParameterDistance( "optional", QString(), 5.4, QStringLiteral( "parent" ), true ) );
+  QCOMPARE( def->asPythonString(), QStringLiteral( "QgsProcessingParameterDistance('optional', '', optional=True, parentParameterName='parent', defaultValue=5.4)" ) );
   QVERIFY( def->checkValueIsAcceptable( 5 ) );
   QVERIFY( def->checkValueIsAcceptable( "1.1" ) );
   QVERIFY( def->checkValueIsAcceptable( "" ) );

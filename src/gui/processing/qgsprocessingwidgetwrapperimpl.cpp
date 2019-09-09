@@ -844,11 +844,56 @@ QWidget *QgsProcessingDistanceWidgetWrapper::createWidget()
       mLabel = new QLabel();
       mUnitsCombo = new QComboBox();
 
-      mUnitsCombo->addItem( QgsUnitTypes::toString( QgsUnitTypes::DistanceMeters ), QgsUnitTypes::DistanceMeters );
-      mUnitsCombo->addItem( QgsUnitTypes::toString( QgsUnitTypes::DistanceKilometers ), QgsUnitTypes::DistanceKilometers );
-      mUnitsCombo->addItem( QgsUnitTypes::toString( QgsUnitTypes::DistanceFeet ), QgsUnitTypes::DistanceFeet );
-      mUnitsCombo->addItem( QgsUnitTypes::toString( QgsUnitTypes::DistanceMiles ), QgsUnitTypes::DistanceMiles );
-      mUnitsCombo->addItem( QgsUnitTypes::toString( QgsUnitTypes::DistanceYards ), QgsUnitTypes::DistanceYards );
+      QString typeName;
+      switch ( distanceDef->unitType() )
+      {
+        case QgsUnitTypes::TypeDistance:
+        {
+          typeName = tr( "Distance" );
+          mUnitsCombo->addItem( QgsUnitTypes::toString( QgsUnitTypes::DistanceMeters ), QgsUnitTypes::DistanceMeters );
+          mUnitsCombo->addItem( QgsUnitTypes::toString( QgsUnitTypes::DistanceKilometers ), QgsUnitTypes::DistanceKilometers );
+          mUnitsCombo->addItem( QgsUnitTypes::toString( QgsUnitTypes::DistanceFeet ), QgsUnitTypes::DistanceFeet );
+          mUnitsCombo->addItem( QgsUnitTypes::toString( QgsUnitTypes::DistanceMiles ), QgsUnitTypes::DistanceMiles );
+          mUnitsCombo->addItem( QgsUnitTypes::toString( QgsUnitTypes::DistanceYards ), QgsUnitTypes::DistanceYards );
+          mUnitsCombo->addItem( QgsUnitTypes::toString( QgsUnitTypes::DistanceNauticalMiles ), QgsUnitTypes::DistanceNauticalMiles );
+          mUnitsCombo->addItem( QgsUnitTypes::toString( QgsUnitTypes::DistanceCentimeters ), QgsUnitTypes::DistanceCentimeters );
+          mUnitsCombo->addItem( QgsUnitTypes::toString( QgsUnitTypes::DistanceMillimeters ), QgsUnitTypes::DistanceMillimeters );
+          break;
+        }
+
+        case QgsUnitTypes::TypeArea:
+        {
+          typeName = tr( "Area" );
+          mUnitsCombo->addItem( QgsUnitTypes::toString( QgsUnitTypes::AreaSquareMeters ), QgsUnitTypes::AreaSquareMeters );
+          mUnitsCombo->addItem( QgsUnitTypes::toString( QgsUnitTypes::AreaHectares ), QgsUnitTypes::AreaHectares );
+          mUnitsCombo->addItem( QgsUnitTypes::toString( QgsUnitTypes::AreaSquareKilometers ), QgsUnitTypes::AreaSquareKilometers );
+          mUnitsCombo->addItem( QgsUnitTypes::toString( QgsUnitTypes::AreaSquareFeet ), QgsUnitTypes::AreaSquareFeet );
+          mUnitsCombo->addItem( QgsUnitTypes::toString( QgsUnitTypes::AreaSquareYards ), QgsUnitTypes::AreaSquareYards );
+          mUnitsCombo->addItem( QgsUnitTypes::toString( QgsUnitTypes::AreaSquareMiles ), QgsUnitTypes::AreaSquareMiles );
+          mUnitsCombo->addItem( QgsUnitTypes::toString( QgsUnitTypes::AreaAcres ), QgsUnitTypes::AreaAcres );
+          mUnitsCombo->addItem( QgsUnitTypes::toString( QgsUnitTypes::AreaSquareCentimeters ), QgsUnitTypes::AreaSquareCentimeters );
+          mUnitsCombo->addItem( QgsUnitTypes::toString( QgsUnitTypes::AreaSquareMillimeters ), QgsUnitTypes::AreaSquareMillimeters );
+          break;
+        }
+
+        case QgsUnitTypes::TypeVolume:
+        {
+          typeName = tr( "Volume" );
+          mUnitsCombo->addItem( QgsUnitTypes::toString( QgsUnitTypes::VolumeCubicMeters ), QgsUnitTypes::VolumeCubicMeters );
+          mUnitsCombo->addItem( QgsUnitTypes::toString( QgsUnitTypes::VolumeCubicFeet ), QgsUnitTypes::VolumeCubicFeet );
+          mUnitsCombo->addItem( QgsUnitTypes::toString( QgsUnitTypes::VolumeCubicYards ), QgsUnitTypes::VolumeCubicYards );
+          mUnitsCombo->addItem( QgsUnitTypes::toString( QgsUnitTypes::VolumeBarrel ), QgsUnitTypes::VolumeBarrel );
+          mUnitsCombo->addItem( QgsUnitTypes::toString( QgsUnitTypes::VolumeCubicDecimeter ), QgsUnitTypes::VolumeCubicDecimeter );
+          mUnitsCombo->addItem( QgsUnitTypes::toString( QgsUnitTypes::VolumeLiters ), QgsUnitTypes::VolumeLiters );
+          mUnitsCombo->addItem( QgsUnitTypes::toString( QgsUnitTypes::VolumeGallonUS ), QgsUnitTypes::VolumeGallonUS );
+          mUnitsCombo->addItem( QgsUnitTypes::toString( QgsUnitTypes::VolumeCubicInch ), QgsUnitTypes::VolumeCubicInch );
+          mUnitsCombo->addItem( QgsUnitTypes::toString( QgsUnitTypes::VolumeCubicCentimeter ), QgsUnitTypes::VolumeCubicCentimeter );
+          break;
+        }
+
+        case QgsUnitTypes::TypeUnknown:
+          break;
+      }
 
       const int labelMargin = static_cast< int >( std::round( mUnitsCombo->fontMetrics().width( 'X' ) ) );
       QHBoxLayout *layout = new QHBoxLayout();
@@ -868,7 +913,9 @@ QWidget *QgsProcessingDistanceWidgetWrapper::createWidget()
       QIcon icon = QgsApplication::getThemeIcon( QStringLiteral( "mIconWarning.svg" ) );
       const int size = static_cast< int >( std::max( 24.0, spin->minimumSize().height() * 0.5 ) );
       warning->setPixmap( icon.pixmap( icon.actualSize( QSize( size, size ) ) ) );
-      warning->setToolTip( tr( "Distance is in geographic degrees. Consider reprojecting to a projected local coordinate system for accurate results." ) );
+
+      warning->setToolTip( tr( "%1 is in geographic degrees. Consider reprojecting to a projected local coordinate system for accurate results." )
+                           .arg( typeName ) );
       warningLayout->insertSpacing( 0, labelMargin / 2 );
       warningLayout->insertWidget( 1, warning );
       mWarningLabel->setLayout( warningLayout );
@@ -954,7 +1001,22 @@ void QgsProcessingDistanceWidgetWrapper::setUnits( const QgsUnitTypes::DistanceU
   }
   else
   {
-    mUnitsCombo->setCurrentIndex( mUnitsCombo->findData( units ) );
+    const QgsProcessingParameterDistance *distanceDef = static_cast< const QgsProcessingParameterDistance * >( parameterDefinition() );
+
+    switch ( distanceDef->unitType() )
+    {
+      case QgsUnitTypes::TypeDistance:
+        mUnitsCombo->setCurrentIndex( mUnitsCombo->findData( units ) );
+        break;
+      case QgsUnitTypes::TypeArea:
+        mUnitsCombo->setCurrentIndex( mUnitsCombo->findData( QgsUnitTypes::distanceToAreaUnit( units ) ) );
+        break;
+      case QgsUnitTypes::TypeVolume:
+        mUnitsCombo->setCurrentIndex( mUnitsCombo->findData( QgsUnitTypes::distanceToVolumeUnit( units ) ) );
+        break;
+      case QgsUnitTypes::TypeUnknown:
+        break;
+    }
     mUnitsCombo->show();
     mLabel->hide();
   }
@@ -967,8 +1029,28 @@ QVariant QgsProcessingDistanceWidgetWrapper::widgetValue() const
   const QVariant val = QgsProcessingNumericWidgetWrapper::widgetValue();
   if ( val.type() == QVariant::Double && mUnitsCombo && mUnitsCombo->isVisible() )
   {
-    QgsUnitTypes::DistanceUnit displayUnit = static_cast<QgsUnitTypes::DistanceUnit >( mUnitsCombo->currentData().toInt() );
-    return val.toDouble() * QgsUnitTypes::fromUnitToUnitFactor( displayUnit, mBaseUnit );
+    const QgsProcessingParameterDistance *distanceDef = static_cast< const QgsProcessingParameterDistance * >( parameterDefinition() );
+
+    switch ( distanceDef->unitType() )
+    {
+      case QgsUnitTypes::TypeDistance:
+      {
+        QgsUnitTypes::DistanceUnit displayUnit = static_cast<QgsUnitTypes::DistanceUnit >( mUnitsCombo->currentData().toInt() );
+        return val.toDouble() * QgsUnitTypes::fromUnitToUnitFactor( displayUnit, mBaseUnit );
+      }
+      case QgsUnitTypes::TypeArea:
+      {
+        QgsUnitTypes::AreaUnit displayUnit = static_cast<QgsUnitTypes::AreaUnit >( mUnitsCombo->currentData().toInt() );
+        return val.toDouble() * QgsUnitTypes::fromUnitToUnitFactor( displayUnit, QgsUnitTypes::distanceToAreaUnit( mBaseUnit ) );
+      }
+      case QgsUnitTypes::TypeVolume:
+      {
+        QgsUnitTypes::VolumeUnit displayUnit = static_cast<QgsUnitTypes::VolumeUnit >( mUnitsCombo->currentData().toInt() );
+        return val.toDouble() * QgsUnitTypes::fromUnitToUnitFactor( displayUnit, QgsUnitTypes::distanceToVolumeUnit( mBaseUnit ) );
+      }
+      case QgsUnitTypes::TypeUnknown:
+        return val;
+    }
   }
   else
   {

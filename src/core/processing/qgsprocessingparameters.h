@@ -25,6 +25,7 @@
 #include "qgscoordinatereferencesystem.h"
 #include "qgsfeaturesource.h"
 #include "qgsprocessingutils.h"
+#include "qgsunittypes.h"
 #include <QMap>
 #include <limits>
 
@@ -1670,8 +1671,11 @@ class CORE_EXPORT QgsProcessingParameterNumber : public QgsProcessingParameterDe
 /**
  * \class QgsProcessingParameterDistance
  * \ingroup core
- * A double numeric parameter for distance values. Linked to a source layer or CRS parameter
+ * A double numeric parameter for distance, area or volume values. Linked to a source layer or CRS parameter
  * to determine what units the distance values are in.
+ *
+ * The unitType parameter in the QgsProcessingParameterDistance constructor is used to specify
+ * whether the parameter refers to a distance, area or volume value.
  *
  * The number of decimals places shown in a distance parameter's widget can be specified by
  * setting the parameter's metadata. For example:
@@ -1692,13 +1696,18 @@ class CORE_EXPORT QgsProcessingParameterDistance : public QgsProcessingParameter
 
     /**
      * Constructor for QgsProcessingParameterDistance.
+     *
+     * Since QGIS 3.10, the \a unitType argument specifies whether the parameter refers to a distance, area or volume
+     * value, using QgsUnitTypes::TypeDistance, QgsUnitTypes::TypeArea or QgsUnitTypes::TypeVolume
+     * respectively.
      */
     explicit QgsProcessingParameterDistance( const QString &name, const QString &description = QString(),
         const QVariant &defaultValue = QVariant(),
         const QString &parentParameterName = QString(),
         bool optional = false,
         double minValue = std::numeric_limits<double>::lowest() + 1,
-        double maxValue = std::numeric_limits<double>::max() );
+        double maxValue = std::numeric_limits<double>::max(),
+        QgsUnitTypes::UnitType unitType = QgsUnitTypes::TypeDistance );
 
     /**
      * Returns the type name for the parameter class.
@@ -1710,6 +1719,7 @@ class CORE_EXPORT QgsProcessingParameterDistance : public QgsProcessingParameter
     QString type() const override;
     QStringList dependsOnOtherParameters() const override;
     QString asPythonString( QgsProcessing::PythonOutputType outputType = QgsProcessing::PythonQgsProcessingAlgorithmSubclass ) const override;
+    QString asScriptCode() const override;
 
     /**
      * Returns the name of the parent parameter, or an empty string if this is not set.
@@ -1722,6 +1732,22 @@ class CORE_EXPORT QgsProcessingParameterDistance : public QgsProcessingParameter
      * \see parentParameterName()
      */
     void setParentParameterName( const QString &parentParameterName );
+
+    /**
+     * Returns the unit type for the parameter (e.g. distance, area or volume).
+     *
+     * \see setUnitType()
+     * \since QGIS 3.10
+     */
+    QgsUnitTypes::UnitType unitType() const { return mUnitType; }
+
+    /**
+     * Sets the unit \a type for the parameter (e.g. distance, area or volume).
+     *
+     * \see unitType()
+     * \since QGIS 3.10
+     */
+    void setUnitType( QgsUnitTypes::UnitType type ) { mUnitType = type; }
 
     /**
      * Returns the default distance unit for the parameter.
@@ -1742,10 +1768,16 @@ class CORE_EXPORT QgsProcessingParameterDistance : public QgsProcessingParameter
     QVariantMap toVariantMap() const override;
     bool fromVariantMap( const QVariantMap &map ) override;
 
+    /**
+     * Creates a new parameter using the definition from a script code.
+     */
+    static QgsProcessingParameterDistance *fromScriptCode( const QString &name, const QString &description, bool isOptional, const QString &definition ) SIP_FACTORY;
+
   private:
 
     QString mParentParameterName;
     QgsUnitTypes::DistanceUnit mDefaultUnit = QgsUnitTypes::DistanceUnknownUnit;
+    QgsUnitTypes::UnitType mUnitType = QgsUnitTypes::TypeDistance;
 
 };
 
