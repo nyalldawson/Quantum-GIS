@@ -84,6 +84,7 @@ SET(QGIS_CORE_SRCS
   effects/qgseffectstack.cpp
   effects/qgsgloweffect.cpp
   effects/qgsimageoperation.cpp
+  effects/qgsmaskeffect.cpp
   effects/qgspainteffect.cpp
   effects/qgspainteffectregistry.cpp
   effects/qgsshadoweffect.cpp
@@ -956,6 +957,7 @@ SET(QGIS_CORE_HDRS
   effects/qgseffectstack.h
   effects/qgsgloweffect.h
   effects/qgsimageoperation.h
+  effects/qgsmaskeffect.h
   effects/qgspainteffect.h
   effects/qgspainteffectregistry.h
   effects/qgsshadoweffect.h

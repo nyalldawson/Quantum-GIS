@@ -87,6 +87,10 @@ class CORE_EXPORT QgsPaintEffect
     {
       sipType = sipType_QgsColorEffect;
     }
+    else if ( sipCpp->type() == "mask" && dynamic_cast<QgsMaskEffect *>( sipCpp ) != NULL )
+    {
+      sipType = sipType_QgsMaskEffect;
+    }
     else
     {
       sipType = 0;

@@ -21,66 +21,65 @@
 #include "qgis.h"
 #include <QPainter>
 
-/** \ingroup core
+/**
+ * \ingroup core
  * \class QgsMaskEffect
  * \brief A paint effect which masks a source picture, converting some portions
  * of the picture to transparent.
  *
- * \note Added in version 2.12
+ * \note Added in version 3.12
  */
-
 class CORE_EXPORT QgsMaskEffect : public QgsPaintEffect
 {
 
   public:
 
-    /** Available mask types */
+    //! Available mask types
     enum MaskType
     {
-      SourceIn, /*< Apply the alpha channel from the original source image to the output image*/
-      SourceOut, /*< Apply the inverse of the alpha channel from the original source image to the output image*/
-      FadeFromTop, /*< Fade out from opaque at top to transparent at bottom */
-      FadeFromBottom, /*< Fade out from opaque at bottom to transparent at top */
-      FadeFromLeft, /*< Fade out from opaque at left to transparent at right*/
-      FadeFromRight /*< Fade out from opaque at right to transparent at left*/
+      SourceIn, //!< Apply the alpha channel from the original source image to the output image
+      SourceOut, //!< Apply the inverse of the alpha channel from the original source image to the output image
+      FadeFromTop, //!< Fade out from opaque at top to transparent at bottom
+      FadeFromBottom, //!< Fade out from opaque at bottom to transparent at top
+      FadeFromLeft, //!< Fade out from opaque at left to transparent at right
+      FadeFromRight //!< Fade out from opaque at right to transparent at left
     };
 
-    /** Creates a new QgsMaskEffect effect from a properties string map.
-     * @param map encoded properties string map
-     * @returns new QgsMaskEffect
+    /**
+     * Creates a new QgsMaskEffect effect from a properties string \a map.
+     *
+     * Caller takes ownership of the returned effect.
      */
-    static QgsPaintEffect* create( const QgsStringMap& );
+    static QgsPaintEffect *create( const QgsStringMap & ) SIP_FACTORY;
 
-    QgsMaskEffect();
-    virtual ~QgsMaskEffect();
+    QgsMaskEffect() = default;
 
-    virtual QString type() const override { return QString( "mask" ); }
+    virtual QString type() const override;
     virtual QgsStringMap properties() const override;
-    virtual void readProperties( const QgsStringMap& props ) override;
-    virtual QgsPaintEffect* clone() const override;
+    virtual void readProperties( const QgsStringMap &props ) override;
+    virtual QgsPaintEffect *clone() const override;
 
-    /** Sets the mask type, which controls how the opacity of the source
+    /**
+     * Sets the mask \a type, which controls how the opacity of the source
      * image will be masked.
-     * @param type mask type
-     * @see maskType
+     * \see maskType()
      */
     void setMaskType( const MaskType type );
 
-    /** Returns the mask type, which controls how the opacity of the source
+    /**
+     * Returns the mask type, which controls how the opacity of the source
      * image will be masked.
-     * @returns mask type
-     * @see setMaskType
+     * \see setMaskType()
      */
     MaskType maskType() const { return mMaskType; }
 
   protected:
 
-    virtual void draw( QgsRenderContext& context ) override;
-
+    virtual void draw( QgsRenderContext &context ) override;
 
   private:
 
-    MaskType mMaskType;
+    MaskType mMaskType = SourceIn;
 
     void drawFade( QPainter &imPainter );
 };

@@ -21,21 +21,14 @@
 
 QgsPaintEffect *QgsMaskEffect::create( const QgsStringMap &map )
 {
-  QgsMaskEffect* newEffect = new QgsMaskEffect();
+  std::unique_ptr< QgsMaskEffect > newEffect = qgis::make_unique< QgsMaskEffect >();
   newEffect->readProperties( map );
-  return newEffect;
+  return newEffect.release();
 }
 
-QgsMaskEffect::QgsMaskEffect()
-    : QgsPaintEffect()
-    , mMaskType( SourceIn )
+QString QgsMaskEffect::type() const
 {
-
-}
-
-QgsMaskEffect::~QgsMaskEffect()
-{
-
+  return QString( "mask" );
 }
 
 void QgsMaskEffect::draw( QgsRenderContext &context )
@@ -52,18 +45,17 @@ void QgsMaskEffect::draw( QgsRenderContext &context )
   {
     case SourceIn:
     {
-      if ( mOriginalSource )
-        imPainter.drawPicture( 0, 0, *mOriginalSource );
+      // if ( mOriginalSource )
+      //   imPainter.drawPicture( 0, 0, *mOriginalSource );
       break;
     }
     case SourceOut:
     {
       imPainter.setCompositionMode( QPainter::CompositionMode_DestinationOut );
-      if ( mOriginalSource )
-        imPainter.drawPicture( 0, 0, *mOriginalSource );
+      // if ( mOriginalSource )
+      //   imPainter.drawPicture( 0, 0, *mOriginalSource );
       break;
     }
-    break;
 
     case FadeFromTop:
     case FadeFromBottom:
@@ -71,6 +63,7 @@ void QgsMaskEffect::draw( QgsRenderContext &context )
     case FadeFromRight:
     {
       drawFade( imPainter );
+      break;
     }
   }
 
@@ -79,7 +72,7 @@ void QgsMaskEffect::draw( QgsRenderContext &context )
   context.painter()->drawImage( imageOffset( context ), image );
 }
 
-void QgsMaskEffect::drawFade( QPainter& imPainter )
+void QgsMaskEffect::drawFade( QPainter &imPainter )
 {
   double width = imPainter.device()->width();
   double height = imPainter.device()->height();
@@ -106,7 +99,7 @@ void QgsMaskEffect::drawFade( QPainter& imPainter )
       break;
     case SourceIn:
     case SourceOut:
-    { } //avoid warnings
+      break;
   }
 
   gradient.setColorAt( 0.0, Qt::black );
@@ -119,18 +112,18 @@ void QgsMaskEffect::drawFade( QPainter& imPainter )
 QgsStringMap QgsMaskEffect::properties() const
 {
   QgsStringMap props;
-  props.insert( "enabled", mEnabled ? "1" : "0" );
-  props.insert( "draw_mode", QString::number( int( mDrawMode ) ) );
-  props.insert( "mask_type", QString::number(( int )mMaskType ) );
+  props.insert( QStringLiteral( "enabled" ), mEnabled ? QStringLiteral( "1" ) : QStringLiteral( "0" ) );
+  props.insert( QStringLiteral( "draw_mode" ), QString::number( static_cast< int >( mDrawMode ) ) );
+  props.insert( QStringLiteral( "mask_type" ), QString::number( static_cast< int >( mMaskType ) ) );
   return props;
 }
 
 void QgsMaskEffect::readProperties( const QgsStringMap &props )
 {
   bool ok;
-  mEnabled = props.value( "enabled", "1" ).toInt();
-  mDrawMode = ( QgsPaintEffect::DrawMode )props.value( "draw_mode", "2" ).toInt();
-  QgsMaskEffect::MaskType type = ( QgsMaskEffect::MaskType )props.value( "mask_type" ).toInt( &ok );
+  mEnabled = props.value( QStringLiteral( "enabled" ), QStringLiteral( "1" ) ).toInt();
+  mDrawMode = static_cast< QgsPaintEffect::DrawMode >( props.value( QStringLiteral( "draw_mode" ), QStringLiteral( "2" ) ).toInt() );
+  QgsMaskEffect::MaskType type = static_cast< QgsMaskEffect::MaskType >( props.value( QStringLiteral( "mask_type" ) ).toInt( &ok ) );
   if ( ok )
   {
     setMaskType( type );
@@ -139,15 +132,15 @@ void QgsMaskEffect::readProperties( const QgsStringMap &props )
 
 QgsPaintEffect *QgsMaskEffect::clone() const
 {
-  QgsMaskEffect* newEffect = new QgsMaskEffect( *this );
-  return newEffect;
+  std::unique_ptr< QgsMaskEffect > newEffect = qgis::make_unique< QgsMaskEffect >( *this );
+  return newEffect.release();
 }
 
-void QgsMaskEffect::setMaskType(const QgsMaskEffect::MaskType type)
+void QgsMaskEffect::setMaskType( const QgsMaskEffect::MaskType type )
 {
-    mMaskType = type;
-    if ( type == SourceIn || type == SourceOut )
-    {
-        requiresQPainterDpiFix = false;
-    }
+  mMaskType = type;
+  if ( type == SourceIn || type == SourceOut )
+  {
+    requiresQPainterDpiFix = false;
+  }
 }

@@ -260,6 +260,7 @@
 %Include auto_generated/effects/qgseffectstack.sip
 %Include auto_generated/effects/qgsgloweffect.sip
 %Include auto_generated/effects/qgsimageoperation.sip
+%Include auto_generated/effects/qgsmaskeffect.sip
 %Include auto_generated/effects/qgspainteffect.sip
 %Include auto_generated/effects/qgspainteffectregistry.sip
 %Include auto_generated/effects/qgsshadoweffect.sip

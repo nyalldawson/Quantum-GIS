@@ -1,0 +1,80 @@
+/************************************************************************
+ * This file has been generated automatically from                      *
+ *                                                                      *
+ * src/core/effects/qgsmaskeffect.h                                     *
+ *                                                                      *
+ * Do not edit manually ! Edit header and run scripts/sipify.pl again   *
+ ************************************************************************/
+
+
+
+class QgsMaskEffect : QgsPaintEffect
+{
+%Docstring
+A paint effect which masks a source picture, converting some portions
+of the picture to transparent.
+
+.. note::
+
+   Added in version 3.12
+%End
+
+%TypeHeaderCode
+#include "qgsmaskeffect.h"
+%End
+  public:
+
+    enum MaskType
+    {
+      SourceIn,
+      SourceOut,
+      FadeFromTop,
+      FadeFromBottom,
+      FadeFromLeft,
+      FadeFromRight
+    };
+
+    static QgsPaintEffect *create( const QgsStringMap & ) /Factory/;
+%Docstring
+Creates a new QgsMaskEffect effect from a properties string ``map``.
+
+Caller takes ownership of the returned effect.
+%End
+
+    QgsMaskEffect();
+
+    virtual QString type() const;
+    virtual QgsStringMap properties() const;
+    virtual void readProperties( const QgsStringMap &props );
+    virtual QgsPaintEffect *clone() const;
+
+    void setMaskType( const MaskType type );
+%Docstring
+Sets the mask ``type``, which controls how the opacity of the source
+image will be masked.
+
+.. seealso:: :py:func:`maskType`
+%End
+
+    MaskType maskType() const;
+%Docstring
+Returns the mask type, which controls how the opacity of the source
+image will be masked.
+
+.. seealso:: :py:func:`setMaskType`
+%End
+
+  protected:
+
+    virtual void draw( QgsRenderContext &context );
+
+};
+
+
+/************************************************************************
+ * This file has been generated automatically from                      *
+ *                                                                      *
+ * src/core/effects/qgsmaskeffect.h                                     *
+ *                                                                      *
+ * Do not edit manually ! Edit header and run scripts/sipify.pl again   *
+ ************************************************************************/
