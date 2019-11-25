@@ -300,7 +300,7 @@ class GUI_EXPORT QgsMaskEffectWidget : public QgsPaintEffectWidget, private Ui::
     virtual void setPaintEffect( QgsPaintEffect *effect ) override;
 
   private:
-    QgsMaskEffect *mEffect;
+    QgsMaskEffect *mEffect = nullptr;
 
     void initGui();
     void blockSignals( const bool block );
