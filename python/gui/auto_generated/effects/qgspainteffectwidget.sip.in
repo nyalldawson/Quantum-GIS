@@ -152,6 +152,24 @@ class QgsColorEffectWidget : QgsPaintEffectWidget
 
 
 
+
+class QgsMaskEffectWidget : QgsPaintEffectWidget
+{
+
+%TypeHeaderCode
+#include "qgspainteffectwidget.h"
+%End
+  public:
+    QgsMaskEffectWidget( QWidget *parent = NULL );
+
+    static QgsPaintEffectWidget *create();
+
+    virtual void setPaintEffect( QgsPaintEffect *effect );
+
+};
+
+
+
 /************************************************************************
  * This file has been generated automatically from                      *
  *                                                                      *

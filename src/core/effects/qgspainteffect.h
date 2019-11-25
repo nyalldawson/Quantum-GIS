@@ -229,6 +229,7 @@ class CORE_EXPORT QgsPaintEffect
     bool mEnabled = true;
     DrawMode mDrawMode = ModifyAndRender;
     bool requiresQPainterDpiFix = true;
+    QPicture *mOriginalSource = nullptr;
 
     /**
      * Handles drawing of the effect's result on to the specified render context.

@@ -45,15 +45,15 @@ void QgsMaskEffect::draw( QgsRenderContext &context )
   {
     case SourceIn:
     {
-      // if ( mOriginalSource )
-      //   imPainter.drawPicture( 0, 0, *mOriginalSource );
+      if ( mOriginalSource )
+        imPainter.drawPicture( 0, 0, *mOriginalSource );
       break;
     }
     case SourceOut:
     {
       imPainter.setCompositionMode( QPainter::CompositionMode_DestinationOut );
-      // if ( mOriginalSource )
-      //   imPainter.drawPicture( 0, 0, *mOriginalSource );
+      if ( mOriginalSource )
+        imPainter.drawPicture( 0, 0, *mOriginalSource );
       break;
     }
 

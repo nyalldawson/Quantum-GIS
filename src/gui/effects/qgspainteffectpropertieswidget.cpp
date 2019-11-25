@@ -61,6 +61,7 @@ static void _initWidgetFunctions()
   _initWidgetFunction( QStringLiteral( "innerGlow" ), QgsGlowWidget::create );
   _initWidgetFunction( QStringLiteral( "transform" ), QgsTransformWidget::create );
   _initWidgetFunction( QStringLiteral( "color" ), QgsColorEffectWidget::create );
+  _initWidgetFunction( "mask", QgsMaskEffectWidget::create );
 
   sInitialized = true;
 }

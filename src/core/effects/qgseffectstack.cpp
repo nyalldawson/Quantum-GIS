@@ -94,6 +94,8 @@ void QgsEffectStack::draw( QgsRenderContext &context )
       continue;
     }
 
+    effect->mOriginalSource = sourcePic;
+
     QPicture *pic = nullptr;
     if ( effect->type() == QLatin1String( "drawSource" ) )
     {
@@ -114,6 +116,8 @@ void QgsEffectStack::draw( QgsRenderContext &context )
     effect->render( *pic, context );
     effect->requiresQPainterDpiFix = true;
     p.end();
+
+    effect->mOriginalSource = nullptr;
 
     results << resultPic;
     if ( mEffectList.at( i )->drawMode() != QgsPaintEffect::Render )
