@@ -147,6 +147,8 @@ namespace pal
        */
       double minDistanceToPoint( double px, double py, double *rx = nullptr, double *ry = nullptr ) const;
 
+      double minDistance( const PointSet &other ) const;
+
       void getCentroid( double &px, double &py, bool forceInside = false ) const;
 
       int getGeosType() const { return type; }

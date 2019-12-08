@@ -139,6 +139,8 @@ namespace pal
       //! Returns bounding box - amin: xmin,ymin - amax: xmax,ymax
       void getBoundingBox( double amin[2], double amax[2] ) const;
 
+      void getBoundingBoxForConflictSearch( double amin[2], double amax[2] ) const;
+
       //! Gets distance from this label to a point. If point lies inside, returns negative number.
       double getDistanceToPoint( double xp, double yp ) const;
 

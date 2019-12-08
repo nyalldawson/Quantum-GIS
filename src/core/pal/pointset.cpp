@@ -825,6 +825,33 @@ double PointSet::minDistanceToPoint( double px, double py, double *rx, double *r
   }
 }
 
+double PointSet::minDistance( const PointSet &other ) const
+{
+  if ( !mGeos )
+    createGeosGeom();
+
+  if ( !mGeos )
+    return -1;
+
+  const GEOSGeometry *otherGeom = other.geos();
+
+  GEOSContextHandle_t geosctxt = QgsGeos::getGEOSHandler();
+  try
+  {
+    double dist;
+    if ( GEOSDistance_r( geosctxt, mGeos, otherGeom, &dist ) != 0 )
+    {
+      return dist;
+    }
+    return -1;
+  }
+  catch ( GEOSException &e )
+  {
+    QgsMessageLog::logMessage( QObject::tr( "Exception: %1" ).arg( e.what() ), QObject::tr( "GEOS" ) );
+    return -1;
+  }
+}
+
 void PointSet::getCentroid( double &px, double &py, bool forceInside ) const
 {
   if ( !mGeos )

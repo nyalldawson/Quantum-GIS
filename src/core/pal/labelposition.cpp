@@ -275,10 +275,13 @@ bool LabelPosition::isInConflict( const LabelPosition *lp ) const
 
 bool LabelPosition::isInConflictSinglePart( const LabelPosition *lp ) const
 {
+  bool usedBboxIntersects = false;
   if ( qgsDoubleNear( alpha, 0 ) && qgsDoubleNear( lp->alpha, 0 ) )
   {
     // simple case -- both candidates are oriented to axis, so shortcut with easy calculation
-    return boundingBoxIntersects( lp );
+    if ( boundingBoxIntersects( lp ) )
+      return true;
+    usedBboxIntersects = true;
   }
 
   if ( !mGeos )
@@ -290,15 +293,47 @@ bool LabelPosition::isInConflictSinglePart( const LabelPosition *lp ) const
   GEOSContextHandle_t geosctxt = QgsGeos::getGEOSHandler();
   try
   {
-    bool result = ( GEOSPreparedIntersects_r( geosctxt, preparedGeom(), lp->mGeos ) == 1 );
-    return result;
+    if ( !usedBboxIntersects && GEOSPreparedIntersects_r( geosctxt, preparedGeom(), lp->mGeos ) == 1 )
+      return true;
   }
   catch ( GEOSException &e )
   {
     qWarning( "GEOS exception: %s", e.what() );
     QgsMessageLog::logMessage( QObject::tr( "Exception: %1" ).arg( e.what() ), QObject::tr( "GEOS" ) );
-    return false;
   }
+
+  // test for duplicate labels too close together
+  if ( getFeaturePart()->feature()->labelText() == lp->getFeaturePart()->feature()->labelText()
+       && getFeaturePart()->feature()->thinningSettings().noRepeatDistance() > 0
+       && lp->getFeaturePart()->feature()->thinningSettings().noRepeatDistance() > 0 )
+  {
+    double minSeparation = std::max( getFeaturePart()->feature()->thinningSettings().noRepeatDistance(),
+                                     lp->getFeaturePart()->feature()->thinningSettings().noRepeatDistance() );
+
+    // unfortunately GEOS min distance calculation is very slow for our purposes. Let's see if we can shortcut and avoid the call
+    // to GEOS by doing a quick check of the vertex distances
+    const double minSeparationSquared = minSeparation * minSeparation;
+    for ( std::size_t i = 0; i < static_cast< std::size_t >( nbPoints ); ++i )
+    {
+      const double lx1 = x[i];
+      const double ly1 = y[i];
+      for ( std::size_t j = 0; j < static_cast< std::size_t>( lp->nbPoints ); ++j )
+      {
+        const double lx2 = lp->x[j];
+        const double ly2 = lp->y[j];
+        if ( ( lx2 - lx1 ) * ( lx2 - lx1 ) + ( ly2 - ly1 ) * ( ly2 - ly1 ) < minSeparationSquared )
+          return true;
+      }
+    }
+
+    const double minLabelDist = minDistance( *lp );
+    if ( minLabelDist >= 0 && minLabelDist < minSeparation )
+      return true;
+    else
+      return false;
+  }
+
+  return false;
 }
 
 bool LabelPosition::isInConflictMultiPart( const LabelPosition *lp ) const
@@ -402,6 +437,16 @@ void LabelPosition::getBoundingBox( double amin[2], double amax[2] ) const
   }
 }
 
+void LabelPosition::getBoundingBoxForConflictSearch( double amin[], double amax[] ) const
+{
+  getBoundingBox( amin, amax );
+  const double noRepeatDistance = feature->feature()->thinningSettings().noRepeatDistance();
+  amin[0] -= noRepeatDistance;
+  amin[1] -= noRepeatDistance;
+  amax[0] += noRepeatDistance;
+  amax[1] += noRepeatDistance;
+}
+
 void LabelPosition::setConflictsWithObstacle( bool conflicts )
 {
   mHasObstacleConflict = conflicts;
@@ -420,7 +465,7 @@ void LabelPosition::removeFromIndex( PalRtree<LabelPosition> &index )
 {
   double amin[2];
   double amax[2];
-  getBoundingBox( amin, amax );
+  getBoundingBoxForConflictSearch( amin, amax );
   index.remove( this, QgsRectangle( amin[0], amin[1], amax[0], amax[1] ) );
 }
 
@@ -428,7 +473,7 @@ void LabelPosition::insertIntoIndex( PalRtree<LabelPosition> &index )
 {
   double amin[2];
   double amax[2];
-  getBoundingBox( amin, amax );
+  getBoundingBoxForConflictSearch( amin, amax );
   index.insert( this, QgsRectangle( amin[0], amin[1], amax[0], amax[1] ) );
 }
 

@@ -323,17 +323,14 @@ void Layer::joinConnectedFeatures()
       FeaturePart *partCheck = parts.takeFirst();
 
       FeaturePart *otherPart = _findConnectedPart( partCheck, parts );
-      if ( otherPart )
+      // merge points from partCheck to p->item
+      if ( otherPart && otherPart->mergeWithFeaturePart( partCheck ) )
       {
-        // merge points from partCheck to p->item
-        if ( otherPart->mergeWithFeaturePart( partCheck ) )
-        {
-          mConnectedFeaturesIds.insert( partCheck->featureId(), connectedFeaturesId );
-          mConnectedFeaturesIds.insert( otherPart->featureId(), connectedFeaturesId );
+        mConnectedFeaturesIds.insert( partCheck->featureId(), connectedFeaturesId );
+        mConnectedFeaturesIds.insert( otherPart->featureId(), connectedFeaturesId );
 
-          mFeatureParts.removeOne( partCheck );
-          delete partCheck;
-        }
+        mFeatureParts.removeOne( partCheck );
+        delete partCheck;
       }
     }
   }
