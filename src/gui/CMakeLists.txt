@@ -163,6 +163,7 @@ SET(QGIS_GUI_SRCS
   labeling/qgslabelinggui.cpp
   labeling/qgslabelobstaclesettingswidget.cpp
   labeling/qgslabelsettingswidgetbase.cpp
+  labeling/qgslabelremoveduplicatesettingswidget.cpp
 
   layertree/qgscustomlayerorderwidget.cpp
   layertree/qgslayertreeembeddedconfigwidget.cpp
@@ -749,6 +750,7 @@ SET(QGIS_GUI_HDRS
   labeling/qgslabelinggui.h
   labeling/qgslabelobstaclesettingswidget.h
   labeling/qgslabelsettingswidgetbase.h
+  labeling/qgslabelremoveduplicatesettingswidget.h
 
   layertree/qgscustomlayerorderwidget.h
   layertree/qgslayertreeembeddedconfigwidget.h

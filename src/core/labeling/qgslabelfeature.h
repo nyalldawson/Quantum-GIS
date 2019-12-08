@@ -434,6 +434,18 @@ class CORE_EXPORT QgsLabelFeature
      */
     void setObstacleSettings( const QgsLabelObstacleSettings &settings );
 
+    /**
+     * Returns the thinning settings for this label.
+     * \see setThinningSettings()
+     */
+    const QgsLabelFeatureThinningSettings &thinningSettings() const { return mThinningSettings; }
+
+    /**
+     * Sets the thinning \a settings for this label.
+     * \see thinningSettings()
+     */
+    void setThinningSettings( const QgsLabelFeatureThinningSettings &settings ) { mThinningSettings = settings; }
+
   protected:
     //! Pointer to PAL layer (assigned when registered to PAL)
     pal::Layer *mLayer = nullptr;
@@ -489,6 +501,8 @@ class CORE_EXPORT QgsLabelFeature
     double mOverrunDistance = 0;
     //! Distance to smooth angle of line start and end when calculating overruns
     double mOverrunSmoothDistance = 0;
+
+    QgsLabelFeatureThinningSettings mThinningSettings;
 
     pal::LineArrangementFlags mArrangementFlags = nullptr;
 

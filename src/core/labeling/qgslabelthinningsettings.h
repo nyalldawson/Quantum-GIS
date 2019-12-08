@@ -18,6 +18,8 @@
 
 #include "qgis_core.h"
 #include "qgis_sip.h"
+#include "qgsmapunitscale.h"
+#include "qgsunittypes.h"
 
 class QgsPropertyCollection;
 class QgsExpressionContext;
@@ -78,6 +80,62 @@ class CORE_EXPORT QgsLabelThinningSettings
     void setMinimumFeatureSize( double size ) { mMinFeatureSize = size; }
 
     /**
+     * Returns the minimum distance to labels with duplicate text. Units are specified through minimumDistanceToDuplicateUnits().
+     * \see setMinimumDistanceToDuplicate()
+     * \see minimumDistanceToDuplicateUnits()
+     */
+    double minimumDistanceToDuplicate() const { return mMinDistanceToDuplicate; }
+
+    /**
+     * Sets the minimum \a distance to labels with duplicate text. Units are specified through setMinimumLengthUnit().
+     * \see minimumDistanceToDuplicate()
+     * \see setMinimumDistanceToDuplicateUnits()
+     */
+    void setMinimumDistanceToDuplicate( double length ) { mMinDistanceToDuplicate = length; }
+
+    /**
+     * Sets the \a unit for the minimum distance to labels with duplicate text.
+     * \see minimumDistanceToDuplicateUnits()
+     * \see setMinimumDistanceToDuplicate()
+    */
+    void setMinimumDistanceToDuplicateUnits( QgsUnitTypes::RenderUnit unit ) { mMinDistanceToDuplicateUnits = unit; }
+
+    /**
+     * Returns the units for the minimum distance to labels with duplicate text.
+     * \see setMinimumDistanceToDuplicateUnits()
+     * \see minimumDistanceToDuplicate()
+    */
+    QgsUnitTypes::RenderUnit minimumDistanceToDuplicateUnits() const { return mMinDistanceToDuplicateUnits; }
+
+    /**
+     * Sets the map unit \a scale for the minimum distance to labels with duplicate text.
+     * \see minimumDistanceToDuplicateMapUnitScale()
+     * \see minimumDistanceToDuplicateUnits()
+     * \see setMinimumDistanceToDuplicate()
+     */
+    void setMinimumDistanceToDuplicateMapUnitScale( const QgsMapUnitScale &scale ) { mMinDistanceToDuplicateScale = scale; }
+
+    /**
+     * Returns the map unit scale for the minimum distance to labels with duplicate text.
+     * \see setMinimumDistanceToDuplicateMapUnitScale()
+     * \see minimumDistanceToDuplicateUnits()
+     * \see minimumDistanceToDuplicate()
+     */
+    const QgsMapUnitScale &minimumDistanceToDuplicateMapUnitScale() const { return mMinDistanceToDuplicateScale; }
+
+    /**
+     * Returns whether duplicate label removal is permitted for this layer.
+     * \see setAllowDuplicateRemoval()
+     */
+    bool allowDuplicateRemoval() const { return mAllowDuplicateRemoval; }
+
+    /**
+     * Sets whether duplicate label removal is permitted for this layer.
+     * \see setAllowDuplicateRemoval()
+     */
+    void setAllowDuplicateRemoval( bool allow ) { mAllowDuplicateRemoval = allow; }
+
+    /**
      * Updates the thinning settings to respect any data defined properties
      * set within the specified \a properties collection.
      */
@@ -88,6 +146,47 @@ class CORE_EXPORT QgsLabelThinningSettings
     bool mLimitNumLabels = false;
     int mMaxNumLabels = 2000;
     double mMinFeatureSize = 0;
+    bool mAllowDuplicateRemoval = false;
+    double mMinDistanceToDuplicate = 0;
+    QgsUnitTypes::RenderUnit mMinDistanceToDuplicateUnits = QgsUnitTypes::RenderMillimeters;
+    QgsMapUnitScale mMinDistanceToDuplicateScale;
 };
+
+#ifndef SIP_RUN
+
+/**
+ * \ingroup core
+ * \class QgsLabelFeatureThinningSettings
+ *
+ * Contains settings related to how the label engine removes candidate label positions and reduces the number
+ * of displayed labels for one particular label feature.
+ *
+ * \since QGIS 3.12
+ */
+class CORE_EXPORT QgsLabelFeatureThinningSettings
+{
+  public:
+
+    /**
+     * Returns the minimum distance (in label units) between labels for this
+     * feature and other labels with the same label text.
+     * \see setNoRepeatDistance()
+     */
+    double noRepeatDistance() const { return mNoRepeatDistance; }
+
+    /**
+     * Sets the minimum \a distance (in label units) between labels for this
+     * feature and other labels with the same label text.
+     * \see noRepeatDistance()
+     */
+    void setNoRepeatDistance( double distance ) { mNoRepeatDistance = distance; }
+
+  private:
+
+    double mNoRepeatDistance = 0;
+
+};
+
+#endif
 
 #endif // QGSLABELTHINNINGSETTINGS_H

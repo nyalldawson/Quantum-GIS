@@ -302,6 +302,9 @@ class QgsPalLayerSettings
       ZIndex,
       CalloutDraw,
 
+      RemoveDuplicateLabels,
+      RemoveDuplicateLabelDistance,
+
       // (data defined only)
       Show,
       AlwaysShow

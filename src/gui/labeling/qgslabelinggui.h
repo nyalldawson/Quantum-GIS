@@ -92,6 +92,7 @@ class GUI_EXPORT QgsLabelingGui : public QgsTextFormatWidget
     QgsMapCanvas *mCanvas = nullptr;
 
     QgsLabelObstacleSettings mObstacleSettings;
+    QgsLabelThinningSettings mThinningSettings;
 
     QgsExpressionContext createExpressionContext() const override;
 
@@ -100,6 +101,7 @@ class GUI_EXPORT QgsLabelingGui : public QgsTextFormatWidget
     void initCalloutWidgets();
     void updateCalloutWidget( QgsCallout *callout );
     void showObstacleSettings();
+    void showDuplicateSettings();
 
 };
 
