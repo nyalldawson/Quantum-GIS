@@ -247,6 +247,9 @@ Contains settings for how a map layer will be labeled.
       ZIndex,
       CalloutDraw,
 
+      RemoveDuplicateLabels,
+      RemoveDuplicateLabelDistance,
+
       // (data defined only)
       Show,
       AlwaysShow

@@ -204,6 +204,7 @@ set(QGIS_GUI_SRCS
   labeling/qgslabellineanchorwidget.cpp
   labeling/qgslabelobstaclesettingswidget.cpp
   labeling/qgslabelsettingswidgetbase.cpp
+  labeling/qgslabelremoveduplicatesettingswidget.cpp
   labeling/qgsrulebasedlabelingwidget.cpp
 
   layertree/qgscustomlayerorderwidget.cpp
@@ -1000,6 +1001,7 @@ set(QGIS_GUI_HDRS
   labeling/qgslabellineanchorwidget.h
   labeling/qgslabelobstaclesettingswidget.h
   labeling/qgslabelsettingswidgetbase.h
+  labeling/qgslabelremoveduplicatesettingswidget.h
   labeling/qgsrulebasedlabelingwidget.h
 
   layertree/qgscustomlayerorderwidget.h

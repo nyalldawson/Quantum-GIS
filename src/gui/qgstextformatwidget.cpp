@@ -451,7 +451,8 @@ void QgsTextFormatWidget::initWidget()
           << mMaskBufferSizeSpinBox
           << mMaskOpacityWidget
           << mCheckAllowLabelsOutsidePolygons
-          << mHtmlFormattingCheckBox;
+          << mHtmlFormattingCheckBox
+          << mChkNoDuplicates;
 
   connectValueChanged( widgets, SLOT( updatePreview() ) );
 
@@ -814,6 +815,8 @@ void QgsTextFormatWidget::populateDataDefinedButtons()
   registerDataDefinedButton( mCalloutDrawDDBtn, QgsPalLayerSettings::CalloutDraw );
 
   registerDataDefinedButton( mLabelAllPartsDDBtn, QgsPalLayerSettings::LabelAllParts );
+
+  registerDataDefinedButton( mNoDuplicatesDDBtn, QgsPalLayerSettings::RemoveDuplicateLabels );
 }
 
 void QgsTextFormatWidget::registerDataDefinedButton( QgsPropertyOverrideButton *button, QgsPalLayerSettings::Property key )

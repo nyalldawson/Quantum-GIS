@@ -267,13 +267,33 @@ bool LabelPosition::isInConflict( const LabelPosition *lp ) const
   if ( this->probFeat == lp->probFeat ) // bugfix #1
     return false; // always overlaping itself !
 
-  if ( !nextPart() && !lp->nextPart() )
+  if ( !nextPart() && !lp->nextPart() && qgsDoubleNear( alpha, 0 ) && qgsDoubleNear( lp->alpha, 0 ) )
   {
-    if ( qgsDoubleNear( alpha, 0 ) && qgsDoubleNear( lp->alpha, 0 ) )
+    // simple case -- both candidates are oriented to axis, so shortcut with easy calculations
+    if ( boundingBoxIntersects( lp ) )
+      return true;
+
+    if ( getFeaturePart()->feature()->labelText() == lp->getFeaturePart()->feature()->labelText()
+         && getFeaturePart()->feature()->thinningSettings().noRepeatDistance() > 0
+         && lp->getFeaturePart()->feature()->thinningSettings().noRepeatDistance() > 0 )
     {
-      // simple case -- both candidates are oriented to axis, so shortcut with easy calculation
-      return boundingBoxIntersects( lp );
+      double minSeparation = std::max( getFeaturePart()->feature()->thinningSettings().noRepeatDistance(),
+                                       lp->getFeaturePart()->feature()->thinningSettings().noRepeatDistance() );
+      const double minSeparationSquared = minSeparation * minSeparation;
+      for ( std::size_t i = 0; i < static_cast< std::size_t >( nbPoints ); ++i )
+      {
+        const double lx1 = x[i];
+        const double ly1 = y[i];
+        for ( std::size_t j = 0; j < static_cast< std::size_t>( lp->nbPoints ); ++j )
+        {
+          const double lx2 = lp->x[j];
+          const double ly2 = lp->y[j];
+          if ( ( lx2 - lx1 ) * ( lx2 - lx1 ) + ( ly2 - ly1 ) * ( ly2 - ly1 ) < minSeparationSquared )
+            return true;
+        }
+      }
     }
+    return false;
   }
 
   return isInConflictMultiPart( lp );
@@ -288,16 +308,34 @@ bool LabelPosition::isInConflictMultiPart( const LabelPosition *lp ) const
     lp->createMultiPartGeosGeom();
 
   GEOSContextHandle_t geosctxt = QgsGeos::getGEOSHandler();
-  try
+
+  // test for duplicate labels too close together
+  if ( getFeaturePart()->feature()->labelText() == lp->getFeaturePart()->feature()->labelText()
+       && getFeaturePart()->feature()->thinningSettings().noRepeatDistance() > 0
+       && lp->getFeaturePart()->feature()->thinningSettings().noRepeatDistance() > 0 )
   {
-    bool result = ( GEOSPreparedIntersects_r( geosctxt, preparedMultiPartGeom(), lp->mMultipartGeos ) == 1 );
-    return result;
+    double minSeparation = std::max( getFeaturePart()->feature()->thinningSettings().noRepeatDistance(),
+                                     lp->getFeaturePart()->feature()->thinningSettings().noRepeatDistance() );
+
+    const double minLabelDist = minDistance( lp );
+    if ( minLabelDist >= 0 && minLabelDist < minSeparation )
+      return true;
+    else
+      return false;
   }
-  catch ( GEOSException &e )
+  else
   {
-    qWarning( "GEOS exception: %s", e.what() );
-    QgsMessageLog::logMessage( QObject::tr( "Exception: %1" ).arg( e.what() ), QObject::tr( "GEOS" ) );
-    return false;
+    try
+    {
+      bool result = ( GEOSPreparedIntersects_r( geosctxt, preparedMultiPartGeom(), lp->mMultipartGeos ) == 1 );
+      return result;
+    }
+    catch ( GEOSException &e )
+    {
+      qWarning( "GEOS exception: %s", e.what() );
+      QgsMessageLog::logMessage( QObject::tr( "Exception: %1" ).arg( e.what() ), QObject::tr( "GEOS" ) );
+      return false;
+    }
   }
 
   return false;
@@ -384,6 +422,16 @@ void LabelPosition::getBoundingBox( double amin[2], double amax[2] ) const
   }
 }
 
+void LabelPosition::getBoundingBoxForConflictSearch( double amin[], double amax[] ) const
+{
+  getBoundingBox( amin, amax );
+  const double noRepeatDistance = feature->feature()->thinningSettings().noRepeatDistance();
+  amin[0] -= noRepeatDistance;
+  amin[1] -= noRepeatDistance;
+  amax[0] += noRepeatDistance;
+  amax[1] += noRepeatDistance;
+}
+
 void LabelPosition::setConflictsWithObstacle( bool conflicts )
 {
   mHasObstacleConflict = conflicts;
@@ -402,7 +450,7 @@ void LabelPosition::removeFromIndex( PalRtree<LabelPosition> &index )
 {
   double amin[2];
   double amax[2];
-  getBoundingBox( amin, amax );
+  getBoundingBoxForConflictSearch( amin, amax );
   index.remove( this, QgsRectangle( amin[0], amin[1], amax[0], amax[1] ) );
 }
 
@@ -410,7 +458,7 @@ void LabelPosition::insertIntoIndex( PalRtree<LabelPosition> &index )
 {
   double amin[2];
   double amax[2];
-  getBoundingBox( amin, amax );
+  getBoundingBoxForConflictSearch( amin, amax );
   index.insert( this, QgsRectangle( amin[0], amin[1], amax[0], amax[1] ) );
 }
 
@@ -438,6 +486,42 @@ void LabelPosition::createMultiPartGeosGeom() const
 
   mMultipartGeos = GEOSGeom_createCollection_r( geosctxt, GEOS_MULTIPOLYGON, geomarr, partCount );
   delete [] geomarr;
+}
+
+double LabelPosition::minDistance( const LabelPosition *lp ) const
+{
+  if ( !mMultipartGeos )
+    createMultiPartGeosGeom();
+
+  if ( !mGeos )
+    return -1;
+
+  if ( !lp->mMultipartGeos )
+    lp->createMultiPartGeosGeom();
+
+  const GEOSGeometry *otherGeom = lp->mMultipartGeos;
+  if ( !otherGeom )
+    return -1;
+
+  GEOSContextHandle_t geosctxt = QgsGeos::getGEOSHandler();
+  try
+  {
+    double dist;
+#if GEOS_VERSION_MAJOR>3 || GEOS_VERSION_MINOR>=9
+    if ( GEOSPreparedDistance_r( geosctxt, preparedMultiPartGeom(), otherGeom, &dist ) != 0 )
+#else
+    if ( GEOSDistance_r( geosctxt, mGeos, otherGeom, &dist ) != 0 )
+#endif
+    {
+      return dist;
+    }
+    return -1;
+  }
+  catch ( GEOSException &e )
+  {
+    QgsMessageLog::logMessage( QObject::tr( "Exception: %1" ).arg( e.what() ), QObject::tr( "GEOS" ) );
+    return -1;
+  }
 }
 
 const GEOSPreparedGeometry *LabelPosition::preparedMultiPartGeom() const

@@ -352,6 +352,9 @@ class CORE_EXPORT QgsPalLayerSettings
       ZIndex = 90,
       CalloutDraw = 100, //!< Show callout
 
+      RemoveDuplicateLabels = 112, //!< Whether this feature can cause removal of duplicate labels (since QGIS 3.20)
+      RemoveDuplicateLabelDistance = 113, //!< Minimum distance from labels for this feature to other labels with duplicate text (since QGIS 3.20)
+
       // (data defined only)
       Show = 15,
       AlwaysShow = 20

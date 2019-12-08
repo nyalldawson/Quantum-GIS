@@ -196,7 +196,7 @@ std::unique_ptr<Problem> Pal::extract( const QgsRectangle &extent, const QgsGeom
       {
         for ( std::unique_ptr< LabelPosition > &candidate : candidates )
         {
-          candidate->insertIntoIndex( allCandidatesFirstRound );
+          allCandidatesFirstRound.insert( candidate.get(), candidate->boundingBox() );
           candidate->setGlobalId( mNextCandidateId++ );
         }
 
@@ -446,7 +446,7 @@ std::unique_ptr<Problem> Pal::extract( const QgsRectangle &extent, const QgsGeom
         //prob->feat[idlp] = j;
 
         // lookup for overlapping candidate
-        lp->getBoundingBox( amin, amax );
+        lp->getBoundingBoxForConflictSearch( amin, amax );
         prob->allCandidatesIndex().intersects( QgsRectangle( amin[0], amin[1], amax[0], amax[1] ), [&lp, this]( const LabelPosition * lp2 )->bool
         {
           if ( candidatesAreConflicting( lp.get(), lp2 ) )
