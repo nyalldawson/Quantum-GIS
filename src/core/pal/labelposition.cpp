@@ -269,10 +269,34 @@ bool LabelPosition::isInConflict( const LabelPosition *lp ) const
   if ( this->probFeat == lp->probFeat ) // bugfix #1
     return false; // always overlaping itself !
 
-  if ( !nextPart() && !lp->nextPart() )
-    return isInConflictSinglePart( lp );
-  else
-    return isInConflictMultiPart( lp );
+  // we cache the value -- this can be costly to calculate, and we check this multiple times
+  // per candidate during the labeling problem solving
+  ConflictStatus status = mConflicts.value( lp, Unknown );
+  if ( status == Unknown )
+  {
+    // see if other candidate has already worked this out
+    status = lp->mConflicts.value( lp, Unknown );
+  }
+  switch ( status )
+  {
+    case Conflicts:
+      return true;
+
+    case NotConflicts:
+      return false;
+
+    case Unknown:
+    {
+      bool res = false;
+      if ( !nextPart() && !lp->nextPart() )
+        res = isInConflictSinglePart( lp );
+      else
+        res = isInConflictMultiPart( lp );
+      mConflicts.insert( lp, res ? Conflicts : NotConflicts );
+      return res;
+    }
+  }
+  return false; // no warnings
 }
 
 bool LabelPosition::isInConflictSinglePart( const LabelPosition *lp ) const

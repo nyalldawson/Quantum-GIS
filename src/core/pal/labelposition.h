@@ -358,6 +358,15 @@ namespace pal
       double mDx = 0.0;
       double mDy = 0.0;
 
+      enum ConflictStatus
+      {
+        Unknown = 0,
+        Conflicts = 1,
+        NotConflicts = 2
+      };
+
+      mutable QHash< const LabelPosition *, ConflictStatus > mConflicts;
+
       /**
        * Calculates the total number of parts for this label position
        */
