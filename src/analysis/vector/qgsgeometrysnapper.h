@@ -52,6 +52,8 @@ class ANALYSIS_EXPORT QgsGeometrySnapper : public QObject
       EndPointPreferNodes, //!< Only snap start/end points of lines (point features will also be snapped, polygon features will not be modified), prefer to snap to nodes
       EndPointPreferClosest, //!< Only snap start/end points of lines (point features will also be snapped, polygon features will not be modified), snap to closest point
       EndPointToEndPoint, //!< Only snap the start/end points of lines to other start/end points of lines
+      // 7 deliberately missing -- it represents the QgsGeometrySnapperSingleSource alg
+      StartOrEndOnlyPointToClosest = 8, //!< Only snap either the start OR end points of lines, whichever is closest
     };
 
     /**

@@ -34,6 +34,8 @@ match the reference layer features within a specified snap tolerance.
       EndPointPreferNodes,
       EndPointPreferClosest,
       EndPointToEndPoint,
+      // 7 deliberately missing -- it represents the QgsGeometrySnapperSingleSource alg
+      StartOrEndOnlyPointToClosest,
     };
 
     QgsGeometrySnapper( QgsFeatureSource *referenceSource );

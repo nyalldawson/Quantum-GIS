@@ -505,7 +505,7 @@ QgsGeometry QgsGeometrySnapper::snapGeometry( const QgsGeometry &geometry, doubl
 QgsGeometry QgsGeometrySnapper::snapGeometry( const QgsGeometry &geometry, double snapTolerance, const QList<QgsGeometry> &referenceGeometries, QgsGeometrySnapper::SnapMode mode )
 {
   if ( QgsWkbTypes::geometryType( geometry.wkbType() ) == QgsWkbTypes::PolygonGeometry &&
-       ( mode == EndPointPreferClosest || mode == EndPointPreferNodes || mode == EndPointToEndPoint ) )
+       ( mode == EndPointPreferClosest || mode == EndPointPreferNodes || mode == EndPointToEndPoint || mode == StartOrEndOnlyPointToClosest ) )
     return geometry;
 
   QgsPoint center = qgsgeometry_cast< const QgsPoint * >( geometry.constGet() ) ? *static_cast< const QgsPoint * >( geometry.constGet() ) :
@@ -530,9 +530,13 @@ QgsGeometry QgsGeometrySnapper::snapGeometry( const QgsGeometry &geometry, doubl
     {
       subjPointFlags[iPart].append( QList<PointFlag>() );
 
+      double startVertDist = std::numeric_limits< double >::max();
+      QgsPoint startVertSnap;
+      PointFlag startVertFlag = Unsnapped;
+
       for ( int iVert = 0, nVerts = polyLineSize( subjGeom, iPart, iRing ); iVert < nVerts; ++iVert )
       {
-        if ( ( mode == EndPointPreferClosest || mode == EndPointPreferNodes || mode == EndPointToEndPoint ) &&
+        if ( ( mode == EndPointPreferClosest || mode == EndPointPreferNodes || mode == EndPointToEndPoint || mode == StartOrEndOnlyPointToClosest ) &&
              QgsWkbTypes::geometryType( subjGeom->wkbType() ) == QgsWkbTypes::LineGeometry && ( iVert > 0 && iVert < nVerts - 1 ) )
         {
           //endpoint mode and not at an endpoint, skip
@@ -547,6 +551,13 @@ QgsGeometry QgsGeometrySnapper::snapGeometry( const QgsGeometry &geometry, doubl
         if ( !refSnapIndex.getSnapItem( p, snapTolerance, &snapPoint, &snapSegment, mode == EndPointToEndPoint ) )
         {
           subjPointFlags[iPart][iRing].append( Unsnapped );
+
+          if ( mode == StartOrEndOnlyPointToClosest && iVert != 0 && startVertFlag != Unsnapped )
+          {
+            // last vertex wasn't snapped - but we still need to retrospectively move the first vertex
+            subjGeom->moveVertex( QgsVertexId( vidx.part, vidx.ring, 0 ), startVertSnap );
+            subjPointFlags[iPart][iRing][0] = startVertFlag;
+          }
         }
         else
         {
@@ -574,6 +585,7 @@ QgsGeometry QgsGeometrySnapper::snapGeometry( const QgsGeometry &geometry, doubl
             case PreferClosest:
             case PreferClosestNoExtraVertices:
             case EndPointPreferClosest:
+            case StartOrEndOnlyPointToClosest:
             {
               QgsPoint nodeSnap, segmentSnap;
               double distanceNode = std::numeric_limits<double>::max();
@@ -588,15 +600,69 @@ QgsGeometry QgsGeometrySnapper::snapGeometry( const QgsGeometry &geometry, doubl
                 segmentSnap = snapSegment->getSnapPoint( p );
                 distanceSegment = segmentSnap.distanceSquared( p );
               }
-              if ( snapPoint && distanceNode < distanceSegment )
+
+              if ( mode != StartOrEndOnlyPointToClosest )
               {
-                subjGeom->moveVertex( vidx, nodeSnap );
-                subjPointFlags[iPart][iRing].append( SnappedToRefNode );
+                if ( snapPoint && distanceNode < distanceSegment )
+                {
+                  subjGeom->moveVertex( vidx, nodeSnap );
+                  subjPointFlags[iPart][iRing].append( SnappedToRefNode );
+                }
+                else if ( snapSegment )
+                {
+                  subjGeom->moveVertex( vidx, segmentSnap );
+                  subjPointFlags[iPart][iRing].append( SnappedToRefSegment );
+                }
               }
-              else if ( snapSegment )
+              else
               {
-                subjGeom->moveVertex( vidx, segmentSnap );
-                subjPointFlags[iPart][iRing].append( SnappedToRefSegment );
+                if ( iVert == 0 )
+                {
+                  // start of line - just record distance for now
+                  if ( snapPoint && distanceNode < distanceSegment )
+                  {
+                    startVertDist = distanceNode;
+                    startVertSnap = nodeSnap;
+                    startVertFlag = SnappedToRefNode;
+                  }
+                  else if ( snapSegment )
+                  {
+                    startVertDist = distanceSegment;
+                    startVertSnap = segmentSnap;
+                    startVertFlag = SnappedToRefSegment;
+                  }
+                  subjPointFlags[iPart][iRing].append( Unsnapped );
+                }
+                else
+                {
+                  // end of line -- we snap either the start OR the end, which ever is closest
+                  const double endVertDist = ( snapPoint && distanceNode < distanceSegment ) ? distanceNode :
+                                             ( snapSegment ? distanceSegment : std::numeric_limits< double >::max() );
+                  const bool snapStart = startVertDist < endVertDist;
+                  if ( snapStart )
+                  {
+                    // start was closer, move it
+                    if ( startVertFlag != Unsnapped )
+                      subjGeom->moveVertex( QgsVertexId( vidx.part, vidx.ring, 0 ), startVertSnap );
+
+                    subjPointFlags[iPart][iRing][0] = startVertFlag;
+                    subjPointFlags[iPart][iRing].append( Unsnapped );
+                  }
+                  else
+                  {
+                    // end was closer, move it
+                    if ( snapPoint && distanceNode < distanceSegment )
+                    {
+                      subjGeom->moveVertex( vidx, nodeSnap );
+                      subjPointFlags[iPart][iRing].append( SnappedToRefNode );
+                    }
+                    else if ( snapSegment )
+                    {
+                      subjGeom->moveVertex( vidx, segmentSnap );
+                      subjPointFlags[iPart][iRing].append( SnappedToRefSegment );
+                    }
+                  }
+                }
               }
               break;
             }
@@ -610,7 +676,12 @@ QgsGeometry QgsGeometrySnapper::snapGeometry( const QgsGeometry &geometry, doubl
   if ( qgsgeometry_cast< const QgsPoint * >( subjGeom ) )
     return QgsGeometry( subjGeom );
   //or for end point snapping
-  if ( mode == PreferClosestNoExtraVertices || mode == PreferNodesNoExtraVertices || mode == EndPointPreferClosest || mode == EndPointPreferNodes || mode == EndPointToEndPoint )
+  if ( mode == PreferClosestNoExtraVertices
+       || mode == PreferNodesNoExtraVertices
+       || mode == EndPointPreferClosest
+       || mode == EndPointPreferNodes
+       || mode == EndPointToEndPoint
+       || mode == StartOrEndOnlyPointToClosest )
   {
     QgsGeometry result( subjGeom );
     result.removeDuplicateNodes();

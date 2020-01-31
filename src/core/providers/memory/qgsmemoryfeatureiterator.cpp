@@ -63,7 +63,7 @@ QgsMemoryFeatureIterator::QgsMemoryFeatureIterator( QgsMemoryFeatureSource *sour
   {
     mUsingFeatureIdList = true;
     mFeatureIdList = mSource->mSpatialIndex->intersects( mFilterRect );
-    QgsDebugMsg( "Features returned by spatial index: " + QString::number( mFeatureIdList.count() ) );
+    QgsDebugMsgLevel( "Features returned by spatial index: " + QString::number( mFeatureIdList.count() ), 3 );
   }
   else if ( mRequest.filterType() == QgsFeatureRequest::FilterFid )
   {

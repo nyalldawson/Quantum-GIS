@@ -69,7 +69,8 @@ class SnapGeometriesToLayer(QgisAlgorithm):
                       self.tr('Move end points only, prefer aligning nodes'),
                       self.tr('Move end points only, prefer closest point'),
                       self.tr('Snap end points to end points only'),
-                      self.tr('Snap to anchor nodes (single layer only)')]
+                      self.tr('Snap to anchor nodes (single layer only)'),
+                      self.tr('Move only the start OR end point, whichever is closest')]
         self.addParameter(QgsProcessingParameterEnum(
             self.BEHAVIOR,
             self.tr('Behavior'),
