@@ -44,6 +44,7 @@ QgsLayoutLabelWidget::QgsLayoutLabelWidget( QgsLayoutItemLabel *label )
   connect( mTopRadioButton, &QRadioButton::clicked, this, &QgsLayoutLabelWidget::mTopRadioButton_clicked );
   connect( mBottomRadioButton, &QRadioButton::clicked, this, &QgsLayoutLabelWidget::mBottomRadioButton_clicked );
   connect( mMiddleRadioButton, &QRadioButton::clicked, this, &QgsLayoutLabelWidget::mMiddleRadioButton_clicked );
+  connect( mResizeToContentsCheck, &QCheckBox::toggled, this, &QgsLayoutLabelWidget::autosizeChecked );
   setPanelTitle( tr( "Label Properties" ) );
 
   mFontButton->setMode( QgsFontButton::ModeQFont );
@@ -185,6 +186,20 @@ void QgsLayoutLabelWidget::mFontColorButton_colorChanged( const QColor &newLabel
   mLabel->endCommand();
 }
 
+void QgsLayoutLabelWidget::autosizeChecked( bool checked )
+{
+  if ( !mLabel )
+  {
+    return;
+  }
+
+  mLabel->beginCommand( tr( "Autosize Label" ) );
+  mLabel->setSizeToContents( checked );
+  mLabel->resizeToContents();
+  mLabel->update();
+  mLabel->endCommand();
+}
+
 void QgsLayoutLabelWidget::mInsertExpressionButton_clicked()
 {
   if ( !mLabel )
@@ -307,6 +322,7 @@ void QgsLayoutLabelWidget::setGuiElementValues()
   mTopRadioButton->setDisabled( mLabel->mode() == QgsLayoutItemLabel::ModeHtml );
   mMiddleRadioButton->setDisabled( mLabel->mode() == QgsLayoutItemLabel::ModeHtml );
   mBottomRadioButton->setDisabled( mLabel->mode() == QgsLayoutItemLabel::ModeHtml );
+  mResizeToContentsCheck->setChecked( mLabel->sizeToContents() );
 
   blockAllSignals( false );
 }

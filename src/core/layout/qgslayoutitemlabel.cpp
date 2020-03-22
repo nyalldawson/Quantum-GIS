@@ -351,10 +351,19 @@ void QgsLayoutItemLabel::adjustSizeToText()
   attemptSetSceneRect( QRectF( pos().x() + xShift, pos().y() + yShift, newSize.width(), newSize.height() ) );
 }
 
+void QgsLayoutItemLabel::resizeToContents()
+{
+  QSizeF newSize = sizeForText();
+  // convert size to target units
+  QgsLayoutSize newSizeForItem = mLayout->convertFromLayoutUnits( newSize, sizeWithUnits().units() );
+  attemptResize( newSizeForItem, false );
+}
+
 QSizeF QgsLayoutItemLabel::sizeForText() const
 {
-  double textWidth = QgsLayoutUtils::textWidthMM( mFont, currentText() );
-  double fontHeight = QgsLayoutUtils::fontHeightMM( mFont );
+  QRectF rect = QgsLayoutUtils::tightBoundingRect( mFont, currentText() );
+  double textWidth = rect.width();
+  double fontHeight = rect.height();
 
   double penWidth = frameEnabled() ? ( pen().widthF() / 2.0 ) : 0;
 
@@ -378,6 +387,7 @@ bool QgsLayoutItemLabel::writePropertiesToElement( QDomElement &layoutLabelElem,
   layoutLabelElem.setAttribute( QStringLiteral( "marginY" ), QString::number( mMarginY ) );
   layoutLabelElem.setAttribute( QStringLiteral( "halign" ), mHAlignment );
   layoutLabelElem.setAttribute( QStringLiteral( "valign" ), mVAlignment );
+  layoutLabelElem.setAttribute( QStringLiteral( "sizeToContents" ), mSizeToContents ? QStringLiteral( "1" ) : QStringLiteral( "0" ) );
 
   //font
   QDomElement labelFontElem = QgsFontUtils::toXmlElement( mFont, doc, QStringLiteral( "LabelFont" ) );
@@ -422,6 +432,8 @@ bool QgsLayoutItemLabel::readPropertiesFromElement( const QDomElement &itemElem,
 
   //Vertical alignment
   mVAlignment = static_cast< Qt::AlignmentFlag >( itemElem.attribute( QStringLiteral( "valign" ) ).toInt() );
+
+  mSizeToContents = itemElem.attribute( QStringLiteral( "sizeToContents" ), QStringLiteral( "0" ) ).toInt();
 
   //font
   QgsFontUtils::setFromXmlChildNode( mFont, itemElem, QStringLiteral( "LabelFont" ) );
@@ -616,4 +628,18 @@ QUrl QgsLayoutItemLabel::createStylesheetUrl() const
   QUrl cssFileURL = QUrl( "data:text/css;charset=utf-8;base64," + ba.toBase64() );
 
   return cssFileURL;
+}
+
+bool QgsLayoutItemLabel::sizeToContents() const
+{
+  return mSizeToContents;
+}
+
+void QgsLayoutItemLabel::setSizeToContents( bool enabled )
+{
+  if ( mSizeToContents == enabled )
+    return;
+
+  mSizeToContents = enabled;
+  emit changed();
 }

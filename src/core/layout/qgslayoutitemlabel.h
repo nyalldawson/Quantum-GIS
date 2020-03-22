@@ -68,6 +68,16 @@ class CORE_EXPORT QgsLayoutItemLabel: public QgsLayoutItem
     void adjustSizeToText();
 
     /**
+     * Automatically resizes the label to fit the label's contents. Unlike adjustSizeToText(), this
+     * method respects the label item's settings such as its reference point during the resizing.
+     *
+     * \see sizeToContents()
+     * \see setSizeToContents()
+     * \since QGIS 3.14
+     */
+    void resizeToContents();
+
+    /**
      * Returns the required item size (in layout units) for the label's text to fill the item.
      * \see adjustSizeToText()
      */
@@ -203,6 +213,25 @@ class CORE_EXPORT QgsLayoutItemLabel: public QgsLayoutItem
      */
     QColor fontColor() const { return mFontColor; }
 
+    /**
+     * Returns TRUE if the label will be automatically sized to match its contents.
+     *
+     * \see setSizeToContents()
+     * \since QGIS 3.14
+     */
+    bool sizeToContents() const;
+
+    /**
+     * Sets whether the label will be automatically sized to match its contents.
+     *
+     * Note that setting \a enabled to TRUE will not immediately trigger a resize - this can be
+     * done by changing the label text or by calling adjustSizeToText().
+     *
+     * \see sizeToContents()
+     * \since QGIS 3.14
+     */
+    void setSizeToContents( bool enabled );
+
     // In case of negative margins, the bounding rect may be larger than the
     // label's frame
     QRectF boundingRect() const override;
@@ -272,6 +301,8 @@ class CORE_EXPORT QgsLayoutItemLabel: public QgsLayoutItem
     std::unique_ptr< QgsDistanceArea > mDistanceArea;
 
     std::unique_ptr< QgsWebPage > mWebPage;
+
+    bool mSizeToContents = false;
 };
 
 #endif //QGSLAYOUTITEMLABEL_H

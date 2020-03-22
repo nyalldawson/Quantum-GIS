@@ -155,6 +155,8 @@ class CORE_EXPORT QgsLayoutUtils
      */
     static double textWidthMM( const QFont &font, const QString &text );
 
+    static QRectF tightBoundingRect( const QFont &font, const QString &text );
+
     /**
      * Calculate a \a font height in millimeters for a \a text string, including workarounds for QT font
      * rendering issues. Note that this method uses a non-standard measure of text height,

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>304</width>
-    <height>705</height>
+    <width>333</width>
+    <height>724</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -61,8 +61,8 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>446</width>
-        <height>665</height>
+        <width>331</width>
+        <height>699</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="mainLayout">
@@ -94,14 +94,21 @@
             </property>
            </widget>
           </item>
-          <item row="1" column="0">
+          <item row="2" column="0">
            <widget class="QCheckBox" name="mHtmlCheckBox">
             <property name="text">
              <string>Render as HTML</string>
             </property>
            </widget>
           </item>
-          <item row="2" column="0">
+          <item row="4" column="0">
+           <widget class="QCheckBox" name="mResizeToContentsCheck">
+            <property name="text">
+             <string>Automatically resize to contents</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
            <widget class="QPushButton" name="mInsertExpressionButton">
             <property name="text">
              <string>Insert an Expression…</string>
@@ -384,8 +391,9 @@
   <tabstop>scrollArea</tabstop>
   <tabstop>mTextGroupBox</tabstop>
   <tabstop>mTextEdit</tabstop>
-  <tabstop>mHtmlCheckBox</tabstop>
   <tabstop>mInsertExpressionButton</tabstop>
+  <tabstop>mHtmlCheckBox</tabstop>
+  <tabstop>mResizeToContentsCheck</tabstop>
   <tabstop>mAppearanceGroup</tabstop>
   <tabstop>mFontButton</tabstop>
   <tabstop>mFontColorButton</tabstop>
@@ -394,6 +402,7 @@
   <tabstop>mLeftRadioButton</tabstop>
   <tabstop>mCenterRadioButton</tabstop>
   <tabstop>mRightRadioButton</tabstop>
+  <tabstop>mJustifyRadioButton</tabstop>
   <tabstop>mTopRadioButton</tabstop>
   <tabstop>mMiddleRadioButton</tabstop>
   <tabstop>mBottomRadioButton</tabstop>

@@ -225,6 +225,16 @@ double QgsLayoutUtils::textWidthMM( const QFont &font, const QString &text )
   return ( fontMetrics.width( text ) / FONT_WORKAROUND_SCALE );
 }
 
+QRectF QgsLayoutUtils::tightBoundingRect( const QFont &font, const QString &text )
+{
+  //upscale using FONT_WORKAROUND_SCALE
+  //ref: http://osgeo-org.1560.x6.nabble.com/Multi-line-labels-and-font-bug-td4157152.html
+  QFont metricsFont = scaledFontPixelSize( font );
+  QFontMetricsF fontMetrics( metricsFont );
+  QRectF res = fontMetrics.boundingRect( text );
+  return QRectF( res.topLeft() / FONT_WORKAROUND_SCALE, res.size() / FONT_WORKAROUND_SCALE );
+}
+
 double QgsLayoutUtils::textHeightMM( const QFont &font, const QString &text, double multiLineHeight )
 {
   QStringList multiLineSplit = text.split( '\n' );
