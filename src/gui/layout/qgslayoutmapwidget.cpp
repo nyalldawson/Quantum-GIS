@@ -85,6 +85,7 @@ QgsLayoutMapWidget::QgsLayoutMapWidget( QgsLayoutItemMap *item, QgsMapCanvas *ma
   connect( mOverviewListWidget, &QListWidget::currentItemChanged, this, &QgsLayoutMapWidget::mOverviewListWidget_currentItemChanged );
   connect( mOverviewListWidget, &QListWidget::itemChanged, this, &QgsLayoutMapWidget::mOverviewListWidget_itemChanged );
   connect( mActionLabelSettings, &QAction::triggered, this, &QgsLayoutMapWidget::showLabelSettings );
+  connect( mActionClipSettings, &QAction::triggered, this, &QgsLayoutMapWidget::showClipSettings );
 
   connect( mActionMoveContent, &QAction::triggered, this, &QgsLayoutMapWidget::switchToMoveContentTool );
   setPanelTitle( tr( "Map Properties" ) );
@@ -223,6 +224,8 @@ bool QgsLayoutMapWidget::setNewItem( QgsLayoutItem *item )
   mItemPropertiesWidget->setItem( mMapItem );
   if ( mLabelWidget )
     mLabelWidget->setItem( mMapItem );
+  if ( mClipWidget )
+    mClipWidget->setItem( mMapItem );
 
   if ( mMapItem )
   {
@@ -402,6 +405,12 @@ void QgsLayoutMapWidget::showLabelSettings()
 {
   mLabelWidget = new QgsLayoutMapLabelingWidget( mMapItem );
   openPanel( mLabelWidget );
+}
+
+void QgsLayoutMapWidget::showClipSettings()
+{
+  mClipWidget = new QgsLayoutMapClippingWidget( mMapItem );
+  openPanel( mClipWidget );
 }
 
 void QgsLayoutMapWidget::switchToMoveContentTool()
@@ -1860,4 +1869,47 @@ bool QgsLayoutMapItemBlocksLabelsModel::filterAcceptsRow( int source_row, const 
   }
 
   return true;
+}
+
+
+
+//
+// QgsLayoutMapClippingWidget
+//
+
+QgsLayoutMapClippingWidget::QgsLayoutMapClippingWidget( QgsLayoutItemMap *map )
+  : QgsLayoutItemBaseWidget( nullptr, map )
+  , mMapItem( map )
+{
+  setupUi( this );
+  setPanelTitle( tr( "Clipping Settings" ) );
+
+  setNewItem( map );
+}
+
+bool QgsLayoutMapClippingWidget::setNewItem( QgsLayoutItem *item )
+{
+  if ( item->type() != QgsLayoutItemRegistry::LayoutMap )
+    return false;
+
+  if ( mMapItem )
+  {
+    disconnect( mMapItem, &QgsLayoutObject::changed, this, &QgsLayoutMapClippingWidget::updateGuiElements );
+  }
+
+  mMapItem = qobject_cast< QgsLayoutItemMap * >( item );
+
+  if ( mMapItem )
+  {
+    connect( mMapItem, &QgsLayoutObject::changed, this, &QgsLayoutMapClippingWidget::updateGuiElements );
+  }
+
+  updateGuiElements();
+
+  return true;
+}
+
+void QgsLayoutMapClippingWidget::updateGuiElements()
+{
+
 }
