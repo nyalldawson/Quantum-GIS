@@ -123,6 +123,8 @@ class GUI_EXPORT QgsAttributeTableView : public QTableView
      */
     void keyPressEvent( QKeyEvent *event ) override;
 
+    void wheelEvent( QWheelEvent * ) override;
+
     /**
      * \brief
      * Is called when the context menu will be shown. Emits a willShowContextMenu() signal,

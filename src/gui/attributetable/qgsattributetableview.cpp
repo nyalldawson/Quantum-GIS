@@ -333,6 +333,23 @@ void QgsAttributeTableView::keyPressEvent( QKeyEvent *event )
   }
 }
 
+void QgsAttributeTableView::wheelEvent( QWheelEvent *event )
+{
+  if ( event->modifiers() & Qt::ShiftModifier )
+  {
+    QPoint pixelDelta = QPoint( event->pixelDelta().y(), event->pixelDelta().x() );
+    QPoint angleDelta = QPoint( event->angleDelta().y(), event->angleDelta().x() );
+    QWheelEvent axisSwappedScrollEvent( event->posF(), event->globalPosF(), pixelDelta, angleDelta,
+                                        event->buttons(), event->modifiers() & ~Qt::ShiftModifier, event->phase(),
+                                        event->inverted(), event->source() );
+    QTableView::wheelEvent( &axisSwappedScrollEvent );
+  }
+  else
+  {
+    QTableView::wheelEvent( event );
+  }
+}
+
 void QgsAttributeTableView::repaintRequested( const QModelIndexList &indexes )
 {
   const auto constIndexes = indexes;
@@ -493,3 +510,4 @@ void QgsAttributeTableView::recreateActionWidgets()
   }
   mActionWidgets.clear();
 }
+
