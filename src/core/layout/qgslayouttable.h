@@ -473,6 +473,8 @@ class CORE_EXPORT QgsLayoutTable: public QgsLayoutMultiFrame
      */
     virtual QgsConditionalStyle conditionalCellStyle( int row, int column ) const;
 
+    virtual QgsExpressionContextScope *scopeForCell( int row, int column ) const;
+
     /**
      * Returns the current contents of the table. Excludes header cells.
      */

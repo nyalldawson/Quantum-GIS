@@ -24,6 +24,7 @@
 #include "qgsfontutils.h"
 #include "qgssettings.h"
 #include "qgslayoutpagecollection.h"
+#include "qgsexpressioncontextutils.h"
 
 //
 // QgsLayoutTableStyle
@@ -436,6 +437,25 @@ void QgsLayoutTable::render( QgsLayoutItemRenderContext &context, const QRectF &
         const QRectF textCell = QRectF( currentX, currentY + mCellMargin, mMaxColumnWidthMap[col], rowHeight - 2 * mCellMargin );
 
         const QgsConditionalStyle style = conditionalCellStyle( row, col );
+        std::unique_ptr< QgsExpressionContextScopePopper > popper;
+        std::unique_ptr< QgsExpressionContextScope > scope( scopeForCell( row, col ) );
+        if ( scope )
+          popper = qgis::make_unique< QgsExpressionContextScopePopper >( context.renderContext().expressionContext(), scope.release() );
+
+        std::unique_ptr< QgsSymbol > sym;
+        if ( style.symbol() )
+        {
+          p->scale( 1 / context.renderContext().scaleFactor(), 1 / context.renderContext().scaleFactor() );
+
+          sym.reset( style.symbol()->clone() );
+          sym->startRender( context.renderContext() );
+
+          static_cast< QgsMarkerSymbol * >( sym.get() )->renderPoint( QPointF( textCell.left() + 5, textCell.center().y() ) * context.renderContext().scaleFactor(), nullptr, context.renderContext() );
+          sym->stopRender( context.renderContext() );
+
+          p->scale( context.renderContext().scaleFactor(), context.renderContext().scaleFactor() );
+        }
+
         QColor foreColor = mContentFontColor;
         if ( style.textColor().isValid() )
           foreColor = style.textColor();
@@ -797,6 +817,11 @@ QMap<int, QString> QgsLayoutTable::headerLabels() const
 QgsConditionalStyle QgsLayoutTable::conditionalCellStyle( int, int ) const
 {
   return QgsConditionalStyle();
+}
+
+QgsExpressionContextScope *QgsLayoutTable::scopeForCell( int row, int column ) const
+{
+  return nullptr;
 }
 
 QSizeF QgsLayoutTable::fixedFrameSize( const int frameIndex ) const

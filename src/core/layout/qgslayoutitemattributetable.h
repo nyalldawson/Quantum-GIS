@@ -290,6 +290,8 @@ class CORE_EXPORT QgsLayoutItemAttributeTable: public QgsLayoutTable
 
     QgsConditionalStyle conditionalCellStyle( int row, int column ) const override;
 
+    QgsExpressionContextScope *scopeForCell( int row, int column ) const override;
+
     QgsExpressionContext createExpressionContext() const override;
     void finalizeRestoreFromXml() override;
 
@@ -365,6 +367,7 @@ class CORE_EXPORT QgsLayoutItemAttributeTable: public QgsLayoutTable
     bool mUseConditionalStyling = false;
 
     QList< QList< QgsConditionalStyle > > mConditionalStyles;
+    QList< QgsFeature > mFeatures;
 
     /**
      * Returns a list of attribute indices corresponding to displayed fields in the table.
