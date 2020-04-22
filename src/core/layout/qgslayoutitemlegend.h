@@ -227,14 +227,18 @@ class CORE_EXPORT QgsLayoutItemLegend : public QgsLayoutItem
     /**
      * Returns the font settings for a legend \a component.
      * \see setStyleFont()
+     *
+     * \deprecated use QgsLegendStyle::textFormat() from style() instead.
      */
-    QFont styleFont( QgsLegendStyle::Style component ) const;
+    Q_DECL_DEPRECATED QFont styleFont( QgsLegendStyle::Style component ) const SIP_DEPRECATED;
 
     /**
      * Sets the style \a font for a legend \a component.
      * \see styleFont()
+     *
+     * \deprecated use QgsLegendStyle::setTextFormat() from style() instead.
      */
-    void setStyleFont( QgsLegendStyle::Style component, const QFont &font );
+    Q_DECL_DEPRECATED void setStyleFont( QgsLegendStyle::Style component, const QFont &font ) SIP_DEPRECATED;
 
     /**
      * Set the \a margin for a legend \a component.

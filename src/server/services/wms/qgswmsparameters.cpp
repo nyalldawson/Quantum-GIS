@@ -1226,7 +1226,7 @@ namespace QgsWms
 
     settings.rstyle( QgsLegendStyle::Style::Subgroup ).setMargin( QgsLegendStyle::Side::Top, layerSpaceAsDouble() );
     settings.rstyle( QgsLegendStyle::Style::Subgroup ).setMargin( QgsLegendStyle::Side::Bottom, layerTitleSpaceAsDouble() );
-    settings.rstyle( QgsLegendStyle::Style::Subgroup ).setFont( layerFont() );
+    settings.rstyle( QgsLegendStyle::Style::Subgroup ).setTextFormat( QgsTextFormat::fromQFont( layerFont() ) );
 
     if ( !itemFontColor().isEmpty() )
     {
@@ -1240,7 +1240,7 @@ namespace QgsWms
     // we set explicitly layerFontColor to black if it's not overridden by LAYERFONTCOLOR argument.
     settings.setLayerFontColor( layerFontColor().isEmpty() ? QColor( Qt::black ) : layerFontColorAsColor() );
 
-    settings.rstyle( QgsLegendStyle::Style::SymbolLabel ).setFont( itemFont() );
+    settings.rstyle( QgsLegendStyle::Style::SymbolLabel ).setTextFormat( QgsTextFormat::fromQFont( itemFont() ) );
     settings.rstyle( QgsLegendStyle::Style::Symbol ).setMargin( QgsLegendStyle::Side::Top, symbolSpaceAsDouble() );
     settings.rstyle( QgsLegendStyle::Style::SymbolLabel ).setMargin( QgsLegendStyle::Side::Left, iconLabelSpaceAsDouble() );
 

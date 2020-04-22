@@ -26,6 +26,8 @@
 
 #include "qgis_core.h"
 #include "qgis_sip.h"
+#include "qgstextrenderer.h"
+#include "qgsreadwritecontext.h"
 
 /**
  * \ingroup core
@@ -63,22 +65,37 @@ class CORE_EXPORT QgsLegendStyle
     /**
      * Returns the font used for rendering this legend component.
      * \see setFont()
+     * \deprecated use textFormat() instead
      */
-    QFont font() const { return mFont; }
+    Q_DECL_DEPRECATED QFont font() const SIP_DEPRECATED { return mTextFormat.font(); }
 
     /**
      * Sets the \a font used for rendering this legend component.
      * \see font()
+     * \deprecated use setTextFormat() instead
      */
-    void setFont( const QFont &font ) { mFont = font; }
+    Q_DECL_DEPRECATED void setFont( const QFont &font ) SIP_DEPRECATED;
 
     /**
-     * Returns a modifiable reference to the component's font.
-     *
-     * \see setFont()
-     * \note Not available in Python bindings
+     * Returns the text format used for rendering this legend component.
+     * \see setTextFormat()
+     * \since QGIS 3.14
      */
-    SIP_SKIP QFont &rfont() { return mFont; }
+    QgsTextFormat &textFormat() { return mTextFormat; }
+
+    /**
+     * Returns the text format used for rendering this legend component.
+     * \see setTextFormat()
+     * \since QGIS 3.14
+     */
+    QgsTextFormat textFormat() const SIP_SKIP { return mTextFormat; }
+
+    /**
+     * Sets the text \a format used for rendering this legend component.
+     * \see textFormat()
+     * \since QGIS 3.14
+     */
+    void setTextFormat( const QgsTextFormat &format ) { mTextFormat = format; }
 
     /**
      * Returns the margin (in mm) for the specified \a side of the component.
@@ -124,13 +141,13 @@ class CORE_EXPORT QgsLegendStyle
      * Writes the component's style definition to an XML element.
      * \see readXml()
      */
-    void writeXml( const QString &name, QDomElement &elem, QDomDocument &doc ) const;
+    void writeXml( const QString &name, QDomElement &elem, QDomDocument &doc, const QgsReadWriteContext &context = QgsReadWriteContext() ) const;
 
     /**
      * Reads the component's style definition from an XML element.
      * \see writeXml()
      */
-    void readXml( const QDomElement &elem, const QDomDocument &doc );
+    void readXml( const QDomElement &elem, const QDomDocument &doc, const QgsReadWriteContext &context = QgsReadWriteContext() );
 
     /**
      * Returns the name for a style component as a string.
@@ -155,7 +172,7 @@ class CORE_EXPORT QgsLegendStyle
     static QString styleLabel( Style s );
 
   private:
-    QFont mFont;
+    QgsTextFormat mTextFormat;
     QMap<Side, double> mMarginMap;
     Qt::Alignment mAlignment = Qt::AlignLeft;
 };

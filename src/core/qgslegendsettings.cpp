@@ -31,10 +31,26 @@ QgsLegendSettings::QgsLegendSettings()
   rstyle( QgsLegendStyle::Symbol ).setMargin( QgsLegendStyle::Top, 2.5 );
   rstyle( QgsLegendStyle::SymbolLabel ).setMargin( QgsLegendStyle::Top, 2 );
   rstyle( QgsLegendStyle::SymbolLabel ).setMargin( QgsLegendStyle::Left, 2 );
-  rstyle( QgsLegendStyle::Title ).rfont().setPointSizeF( 16.0 );
-  rstyle( QgsLegendStyle::Group ).rfont().setPointSizeF( 14.0 );
-  rstyle( QgsLegendStyle::Subgroup ).rfont().setPointSizeF( 12.0 );
-  rstyle( QgsLegendStyle::SymbolLabel ).rfont().setPointSizeF( 12.0 );
+
+  QgsTextFormat f = rstyle( QgsLegendStyle::Title ).textFormat();
+  f.setSize( 16.0 );
+  f.setSizeUnit( QgsUnitTypes::RenderPoints );
+  rstyle( QgsLegendStyle::Title ).setTextFormat( f );
+
+  f = rstyle( QgsLegendStyle::Group ).textFormat();
+  f.setSize( 14.0 );
+  f.setSizeUnit( QgsUnitTypes::RenderPoints );
+  rstyle( QgsLegendStyle::Group ).setTextFormat( f );
+
+  f = rstyle( QgsLegendStyle::Subgroup ).textFormat();
+  f.setSize( 12.0 );
+  f.setSizeUnit( QgsUnitTypes::RenderPoints );
+  rstyle( QgsLegendStyle::Subgroup ).setTextFormat( f );
+
+  f = rstyle( QgsLegendStyle::SymbolLabel ).textFormat();
+  f.setSize( 12.0 );
+  f.setSizeUnit( QgsUnitTypes::RenderPoints );
+  rstyle( QgsLegendStyle::SymbolLabel ).setTextFormat( f );
 }
 
 double QgsLegendSettings::mapUnitsPerPixel() const

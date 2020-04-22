@@ -62,9 +62,10 @@ bool QgsLayerTreeModelLegendNode::setData( const QVariant &value, int role )
 
 QgsLayerTreeModelLegendNode::ItemMetrics QgsLayerTreeModelLegendNode::draw( const QgsLegendSettings &settings, ItemContext *ctx )
 {
-  QFont symbolLabelFont = settings.style( QgsLegendStyle::SymbolLabel ).font();
+  const QgsTextFormat f = settings.style( QgsLegendStyle::SymbolLabel ).textFormat();
 
-  double textHeight = settings.fontHeightCharacterMM( symbolLabelFont, QChar( '0' ) );
+  double textHeight = QgsTextRenderer::textHeight( *ctx->context, f, QStringList() << QChar( '0' ), QgsTextRenderer::Rect ) / ctx->context->scaleFactor();
+
   // itemHeight here is not really item height, it is only for symbol
   // vertical alignment purpose, i.e. OK take single line height
   // if there are more lines, those run under the symbol
@@ -131,15 +132,30 @@ QSizeF QgsLayerTreeModelLegendNode::drawSymbolText( const QgsLegendSettings &set
 {
   QSizeF labelSize( 0, 0 );
 
-  QFont symbolLabelFont = settings.style( QgsLegendStyle::SymbolLabel ).font();
-  double textHeight = settings.fontHeightCharacterMM( symbolLabelFont, QChar( '0' ) );
-  double textDescent = settings.fontDescentMillimeters( symbolLabelFont );
-
   QgsExpressionContext tempContext;
-
   const QStringList lines = settings.evaluateItemText( data( Qt::DisplayRole ).toString(), ctx && ctx->context ? ctx->context->expressionContext() : tempContext );
 
-  labelSize.rheight() = lines.count() * textHeight + ( lines.count() - 1 ) * ( settings.lineSpacing() + textDescent );
+  double dotsPerMM = ctx->context->scaleFactor();
+  if ( ctx->painter )
+    ctx->painter->scale( 1.0 / dotsPerMM, 1.0 / dotsPerMM );
+
+  QgsTextFormat f;
+  if ( ctx->textFormat )
+  {
+    f = *ctx->textFormat;
+  }
+  else
+  {
+    f = settings.style( QgsLegendStyle::SymbolLabel ).textFormat();
+  }
+
+  const double overallTextHeight = QgsTextRenderer::textHeight( *( ctx->context ), f, lines, QgsTextRenderer::Rect );
+  const double overallTextWidth = QgsTextRenderer::textWidth( *( ctx->context ), f, lines );
+
+// double textHeight = settings.fontHeightCharacterMM( symbolLabelFont, QChar( '0' ) );
+// double textDescent = settings.fontDescentMillimeters( symbolLabelFont );
+  labelSize.rheight() = overallTextHeight / dotsPerMM; //lines.count() * textHeight + ( lines.count() - 1 ) * ( settings.lineSpacing() + textDescent );
+
 
   double labelXMin = 0.0;
   double labelXMax = 0.0;
@@ -171,39 +187,48 @@ QSizeF QgsLayerTreeModelLegendNode::drawSymbolText( const QgsLegendSettings &set
     labelY = ctx->top;
 
     // Vertical alignment of label with symbol
-    if ( labelSize.height() < symbolSize.height() )
-      labelY += symbolSize.height() / 2 - labelSize.height() / 2;  // label centered with symbol
+//   if ( labelSize.height() < symbolSize.height() )
+//     labelY += symbolSize.height() / 2 - labelSize.height() / 2;  // label centered with symbol
 
-    labelY += textHeight;
+    // labelY += textHeight;
   }
 
-  for ( QStringList::ConstIterator itemPart = lines.constBegin(); itemPart != lines.constEnd(); ++itemPart )
-  {
-    const double lineWidth = settings.textWidthMillimeters( symbolLabelFont, *itemPart );
-    labelSize.rwidth() = std::max( lineWidth, double( labelSize.width() ) );
+  labelSize.rwidth() = overallTextWidth / dotsPerMM;
+  QgsTextRenderer::HAlignment halign = settings.style( QgsLegendStyle::SymbolLabel ).alignment() == Qt::AlignLeft ? QgsTextRenderer::AlignLeft :
+                                       settings.style( QgsLegendStyle::SymbolLabel ).alignment() == Qt::AlignRight ? QgsTextRenderer::AlignRight : QgsTextRenderer::AlignCenter;
 
-    if ( ctx && ctx->painter )
+  QgsTextRenderer::drawText( QRectF( labelXMin * dotsPerMM, labelY * dotsPerMM, ( labelXMax - labelXMin )* dotsPerMM, overallTextHeight * dotsPerMM ), 0, halign, lines, *ctx->context, f );
+  /*
+    for ( QStringList::ConstIterator itemPart = lines.constBegin(); itemPart != lines.constEnd(); ++itemPart )
     {
-      switch ( settings.style( QgsLegendStyle::SymbolLabel ).alignment() )
+     // const double lineWidth = settings.textWidthMillimeters( symbolLabelFont, *itemPart );
+      //labelSize.rwidth() = std::max( lineWidth, double( labelSize.width() ) );
+
+      if ( ctx && ctx->painter )
       {
-        case Qt::AlignLeft:
-        default:
-          settings.drawText( ctx->painter, labelXMin, labelY, *itemPart, symbolLabelFont );
-          break;
+        switch ( settings.style( QgsLegendStyle::SymbolLabel ).alignment() )
+        {
+          case Qt::AlignLeft:
+          default:
+            settings.drawText( ctx->painter, labelXMin, labelY, *itemPart, symbolLabelFont );
+            break;
 
-        case Qt::AlignRight:
-          settings.drawText( ctx->painter, labelXMax - lineWidth, labelY, *itemPart, symbolLabelFont );
-          break;
+          case Qt::AlignRight:
+            settings.drawText( ctx->painter, labelXMax - lineWidth, labelY, *itemPart, symbolLabelFont );
+            break;
 
-        case Qt::AlignHCenter:
-          settings.drawText( ctx->painter, labelXMin + ( labelXMax - labelXMin - lineWidth ) / 2.0, labelY, *itemPart, symbolLabelFont );
-          break;
+          case Qt::AlignHCenter:
+            settings.drawText( ctx->painter, labelXMin + ( labelXMax - labelXMin - lineWidth ) / 2.0, labelY, *itemPart, symbolLabelFont );
+            break;
+        }
+
+        if ( itemPart != ( lines.end() - 1 ) )
+          labelY += textDescent + settings.lineSpacing() + textHeight;
       }
+    }*/
 
-      if ( itemPart != ( lines.end() - 1 ) )
-        labelY += textDescent + settings.lineSpacing() + textHeight;
-    }
-  }
+  if ( ctx->painter )
+    ctx->painter->scale( dotsPerMM, dotsPerMM );
 
   return labelSize;
 }
@@ -1149,7 +1174,7 @@ QgsLayerTreeModelLegendNode::ItemMetrics QgsDataDefinedSizeLegendNode::draw( con
   }
 
   QgsDataDefinedSizeLegend ddsLegend( *mSettings );
-  ddsLegend.setFont( settings.style( QgsLegendStyle::SymbolLabel ).font() );
+  ddsLegend.setFont( settings.style( QgsLegendStyle::SymbolLabel ).textFormat().toQFont() );
   ddsLegend.setTextColor( settings.fontColor() );
 
   QSizeF contentSize;

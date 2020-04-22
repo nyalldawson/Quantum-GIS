@@ -43,20 +43,44 @@ Contains detailed styling information relating to how a layout legend should be 
 
     QgsLegendStyle();
 
-    QFont font() const;
+ QFont font() const /Deprecated/;
 %Docstring
 Returns the font used for rendering this legend component.
 
 .. seealso:: :py:func:`setFont`
+
+.. deprecated::
+   use textFormat() instead
 %End
 
-    void setFont( const QFont &font );
+ void setFont( const QFont &font ) /Deprecated/;
 %Docstring
 Sets the ``font`` used for rendering this legend component.
 
 .. seealso:: :py:func:`font`
+
+.. deprecated::
+   use setTextFormat() instead
 %End
 
+    QgsTextFormat &textFormat();
+%Docstring
+Returns the text format used for rendering this legend component.
+
+.. seealso:: :py:func:`setTextFormat`
+
+.. versionadded:: 3.14
+%End
+
+
+    void setTextFormat( const QgsTextFormat &format );
+%Docstring
+Sets the text ``format`` used for rendering this legend component.
+
+.. seealso:: :py:func:`textFormat`
+
+.. versionadded:: 3.14
+%End
 
     double margin( Side side );
 %Docstring
@@ -105,14 +129,14 @@ Sets the alignment for the legend component.
 .. versionadded:: 3.10
 %End
 
-    void writeXml( const QString &name, QDomElement &elem, QDomDocument &doc ) const;
+    void writeXml( const QString &name, QDomElement &elem, QDomDocument &doc, const QgsReadWriteContext &context = QgsReadWriteContext() ) const;
 %Docstring
 Writes the component's style definition to an XML element.
 
 .. seealso:: :py:func:`readXml`
 %End
 
-    void readXml( const QDomElement &elem, const QDomDocument &doc );
+    void readXml( const QDomElement &elem, const QDomDocument &doc, const QgsReadWriteContext &context = QgsReadWriteContext() );
 %Docstring
 Reads the component's style definition from an XML element.
 

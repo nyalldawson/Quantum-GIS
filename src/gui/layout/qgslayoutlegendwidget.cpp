@@ -22,6 +22,7 @@
 #include "qgslayoutitemmap.h"
 #include "qgslayout.h"
 #include "qgsguiutils.h"
+#include "qgslayoutdesignerinterface.h"
 
 #include "qgsapplication.h"
 #include "qgslayertree.h"
@@ -119,10 +120,10 @@ QgsLayoutLegendWidget::QgsLayoutLegendWidget( QgsLayoutItemLegend *legend, QgsMa
   connect( mItemTreeView, &QgsLayerTreeView::doubleClicked, this, &QgsLayoutLegendWidget::mItemTreeView_doubleClicked );
   setPanelTitle( tr( "Legend Properties" ) );
 
-  mTitleFontButton->setMode( QgsFontButton::ModeQFont );
-  mGroupFontButton->setMode( QgsFontButton::ModeQFont );
-  mLayerFontButton->setMode( QgsFontButton::ModeQFont );
-  mItemFontButton->setMode( QgsFontButton::ModeQFont );
+  mTitleFontButton->setMode( QgsFontButton::ModeTextRenderer );
+  mGroupFontButton->setMode( QgsFontButton::ModeTextRenderer );
+  mLayerFontButton->setMode( QgsFontButton::ModeTextRenderer );
+  mItemFontButton->setMode( QgsFontButton::ModeTextRenderer );
 
   mTitleAlignCombo->setAvailableAlignments( Qt::AlignLeft | Qt::AlignHCenter | Qt::AlignRight );
   mGroupAlignCombo->setAvailableAlignments( Qt::AlignLeft | Qt::AlignHCenter | Qt::AlignRight );
@@ -185,6 +186,23 @@ QgsLayoutLegendWidget::QgsLayoutLegendWidget( QgsLayoutItemLegend *legend, QgsMa
   }
   connect( &legend->layout()->reportContext(), &QgsLayoutReportContext::layerChanged, this, &QgsLayoutLegendWidget::updateFilterLegendByAtlasButton );
 
+  mTitleFontButton->registerExpressionContextGenerator( this );
+  mGroupFontButton->registerExpressionContextGenerator( this );
+  mLayerFontButton->registerExpressionContextGenerator( this );
+  mItemFontButton->registerExpressionContextGenerator( this );
+
+  mTitleFontButton->setLayer( coverageLayer() );
+  mGroupFontButton->setLayer( coverageLayer() );
+  mLayerFontButton->setLayer( coverageLayer() );
+  mItemFontButton->setLayer( coverageLayer() );
+  if ( mLegend->layout() )
+  {
+    connect( &mLegend->layout()->reportContext(), &QgsLayoutReportContext::layerChanged, mTitleFontButton, &QgsFontButton::setLayer );
+    connect( &mLegend->layout()->reportContext(), &QgsLayoutReportContext::layerChanged, mGroupFontButton, &QgsFontButton::setLayer );
+    connect( &mLegend->layout()->reportContext(), &QgsLayoutReportContext::layerChanged, mLayerFontButton, &QgsFontButton::setLayer );
+    connect( &mLegend->layout()->reportContext(), &QgsLayoutReportContext::layerChanged, mItemFontButton, &QgsFontButton::setLayer );
+  }
+
   registerDataDefinedButton( mLegendTitleDDBtn, QgsLayoutObject::LegendTitle );
   registerDataDefinedButton( mColumnsDDBtn, QgsLayoutObject::LegendColumnCount );
 
@@ -202,6 +220,15 @@ void QgsLayoutLegendWidget::setMasterLayout( QgsMasterLayoutInterface *masterLay
 {
   if ( mItemPropertiesWidget )
     mItemPropertiesWidget->setMasterLayout( masterLayout );
+}
+
+void QgsLayoutLegendWidget::setDesignerInterface( QgsLayoutDesignerInterface *iface )
+{
+  QgsLayoutItemBaseWidget::setDesignerInterface( iface );
+  mTitleFontButton->setMessageBar( iface->messageBar() );
+  mGroupFontButton->setMessageBar( iface->messageBar() );
+  mLayerFontButton->setMessageBar( iface->messageBar() );
+  mItemFontButton->setMessageBar( iface->messageBar() );
 }
 
 void QgsLayoutLegendWidget::setGuiElements()
@@ -251,10 +278,10 @@ void QgsLayoutLegendWidget::setGuiElements()
   QgsLayoutItemMap *map = mLegend->linkedMap();
   mMapComboBox->setItem( map );
   mFontColorButton->setColor( mLegend->fontColor() );
-  mTitleFontButton->setCurrentFont( mLegend->style( QgsLegendStyle::Title ).font() );
-  mGroupFontButton->setCurrentFont( mLegend->style( QgsLegendStyle::Group ).font() );
-  mLayerFontButton->setCurrentFont( mLegend->style( QgsLegendStyle::Subgroup ).font() );
-  mItemFontButton->setCurrentFont( mLegend->style( QgsLegendStyle::SymbolLabel ).font() );
+  mTitleFontButton->setTextFormat( mLegend->style( QgsLegendStyle::Title ).textFormat() );
+  mGroupFontButton->setTextFormat( mLegend->style( QgsLegendStyle::Group ).textFormat() );
+  mLayerFontButton->setTextFormat( mLegend->style( QgsLegendStyle::Subgroup ).textFormat() );
+  mItemFontButton->setTextFormat( mLegend->style( QgsLegendStyle::SymbolLabel ).textFormat() );
 
   blockAllSignals( false );
 
@@ -509,7 +536,7 @@ void QgsLayoutLegendWidget::titleFontChanged()
   if ( mLegend )
   {
     mLegend->beginCommand( tr( "Change Title Font" ), QgsLayoutItem::UndoLegendTitleFont );
-    mLegend->setStyleFont( QgsLegendStyle::Title, mTitleFontButton->currentFont() );
+    mLegend->rstyle( QgsLegendStyle::Title ).setTextFormat( mTitleFontButton->textFormat() );
     mLegend->adjustBoxSize();
     mLegend->update();
     mLegend->endCommand();
@@ -521,7 +548,7 @@ void QgsLayoutLegendWidget::groupFontChanged()
   if ( mLegend )
   {
     mLegend->beginCommand( tr( "Change Group Font" ), QgsLayoutItem::UndoLegendGroupFont );
-    mLegend->setStyleFont( QgsLegendStyle::Group, mGroupFontButton->currentFont() );
+    mLegend->rstyle( QgsLegendStyle::Group ).setTextFormat( mGroupFontButton->textFormat() );
     mLegend->adjustBoxSize();
     mLegend->update();
     mLegend->endCommand();
@@ -533,7 +560,7 @@ void QgsLayoutLegendWidget::layerFontChanged()
   if ( mLegend )
   {
     mLegend->beginCommand( tr( "Change Layer Font" ), QgsLayoutItem::UndoLegendLayerFont );
-    mLegend->setStyleFont( QgsLegendStyle::Subgroup, mLayerFontButton->currentFont() );
+    mLegend->rstyle( QgsLegendStyle::Subgroup ).setTextFormat( mLayerFontButton->textFormat() );
     mLegend->adjustBoxSize();
     mLegend->update();
     mLegend->endCommand();
@@ -545,7 +572,7 @@ void QgsLayoutLegendWidget::itemFontChanged()
   if ( mLegend )
   {
     mLegend->beginCommand( tr( "Change Item Font" ), QgsLayoutItem::UndoLegendItemFont );
-    mLegend->setStyleFont( QgsLegendStyle::SymbolLabel, mItemFontButton->currentFont() );
+    mLegend->rstyle( QgsLegendStyle::SymbolLabel ).setTextFormat( mItemFontButton->textFormat() );
     mLegend->adjustBoxSize();
     mLegend->update();
     mLegend->endCommand();
@@ -1140,6 +1167,12 @@ void QgsLayoutLegendWidget::setReportTypeString( const QString &string )
 {
   mFilterLegendByAtlasCheckBox->setText( tr( "Only show items inside current %1 feature" ).arg( string ) );
   mFilterLegendByAtlasCheckBox->setToolTip( tr( "Filter out legend elements that lie outside the current %1 feature." ).arg( string ) );
+}
+
+QgsExpressionContext QgsLayoutLegendWidget::createExpressionContext() const
+{
+  QgsExpressionContext context = mLegend->createExpressionContext();
+  return context;
 }
 
 bool QgsLayoutLegendWidget::setNewItem( QgsLayoutItem *item )

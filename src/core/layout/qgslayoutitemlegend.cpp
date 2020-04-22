@@ -307,12 +307,16 @@ void QgsLayoutItemLegend::setStyle( QgsLegendStyle::Style s, const QgsLegendStyl
 
 QFont QgsLayoutItemLegend::styleFont( QgsLegendStyle::Style s ) const
 {
+  Q_NOWARN_DEPRECATED_PUSH
   return mSettings.style( s ).font();
+  Q_NOWARN_DEPRECATED_POP
 }
 
 void QgsLayoutItemLegend::setStyleFont( QgsLegendStyle::Style s, const QFont &f )
 {
+  Q_NOWARN_DEPRECATED_PUSH
   rstyle( s ).setFont( f );
+  Q_NOWARN_DEPRECATED_POP
 }
 
 void QgsLayoutItemLegend::setStyleMargin( QgsLegendStyle::Style s, double margin )
@@ -532,11 +536,11 @@ bool QgsLayoutItemLegend::writePropertiesToElement( QDomElement &legendElem, QDo
   QDomElement legendStyles = doc.createElement( QStringLiteral( "styles" ) );
   legendElem.appendChild( legendStyles );
 
-  style( QgsLegendStyle::Title ).writeXml( QStringLiteral( "title" ), legendStyles, doc );
-  style( QgsLegendStyle::Group ).writeXml( QStringLiteral( "group" ), legendStyles, doc );
-  style( QgsLegendStyle::Subgroup ).writeXml( QStringLiteral( "subgroup" ), legendStyles, doc );
-  style( QgsLegendStyle::Symbol ).writeXml( QStringLiteral( "symbol" ), legendStyles, doc );
-  style( QgsLegendStyle::SymbolLabel ).writeXml( QStringLiteral( "symbolLabel" ), legendStyles, doc );
+  style( QgsLegendStyle::Title ).writeXml( QStringLiteral( "title" ), legendStyles, doc, context );
+  style( QgsLegendStyle::Group ).writeXml( QStringLiteral( "group" ), legendStyles, doc, context );
+  style( QgsLegendStyle::Subgroup ).writeXml( QStringLiteral( "subgroup" ), legendStyles, doc, context );
+  style( QgsLegendStyle::Symbol ).writeXml( QStringLiteral( "symbol" ), legendStyles, doc, context );
+  style( QgsLegendStyle::SymbolLabel ).writeXml( QStringLiteral( "symbolLabel" ), legendStyles, doc, context );
 
   if ( mCustomLayerTree )
   {
@@ -577,7 +581,7 @@ bool QgsLayoutItemLegend::readPropertiesFromElement( const QDomElement &itemElem
     {
       QDomElement styleElem = stylesNode.childNodes().at( i ).toElement();
       QgsLegendStyle style;
-      style.readXml( styleElem, doc );
+      style.readXml( styleElem, doc, context );
       QString name = styleElem.attribute( QStringLiteral( "name" ) );
       QgsLegendStyle::Style s;
       if ( name == QLatin1String( "title" ) ) s = QgsLegendStyle::Title;

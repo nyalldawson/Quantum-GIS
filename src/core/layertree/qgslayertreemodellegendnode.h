@@ -36,6 +36,7 @@ class QgsLegendSettings;
 class QgsMapSettings;
 class QgsSymbol;
 class QgsRenderContext;
+class QgsTextFormat;
 
 /**
  * \ingroup core
@@ -152,6 +153,13 @@ class CORE_EXPORT QgsLayerTreeModelLegendNode : public QObject
        * \since QGIS 3.14
        */
       QgsLegendPatchShape patchShape;
+
+      /**
+       * Optional text format for use when rendering item text.
+       *
+       * \since QGIS 3.14
+       */
+      QgsTextFormat *textFormat = nullptr;
     };
 
     struct ItemMetrics
