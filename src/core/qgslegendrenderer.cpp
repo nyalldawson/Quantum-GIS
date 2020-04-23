@@ -502,7 +502,7 @@ QSizeF QgsLegendRenderer::drawTitle( QgsRenderContext &context, double top, Qt::
 
   if ( context.painter() )
   {
-    QgsScopedRenderContextScaleToPixels contextToPixels( context );
+    QgsScopedRenderContextScaleToMm contextToPixels( context );
 
     const QRectF r( textBoxLeft * dotsPerMM, top * dotsPerMM, textBoxWidth * dotsPerMM, overallTextHeight );
 
@@ -671,8 +671,7 @@ QSizeF QgsLegendRenderer::drawLayerTitle( QgsLayerTreeLayer *nodeLayer, QgsRende
 
   if ( context.painter() )
   {
-    QgsScopedRenderContextScaleToPixels contextToPixels( context );
-
+    QgsScopedRenderContextScaleToMm contextToPixels( context );
     QgsTextRenderer::HAlignment halign =  mSettings.style( nodeLegendStyle( nodeLayer ) ).alignment()  == Qt::AlignLeft ? QgsTextRenderer::AlignLeft :
                                           mSettings.style( nodeLegendStyle( nodeLayer ) ).alignment()  == Qt::AlignRight ? QgsTextRenderer::AlignRight : QgsTextRenderer::AlignCenter;
 
@@ -707,7 +706,7 @@ QSizeF QgsLegendRenderer::drawGroupTitle( QgsLayerTreeGroup *nodeGroup, QgsRende
 
   if ( context.painter() )
   {
-    QgsScopedRenderContextScaleToPixels contextToPixels( context );
+    QgsScopedRenderContextScaleToMm contextToPixels( context );
 
     QgsTextRenderer::HAlignment halign =  mSettings.style( nodeLegendStyle( nodeGroup ) ).alignment()  == Qt::AlignLeft ? QgsTextRenderer::AlignLeft :
                                           mSettings.style( nodeLegendStyle( nodeGroup ) ).alignment()  == Qt::AlignRight ? QgsTextRenderer::AlignRight : QgsTextRenderer::AlignCenter;
