@@ -289,14 +289,18 @@ class CORE_EXPORT QgsLayoutItemLegend : public QgsLayoutItem
     /**
      * Returns the legend font color.
      * \see setFontColor()
+     *
+     * \deprecated use QgsLegendStyle::setTextFormat() from style() instead.
      */
-    QColor fontColor() const;
+    Q_DECL_DEPRECATED QColor fontColor() const SIP_DEPRECATED;
 
     /**
      * Sets the legend font \a color.
      * \see fontColor()
+     *
+     * \deprecated use QgsLegendStyle::setTextFormat() from style() instead.
      */
-    void setFontColor( const QColor &color );
+    Q_DECL_DEPRECATED void setFontColor( const QColor &color ) SIP_DEPRECATED;
 
     /**
      * Returns the legend symbol width.

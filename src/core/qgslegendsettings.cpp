@@ -20,8 +20,7 @@
 #include <QPainter>
 
 QgsLegendSettings::QgsLegendSettings()
-  : mFontColor( QColor( 0, 0, 0 ) )
-  , mSymbolSize( 7, 4 )
+  : mSymbolSize( 7, 4 )
   , mWmsLegendSize( 50, 25 )
   , mRasterStrokeColor( Qt::black )
 {
@@ -51,6 +50,30 @@ QgsLegendSettings::QgsLegendSettings()
   f.setSize( 12.0 );
   f.setSizeUnit( QgsUnitTypes::RenderPoints );
   rstyle( QgsLegendStyle::SymbolLabel ).setTextFormat( f );
+}
+
+QColor QgsLegendSettings::fontColor() const
+{
+  return style( QgsLegendStyle::SymbolLabel ).textFormat().color();
+}
+
+void QgsLegendSettings::setFontColor( const QColor &c )
+{
+  rstyle( QgsLegendStyle::Title ).textFormat().setColor( c );
+  rstyle( QgsLegendStyle::Group ).textFormat().setColor( c );
+  rstyle( QgsLegendStyle::Subgroup ).textFormat().setColor( c );
+  rstyle( QgsLegendStyle::SymbolLabel ).textFormat().setColor( c );
+}
+
+QColor QgsLegendSettings::layerFontColor() const
+{
+  return style( QgsLegendStyle::Subgroup ).textFormat().color();
+}
+
+void QgsLegendSettings::setLayerFontColor( const QColor &fontColor )
+{
+  rstyle( QgsLegendStyle::Group ).textFormat().setColor( fontColor );
+  rstyle( QgsLegendStyle::Subgroup ).textFormat().setColor( fontColor );
 }
 
 double QgsLegendSettings::mapUnitsPerPixel() const

@@ -275,18 +275,24 @@ Sets the legend column ``spacing``.
 .. seealso:: :py:func:`columnSpace`
 %End
 
-    QColor fontColor() const;
+ QColor fontColor() const /Deprecated/;
 %Docstring
 Returns the legend font color.
 
 .. seealso:: :py:func:`setFontColor`
+
+.. deprecated::
+   use QgsLegendStyle.setTextFormat() from style() instead.
 %End
 
-    void setFontColor( const QColor &color );
+ void setFontColor( const QColor &color ) /Deprecated/;
 %Docstring
 Sets the legend font ``color``.
 
 .. seealso:: :py:func:`fontColor`
+
+.. deprecated::
+   use QgsLegendStyle.setTextFormat() from style() instead.
 %End
 
     double symbolWidth() const;

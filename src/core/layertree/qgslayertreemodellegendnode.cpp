@@ -162,7 +162,6 @@ QSizeF QgsLayerTreeModelLegendNode::drawSymbolText( const QgsLegendSettings &set
   double labelY = 0.0;
   if ( ctx && ctx->painter )
   {
-    ctx->painter->setPen( settings.fontColor() );
     switch ( settings.symbolAlignment() )
     {
       case Qt::AlignLeft:
@@ -1175,7 +1174,7 @@ QgsLayerTreeModelLegendNode::ItemMetrics QgsDataDefinedSizeLegendNode::draw( con
 
   QgsDataDefinedSizeLegend ddsLegend( *mSettings );
   ddsLegend.setFont( settings.style( QgsLegendStyle::SymbolLabel ).textFormat().toQFont() );
-  ddsLegend.setTextColor( settings.fontColor() );
+  ddsLegend.setTextColor( settings.style( QgsLegendStyle::SymbolLabel ).textFormat().color() );
 
   QSizeF contentSize;
   double labelXOffset;

@@ -96,7 +96,6 @@ QgsLayoutLegendWidget::QgsLayoutLegendWidget( QgsLayoutItemLegend *legend, QgsMa
   connect( mSpaceBelowSubgroupHeadingSpinBox, static_cast < void ( QDoubleSpinBox::* )( double ) > ( &QDoubleSpinBox::valueChanged ), this, &QgsLayoutLegendWidget::spaceBelowSubGroupHeadingChanged );
   connect( mSymbolSpaceSpinBox, static_cast < void ( QDoubleSpinBox::* )( double ) > ( &QDoubleSpinBox::valueChanged ), this, &QgsLayoutLegendWidget::mSymbolSpaceSpinBox_valueChanged );
   connect( mIconLabelSpaceSpinBox, static_cast < void ( QDoubleSpinBox::* )( double ) > ( &QDoubleSpinBox::valueChanged ), this, &QgsLayoutLegendWidget::mIconLabelSpaceSpinBox_valueChanged );
-  connect( mFontColorButton, &QgsColorButton::colorChanged, this, &QgsLayoutLegendWidget::mFontColorButton_colorChanged );
   connect( mBoxSpaceSpinBox, static_cast < void ( QDoubleSpinBox::* )( double ) > ( &QDoubleSpinBox::valueChanged ), this, &QgsLayoutLegendWidget::mBoxSpaceSpinBox_valueChanged );
   connect( mColumnSpaceSpinBox, static_cast < void ( QDoubleSpinBox::* )( double ) > ( &QDoubleSpinBox::valueChanged ), this, &QgsLayoutLegendWidget::mColumnSpaceSpinBox_valueChanged );
   connect( mLineSpacingSpinBox, static_cast < void ( QDoubleSpinBox::* )( double ) > ( &QDoubleSpinBox::valueChanged ), this, &QgsLayoutLegendWidget::mLineSpacingSpinBox_valueChanged );
@@ -156,9 +155,6 @@ QgsLayoutLegendWidget::QgsLayoutLegendWidget( QgsLayoutItemLegend *legend, QgsMa
   mCountToolButton->setIconSize( QgsGuiUtils::iconSize( true ) );
   mExpressionFilterButton->setIconSize( QgsGuiUtils::iconSize( true ) );
   mLayerExpressionButton->setIconSize( QgsGuiUtils::iconSize( true ) );
-
-  mFontColorButton->setColorDialogTitle( tr( "Select Font Color" ) );
-  mFontColorButton->setContext( QStringLiteral( "composer" ) );
 
   mRasterStrokeColorButton->setColorDialogTitle( tr( "Select Stroke Color" ) );
   mRasterStrokeColorButton->setAllowOpacity( true );
@@ -277,7 +273,6 @@ void QgsLayoutLegendWidget::setGuiElements()
 
   QgsLayoutItemMap *map = mLegend->linkedMap();
   mMapComboBox->setItem( map );
-  mFontColorButton->setColor( mLegend->fontColor() );
   mTitleFontButton->setTextFormat( mLegend->style( QgsLegendStyle::Title ).textFormat() );
   mGroupFontButton->setTextFormat( mLegend->style( QgsLegendStyle::Group ).textFormat() );
   mLayerFontButton->setTextFormat( mLegend->style( QgsLegendStyle::Subgroup ).textFormat() );
@@ -589,19 +584,6 @@ void QgsLayoutLegendWidget::spaceBelowSubGroupHeadingChanged( double space )
     mLegend->update();
     mLegend->endCommand();
   }
-}
-
-void QgsLayoutLegendWidget::mFontColorButton_colorChanged( const QColor &newFontColor )
-{
-  if ( !mLegend )
-  {
-    return;
-  }
-
-  mLegend->beginCommand( tr( "Change Font Color" ), QgsLayoutItem::UndoLegendFontColor );
-  mLegend->setFontColor( newFontColor );
-  mLegend->update();
-  mLegend->endCommand();
 }
 
 void QgsLayoutLegendWidget::mBoxSpaceSpinBox_valueChanged( double d )
@@ -1220,7 +1202,6 @@ void QgsLayoutLegendWidget::blockAllSignals( bool b )
   mIconLabelSpaceSpinBox->blockSignals( b );
   mBoxSpaceSpinBox->blockSignals( b );
   mColumnSpaceSpinBox->blockSignals( b );
-  mFontColorButton->blockSignals( b );
   mRasterStrokeGroupBox->blockSignals( b );
   mRasterStrokeColorButton->blockSignals( b );
   mRasterStrokeWidthSpinBox->blockSignals( b );

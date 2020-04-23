@@ -83,7 +83,6 @@ class GUI_EXPORT QgsLayoutLegendWidget: public QgsLayoutItemBaseWidget, public Q
     void mLayerSpaceSpinBox_valueChanged( double d );
     void mSymbolSpaceSpinBox_valueChanged( double d );
     void mIconLabelSpaceSpinBox_valueChanged( double d );
-    void mFontColorButton_colorChanged( const QColor &newFontColor );
     void mBoxSpaceSpinBox_valueChanged( double d );
     void mColumnSpaceSpinBox_valueChanged( double d );
     void mLineSpacingSpinBox_valueChanged( double d );

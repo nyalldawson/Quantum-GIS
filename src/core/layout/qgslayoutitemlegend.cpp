@@ -361,12 +361,16 @@ void QgsLayoutItemLegend::setColumnSpace( double s )
 
 QColor QgsLayoutItemLegend::fontColor() const
 {
+  Q_NOWARN_DEPRECATED_PUSH
   return mSettings.fontColor();
+  Q_NOWARN_DEPRECATED_POP
 }
 
 void QgsLayoutItemLegend::setFontColor( const QColor &c )
 {
+  Q_NOWARN_DEPRECATED_PUSH
   mSettings.setFontColor( c );
+  Q_NOWARN_DEPRECATED_POP
 }
 
 double QgsLayoutItemLegend::symbolWidth() const
@@ -524,7 +528,6 @@ bool QgsLayoutItemLegend::writePropertiesToElement( QDomElement &legendElem, QDo
   legendElem.setAttribute( QStringLiteral( "wmsLegendWidth" ), QString::number( mSettings.wmsLegendSize().width() ) );
   legendElem.setAttribute( QStringLiteral( "wmsLegendHeight" ), QString::number( mSettings.wmsLegendSize().height() ) );
   legendElem.setAttribute( QStringLiteral( "wrapChar" ), mSettings.wrapChar() );
-  legendElem.setAttribute( QStringLiteral( "fontColor" ), mSettings.fontColor().name() );
 
   legendElem.setAttribute( QStringLiteral( "resizeToContents" ), mSizeToContents );
 
@@ -595,9 +598,15 @@ bool QgsLayoutItemLegend::readPropertiesFromElement( const QDomElement &itemElem
   }
 
   //font color
-  QColor fontClr;
-  fontClr.setNamedColor( itemElem.attribute( QStringLiteral( "fontColor" ), QStringLiteral( "#000000" ) ) );
-  mSettings.setFontColor( fontClr );
+  if ( itemElem.hasAttribute( QStringLiteral( "fontColor" ) ) )
+  {
+    QColor fontClr;
+    fontClr.setNamedColor( itemElem.attribute( QStringLiteral( "fontColor" ), QStringLiteral( "#000000" ) ) );
+    rstyle( QgsLegendStyle::Title ).textFormat().setColor( fontClr );
+    rstyle( QgsLegendStyle::Group ).textFormat().setColor( fontClr );
+    rstyle( QgsLegendStyle::Subgroup ).textFormat().setColor( fontClr );
+    rstyle( QgsLegendStyle::SymbolLabel ).textFormat().setColor( fontClr );
+  }
 
   //spaces
   mSettings.setBoxSpace( itemElem.attribute( QStringLiteral( "boxSpace" ), QStringLiteral( "2.0" ) ).toDouble() );

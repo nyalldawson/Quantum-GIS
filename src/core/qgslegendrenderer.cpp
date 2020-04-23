@@ -136,13 +136,19 @@ QSizeF QgsLegendRenderer::paintAndDetermineSizeInternal( QgsRenderContext *conte
   if ( !rootGroup )
     return size;
 
+  std::unique_ptr< QgsRenderContext > tmpContext;
+  if ( !context )
+  {
+    //nope, we NEED a proper render context now!
+    tmpContext.reset( new QgsRenderContext( QgsRenderContext::fromQPainter( painter ) ) );
+    context = tmpContext.get();
+  }
+
   // temporarily remove painter from context -- we don't need to actually draw anything yet. But we DO need
   // to send the full render context so that an expression context is available during the size calculation
-  QPainter *prevPainter = context ? context->painter() : nullptr;
-  if ( context )
-    context->setPainter( nullptr );
+  QgsScopedRenderContextPainterSwap noPainter( *context, nullptr );
 
-  QList<LegendComponentGroup> componentGroups = createComponentGroupList( rootGroup, mSettings.splitLayer(), context );
+  QList<LegendComponentGroup> componentGroups = createComponentGroupList( rootGroup, mSettings.splitLayer(), *context );
 
   setColumns( componentGroups );
 
@@ -157,12 +163,10 @@ QSizeF QgsLegendRenderer::paintAndDetermineSizeInternal( QgsRenderContext *conte
   // correctly align right or center-aligned symbols/text. Bah -- A triple iteration it is!
   for ( const LegendComponentGroup &group : qgis::as_const( componentGroups ) )
   {
-    const QSizeF actualSize = drawGroup( group, context, ColumnContext() );
+    const QSizeF actualSize = drawGroup( group, *context, ColumnContext() );
     maxEqualColumnWidth = std::max( actualSize.width(), maxEqualColumnWidth );
     maxColumnWidths[ group.column ] = std::max( actualSize.width(), maxColumnWidths.value( group.column, 0 ) );
   }
-  if ( context )
-    context->setPainter( prevPainter );
 
   if ( mSettings.columnCount()  < 2 )
   {
@@ -172,10 +176,12 @@ QSizeF QgsLegendRenderer::paintAndDetermineSizeInternal( QgsRenderContext *conte
   }
 
   //calculate size of title
-  QSizeF titleSize = drawTitle();
+  QSizeF titleSize = drawTitle( *context, 0 );
   //add title margin to size of title text
   titleSize.rwidth() += mSettings.boxSpace() * 2.0;
   double columnTop = mSettings.boxSpace() + titleSize.height() + mSettings.style( QgsLegendStyle::Title ).margin( QgsLegendStyle::Bottom );
+
+  noPainter.reset();
 
   bool firstInColumn = true;
   double columnMaxHeight = 0;
@@ -203,10 +209,7 @@ QSizeF QgsLegendRenderer::paintAndDetermineSizeInternal( QgsRenderContext *conte
       currentY += spaceAboveGroup( group );
     }
 
-    if ( context )
-      drawGroup( group, context, columnContext, currentY );
-    else if ( painter )
-      drawGroup( group, columnContext, painter, currentY );
+    drawGroup( group, *context, columnContext, currentY );
 
     currentY += group.size.height();
     columnMaxHeight = std::max( currentY - columnTop, columnMaxHeight );
@@ -233,10 +236,7 @@ QSizeF QgsLegendRenderer::paintAndDetermineSizeInternal( QgsRenderContext *conte
   // Now we have set the correct total item width and can draw the title centered
   if ( !mSettings.title().isEmpty() )
   {
-    if ( context )
-      drawTitle( context, mSettings.boxSpace(), mSettings.titleAlignment(), size.width() );
-    else
-      drawTitle( painter, mSettings.boxSpace(), mSettings.titleAlignment(), size.width() );
+    drawTitle( *context, mSettings.boxSpace(), mSettings.titleAlignment(), size.width() );
   }
 
   return size;
@@ -262,7 +262,7 @@ void QgsLegendRenderer::widthAndOffsetForTitleText( const Qt::AlignmentFlag hali
   }
 }
 
-QList<QgsLegendRenderer::LegendComponentGroup> QgsLegendRenderer::createComponentGroupList( QgsLayerTreeGroup *parentGroup, bool splitLayer, QgsRenderContext *context )
+QList<QgsLegendRenderer::LegendComponentGroup> QgsLegendRenderer::createComponentGroupList( QgsLayerTreeGroup *parentGroup, bool splitLayer, QgsRenderContext &context )
 {
   QList<LegendComponentGroup> componentGroups;
 
@@ -284,7 +284,7 @@ QList<QgsLegendRenderer::LegendComponentGroup> QgsLegendRenderer::createComponen
       {
         LegendComponent component;
         component.item = node;
-        component.size = drawGroupTitle( nodeGroup );
+        component.size = drawGroupTitle( nodeGroup, context );
 
         if ( !subgroups.isEmpty() )
         {
@@ -323,7 +323,7 @@ QList<QgsLegendRenderer::LegendComponentGroup> QgsLegendRenderer::createComponen
       {
         LegendComponent component;
         component.item = node;
-        component.size = drawLayerTitle( nodeLayer );
+        component.size = drawLayerTitle( nodeLayer, context );
         group.components.append( component );
         group.size.rwidth() = component.size.width();
         group.size.rheight() = component.size.height();
@@ -476,12 +476,7 @@ void QgsLegendRenderer::setColumns( QList<LegendComponentGroup> &componentGroups
   }
 }
 
-QSizeF QgsLegendRenderer::drawTitle( QPainter *painter, double top, Qt::AlignmentFlag halignment, double legendWidth )
-{
-  return drawTitleInternal( nullptr, painter, top, halignment, legendWidth );
-}
-
-QSizeF QgsLegendRenderer::drawTitleInternal( QgsRenderContext *context, QPainter *painter, const double top, Qt::AlignmentFlag halignment, double legendWidth )
+QSizeF QgsLegendRenderer::drawTitle( QgsRenderContext &context, double top, Qt::AlignmentFlag halignment, double legendWidth )
 {
   QSizeF size( 0, 0 );
   if ( mSettings.title().isEmpty() )
@@ -489,53 +484,33 @@ QSizeF QgsLegendRenderer::drawTitleInternal( QgsRenderContext *context, QPainter
     return size;
   }
 
-  QStringList lines = mSettings.splitStringForWrapping( mSettings.title() );
-  double y = top;
-
-  if ( context && context->painter() )
-  {
-    context->painter()->setPen( mSettings.fontColor() );
-  }
-  else if ( painter )
-  {
-    painter->setPen( mSettings.fontColor() );
-  }
+  const QStringList lines = mSettings.splitStringForWrapping( mSettings.title() );
 
   //calculate width and left pos of rectangle to draw text into
   double textBoxWidth;
   double textBoxLeft;
   widthAndOffsetForTitleText( halignment, legendWidth, textBoxWidth, textBoxLeft );
 
-  QFont titleFont = mSettings.style( QgsLegendStyle::Title ).font();
+  const QgsTextFormat titleFormat = mSettings.style( QgsLegendStyle::Title ).textFormat();
+  const double dotsPerMM = context.scaleFactor();
 
-  for ( QStringList::Iterator titlePart = lines.begin(); titlePart != lines.end(); ++titlePart )
+  const double overallTextHeight = QgsTextRenderer::textHeight( context, titleFormat, lines, QgsTextRenderer::Rect );
+  const double overallTextWidth = QgsTextRenderer::textWidth( context, titleFormat, lines );
+
+  size.rheight() = overallTextHeight / dotsPerMM;
+  size.rwidth() = overallTextWidth / dotsPerMM;
+
+  if ( context.painter() )
   {
-    //last word is not drawn if rectangle width is exactly text width, so add 1
-    //TODO - correctly calculate size of italicized text, since QFontMetrics does not
-    qreal width = mSettings.textWidthMillimeters( titleFont, *titlePart ) + 1;
-    qreal height = mSettings.fontAscentMillimeters( titleFont ) + mSettings.fontDescentMillimeters( titleFont );
+    QgsScopedRenderContextScaleToPixels contextToPixels( context );
 
-    QRectF r( textBoxLeft, y, textBoxWidth, height );
+    const QRectF r( textBoxLeft * dotsPerMM, top * dotsPerMM, textBoxWidth * dotsPerMM, overallTextHeight );
 
-    if ( context && context->painter() )
-    {
-      mSettings.drawText( context->painter(), r, *titlePart, titleFont, halignment, Qt::AlignVCenter, Qt::TextDontClip );
-    }
-    else if ( painter )
-    {
-      mSettings.drawText( painter, r, *titlePart, titleFont, halignment, Qt::AlignVCenter, Qt::TextDontClip );
-    }
+    QgsTextRenderer::HAlignment halign = halignment == Qt::AlignLeft ? QgsTextRenderer::AlignLeft :
+                                         halignment == Qt::AlignRight ? QgsTextRenderer::AlignRight : QgsTextRenderer::AlignCenter;
 
-    //update max width of title
-    size.rwidth() = std::max( width, size.rwidth() );
-
-    y += height;
-    if ( titlePart != ( lines.end() - 1 ) )
-    {
-      y += mSettings.lineSpacing();
-    }
+    QgsTextRenderer::drawText( r, 0, halign, lines, context, titleFormat );
   }
-  size.rheight() = y - top;
 
   return size;
 }
@@ -564,12 +539,7 @@ double QgsLegendRenderer::spaceAboveGroup( const LegendComponentGroup &group )
   return 0;
 }
 
-QSizeF QgsLegendRenderer::drawGroup( const LegendComponentGroup &group, ColumnContext columnContext, QPainter *painter, double top )
-{
-  return drawGroupInternal( group, nullptr, columnContext, painter, top );
-}
-
-QSizeF QgsLegendRenderer::drawGroupInternal( const LegendComponentGroup &group, QgsRenderContext *context, ColumnContext columnContext, QPainter *painter, const double top )
+QSizeF QgsLegendRenderer::drawGroup( const LegendComponentGroup &group, QgsRenderContext &context, ColumnContext columnContext, double top )
 {
   bool first = true;
   QSizeF size = QSizeF( group.size );
@@ -586,10 +556,7 @@ QSizeF QgsLegendRenderer::drawGroupInternal( const LegendComponentGroup &group, 
           currentY += mSettings.style( s ).margin( QgsLegendStyle::Top );
         }
         QSizeF groupSize;
-        if ( context )
-          groupSize = drawGroupTitle( groupItem, context, columnContext, currentY );
-        else
-          groupSize = drawGroupTitle( groupItem, columnContext, painter, currentY );
+        groupSize = drawGroupTitle( groupItem, context, columnContext, currentY );
         size.rwidth() = std::max( groupSize.width(), size.width() );
       }
     }
@@ -603,10 +570,7 @@ QSizeF QgsLegendRenderer::drawGroupInternal( const LegendComponentGroup &group, 
           currentY += mSettings.style( s ).margin( QgsLegendStyle::Top );
         }
         QSizeF subGroupSize;
-        if ( context )
-          subGroupSize = drawLayerTitle( layerItem, context, columnContext, currentY );
-        else
-          subGroupSize = drawLayerTitle( layerItem, columnContext, painter, currentY );
+        subGroupSize = drawLayerTitle( layerItem, context, columnContext, currentY );
         size.rwidth() = std::max( subGroupSize.width(), size.width() );
       }
     }
@@ -617,8 +581,7 @@ QSizeF QgsLegendRenderer::drawGroupInternal( const LegendComponentGroup &group, 
         currentY += mSettings.style( QgsLegendStyle::Symbol ).margin( QgsLegendStyle::Top );
       }
 
-      LegendComponent symbolComponent = context ? drawSymbolItem( legendNode, context, columnContext, currentY, component.maxSiblingSymbolWidth )
-                                        : drawSymbolItem( legendNode, columnContext, painter, currentY, component.maxSiblingSymbolWidth );
+      LegendComponent symbolComponent = drawSymbolItem( legendNode, context, columnContext, currentY, component.maxSiblingSymbolWidth );
       // expand width, it may be wider because of label offsets
       size.rwidth() = std::max( symbolComponent.size.width(), size.width() );
     }
@@ -628,25 +591,20 @@ QSizeF QgsLegendRenderer::drawGroupInternal( const LegendComponentGroup &group, 
   return size;
 }
 
-QgsLegendRenderer::LegendComponent QgsLegendRenderer::drawSymbolItem( QgsLayerTreeModelLegendNode *symbolItem, ColumnContext columnContext, QPainter *painter, double top, double maxSiblingSymbolWidth )
-{
-  return drawSymbolItemInternal( symbolItem, columnContext, nullptr, painter, top, maxSiblingSymbolWidth );
-}
-
-QgsLegendRenderer::LegendComponent QgsLegendRenderer::drawSymbolItemInternal( QgsLayerTreeModelLegendNode *symbolItem, ColumnContext columnContext, QgsRenderContext *context, QPainter *painter, double top, double maxSiblingSymbolWidth )
+QgsLegendRenderer::LegendComponent QgsLegendRenderer::drawSymbolItem( QgsLayerTreeModelLegendNode *symbolItem, QgsRenderContext &context, ColumnContext columnContext, double top, double maxSiblingSymbolWidth )
 {
   QgsLayerTreeModelLegendNode::ItemContext ctx;
-  ctx.context = context;
+  ctx.context = &context;
 
   // add a layer expression context scope
   QgsExpressionContextScope *layerScope = nullptr;
-  if ( context && symbolItem->layerNode()->layer() )
+  if ( symbolItem->layerNode()->layer() )
   {
     layerScope = QgsExpressionContextUtils::layerScope( symbolItem->layerNode()->layer() );
-    context->expressionContext().appendScope( layerScope );
+    context.expressionContext().appendScope( layerScope );
   }
 
-  ctx.painter = context ? context->painter() : painter;
+  ctx.painter = context.painter();
   Q_NOWARN_DEPRECATED_PUSH
   ctx.point = QPointF( columnContext.left, top );
   ctx.labelXOffset = maxSiblingSymbolWidth;
@@ -660,11 +618,10 @@ QgsLegendRenderer::LegendComponent QgsLegendRenderer::drawSymbolItemInternal( Qg
   if ( const QgsSymbolLegendNode *symbolNode = dynamic_cast< const QgsSymbolLegendNode * >( symbolItem ) )
     ctx.patchShape = symbolNode->patchShape();
 
-  QgsLayerTreeModelLegendNode::ItemMetrics im = symbolItem->draw( mSettings, context ? &ctx
-      : ( painter ? &ctx : nullptr ) );
+  QgsLayerTreeModelLegendNode::ItemMetrics im = symbolItem->draw( mSettings, &ctx );
 
   if ( layerScope )
-    delete context->expressionContext().popScope();
+    delete context.expressionContext().popScope();
 
   LegendComponent component;
   component.item = symbolItem;
@@ -684,12 +641,7 @@ QgsLegendRenderer::LegendComponent QgsLegendRenderer::drawSymbolItemInternal( Qg
   return component;
 }
 
-QSizeF QgsLegendRenderer::drawLayerTitle( QgsLayerTreeLayer *nodeLayer, ColumnContext columnContext, QPainter *painter, double top )
-{
-  return drawLayerTitleInternal( nodeLayer, columnContext, nullptr, painter, top );
-}
-
-QSizeF QgsLegendRenderer::drawLayerTitleInternal( QgsLayerTreeLayer *nodeLayer, ColumnContext columnContext, QgsRenderContext *context, QPainter *painter, const double top )
+QSizeF QgsLegendRenderer::drawLayerTitle( QgsLayerTreeLayer *nodeLayer, QgsRenderContext &context, ColumnContext columnContext, double top )
 {
   QSizeF size( 0, 0 );
   QModelIndex idx = mLegendModel->node2index( nodeLayer );
@@ -698,108 +650,73 @@ QSizeF QgsLegendRenderer::drawLayerTitleInternal( QgsLayerTreeLayer *nodeLayer, 
   if ( titleString.isEmpty() )
     return size;
 
-  double y = top;
-
-  if ( context && context->painter() )
-    context->painter()->setPen( mSettings.layerFontColor() );
-  else if ( painter )
-    painter->setPen( mSettings.layerFontColor() );
-
-  QFont layerFont = mSettings.style( nodeLegendStyle( nodeLayer ) ).font();
+  const QgsTextFormat layerFormat = mSettings.style( nodeLegendStyle( nodeLayer ) ).textFormat();
 
   QgsExpressionContextScope *layerScope = nullptr;
-  if ( context && nodeLayer->layer() )
+  if ( nodeLayer->layer() )
   {
     layerScope = QgsExpressionContextUtils::layerScope( nodeLayer->layer() );
-    context->expressionContext().appendScope( layerScope );
+    context.expressionContext().appendScope( layerScope );
   }
 
-  QgsExpressionContext tempContext;
+  const QStringList lines = mSettings.evaluateItemText( titleString, context.expressionContext() );
 
-  const QStringList lines = mSettings.evaluateItemText( titleString,
-                            context ? context->expressionContext() : tempContext );
-  int i = 0;
-  for ( QStringList::ConstIterator layerItemPart = lines.constBegin(); layerItemPart != lines.constEnd(); ++layerItemPart )
+  const double dotsPerMM = context.scaleFactor();
+
+  const double overallTextHeight = QgsTextRenderer::textHeight( context, layerFormat, lines, QgsTextRenderer::Rect );
+  const double overallTextWidth = QgsTextRenderer::textWidth( context, layerFormat, lines );
+
+  size.rheight() = overallTextHeight / dotsPerMM;
+  size.rwidth() = overallTextWidth / dotsPerMM;
+
+  if ( context.painter() )
   {
-    y += mSettings.fontAscentMillimeters( layerFont );
-    if ( QPainter *destPainter = context && context->painter() ? context->painter() : painter )
-    {
-      double x = columnContext.left;
-      if ( mSettings.style( nodeLegendStyle( nodeLayer ) ).alignment() != Qt::AlignLeft )
-      {
-        const double labelWidth = mSettings.textWidthMillimeters( layerFont, *layerItemPart );
-        if ( mSettings.style( nodeLegendStyle( nodeLayer ) ).alignment() == Qt::AlignRight )
-          x = columnContext.right - labelWidth;
-        else if ( mSettings.style( nodeLegendStyle( nodeLayer ) ).alignment() == Qt::AlignHCenter )
-          x = columnContext.left + ( columnContext.right - columnContext.left - labelWidth ) / 2;
-      }
-      mSettings.drawText( destPainter, x, y, *layerItemPart, layerFont );
-    }
-    qreal width = mSettings.textWidthMillimeters( layerFont, *layerItemPart );
-    size.rwidth() = std::max( width, size.width() );
-    if ( layerItemPart != ( lines.end() - 1 ) )
-    {
-      y += mSettings.lineSpacing();
-    }
-    i++;
+    QgsScopedRenderContextScaleToPixels contextToPixels( context );
+
+    QgsTextRenderer::HAlignment halign =  mSettings.style( nodeLegendStyle( nodeLayer ) ).alignment()  == Qt::AlignLeft ? QgsTextRenderer::AlignLeft :
+                                          mSettings.style( nodeLegendStyle( nodeLayer ) ).alignment()  == Qt::AlignRight ? QgsTextRenderer::AlignRight : QgsTextRenderer::AlignCenter;
+
+    const QRectF r( columnContext.left * dotsPerMM, top * dotsPerMM, ( columnContext.right - columnContext.left ) * dotsPerMM, overallTextHeight );
+    QgsTextRenderer::drawText( r, 0, halign, lines, context, layerFormat );
   }
-  size.rheight() = y - top;
+
   size.rheight() += mSettings.style( nodeLegendStyle( nodeLayer ) ).margin( QgsLegendStyle::Side::Bottom );
 
   if ( layerScope )
-    delete context->expressionContext().popScope();
+    delete context.expressionContext().popScope();
 
   return size;
 }
 
-QSizeF QgsLegendRenderer::drawGroupTitle( QgsLayerTreeGroup *nodeGroup, ColumnContext columnContext, QPainter *painter, double top )
-{
-  return drawGroupTitleInternal( nodeGroup, columnContext, nullptr, painter, top );
-}
-
-QSizeF QgsLegendRenderer::drawGroupTitleInternal( QgsLayerTreeGroup *nodeGroup, ColumnContext columnContext, QgsRenderContext *context, QPainter *painter, const double top )
+QSizeF QgsLegendRenderer::drawGroupTitle( QgsLayerTreeGroup *nodeGroup, QgsRenderContext &context, ColumnContext columnContext, double top )
 {
   QSizeF size( 0, 0 );
   QModelIndex idx = mLegendModel->node2index( nodeGroup );
 
-  double y = top;
+  const QgsTextFormat groupFormat = mSettings.style( nodeLegendStyle( nodeGroup ) ).textFormat();
 
-  if ( context && context->painter() )
-    context->painter()->setPen( mSettings.fontColor() );
-  else if ( painter )
-    painter->setPen( mSettings.fontColor() );
+  const QStringList lines = mSettings.evaluateItemText( mLegendModel->data( idx, Qt::DisplayRole ).toString(), context.expressionContext() );
 
-  QFont groupFont = mSettings.style( nodeLegendStyle( nodeGroup ) ).font();
+  const double dotsPerMM = context.scaleFactor();
 
-  QgsExpressionContext tempContext;
+  const double overallTextHeight = QgsTextRenderer::textHeight( context, groupFormat, lines, QgsTextRenderer::Rect );
+  const double overallTextWidth = QgsTextRenderer::textWidth( context, groupFormat, lines );
 
-  const QStringList lines = mSettings.evaluateItemText( mLegendModel->data( idx, Qt::DisplayRole ).toString(),
-                            context ? context->expressionContext() : tempContext );
-  for ( QStringList::ConstIterator groupPart = lines.constBegin(); groupPart != lines.constEnd(); ++groupPart )
+  size.rheight() = overallTextHeight / dotsPerMM;
+  size.rwidth() = overallTextWidth / dotsPerMM;
+
+  if ( context.painter() )
   {
-    y += mSettings.fontAscentMillimeters( groupFont );
+    QgsScopedRenderContextScaleToPixels contextToPixels( context );
 
-    if ( QPainter *destPainter = context && context->painter() ? context->painter() : painter )
-    {
-      double x = columnContext.left;
-      if ( mSettings.style( nodeLegendStyle( nodeGroup ) ).alignment() != Qt::AlignLeft )
-      {
-        const double labelWidth = mSettings.textWidthMillimeters( groupFont, *groupPart );
-        if ( mSettings.style( nodeLegendStyle( nodeGroup ) ).alignment() == Qt::AlignRight )
-          x = columnContext.right - labelWidth;
-        else if ( mSettings.style( nodeLegendStyle( nodeGroup ) ).alignment() == Qt::AlignHCenter )
-          x = columnContext.left + ( columnContext.right - columnContext.left - labelWidth ) / 2;
-      }
-      mSettings.drawText( destPainter, x, y, *groupPart, groupFont );
-    }
-    qreal width = mSettings.textWidthMillimeters( groupFont, *groupPart );
-    size.rwidth() = std::max( width, size.width() );
-    if ( groupPart != ( lines.end() - 1 ) )
-    {
-      y += mSettings.lineSpacing();
-    }
+    QgsTextRenderer::HAlignment halign =  mSettings.style( nodeLegendStyle( nodeGroup ) ).alignment()  == Qt::AlignLeft ? QgsTextRenderer::AlignLeft :
+                                          mSettings.style( nodeLegendStyle( nodeGroup ) ).alignment()  == Qt::AlignRight ? QgsTextRenderer::AlignRight : QgsTextRenderer::AlignCenter;
+
+    const QRectF r( columnContext.left * dotsPerMM, top * dotsPerMM, ( columnContext.right - columnContext.left ) * dotsPerMM, overallTextHeight );
+    QgsTextRenderer::drawText( r, 0, halign, lines, context, groupFormat );
   }
-  size.rheight() = y - top + mSettings.style( nodeLegendStyle( nodeGroup ) ).margin( QgsLegendStyle::Bottom );
+
+  size.rheight() += mSettings.style( nodeLegendStyle( nodeGroup ) ).margin( QgsLegendStyle::Bottom );
   return size;
 }
 
@@ -853,31 +770,6 @@ void QgsLegendRenderer::setNodeLegendStyle( QgsLayerTreeNode *node, QgsLegendSty
     node->setCustomProperty( QStringLiteral( "legend/title-style" ), str );
   else
     node->removeCustomProperty( QStringLiteral( "legend/title-style" ) );
-}
-
-QSizeF QgsLegendRenderer::drawTitle( QgsRenderContext *rendercontext, double top, Qt::AlignmentFlag halignment, double legendWidth )
-{
-  return drawTitleInternal( rendercontext, nullptr, top, halignment, legendWidth );
-}
-
-QSizeF QgsLegendRenderer::drawGroup( const LegendComponentGroup &group, QgsRenderContext *rendercontext, ColumnContext columnContext, double top )
-{
-  return drawGroupInternal( group, rendercontext, columnContext, nullptr, top );
-}
-
-QgsLegendRenderer::LegendComponent QgsLegendRenderer::drawSymbolItem( QgsLayerTreeModelLegendNode *symbolItem, QgsRenderContext *rendercontext, ColumnContext columnContext, double top, double maxSiblingSymbolWidth )
-{
-  return drawSymbolItemInternal( symbolItem, columnContext, rendercontext, nullptr, top, maxSiblingSymbolWidth );
-}
-
-QSizeF QgsLegendRenderer::drawLayerTitle( QgsLayerTreeLayer *nodeLayer, QgsRenderContext *rendercontext, ColumnContext columnContext, double top )
-{
-  return drawLayerTitleInternal( nodeLayer, columnContext, rendercontext, nullptr, top );
-}
-
-QSizeF QgsLegendRenderer::drawGroupTitle( QgsLayerTreeGroup *nodeGroup, QgsRenderContext *rendercontext, ColumnContext columnContext, double top )
-{
-  return drawGroupTitleInternal( nodeGroup, columnContext, rendercontext, nullptr, top );
 }
 
 void QgsLegendRenderer::drawLegend( QgsRenderContext &context )

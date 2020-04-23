@@ -83,25 +83,36 @@ class CORE_EXPORT QgsLegendSettings
     bool equalColumnWidth() const { return mEqualColumnWidth; }
     void setEqualColumnWidth( bool s ) { mEqualColumnWidth = s;}
 
-    QColor fontColor() const {return mFontColor;}
-    void setFontColor( const QColor &c ) {mFontColor = c;}
+    /**
+    * Returns the font color.
+    *
+    * \deprecated Use QgsLegendStyle::textFormat() instead.
+    */
+    Q_DECL_DEPRECATED QColor fontColor() const SIP_DEPRECATED;
+
+    /**
+    * Sets the font color.
+    *
+    * \deprecated Use QgsLegendStyle::textFormat() instead.
+    */
+    Q_DECL_DEPRECATED void setFontColor( const QColor &c ) SIP_DEPRECATED;
 
     /**
      * Returns layer font color, defaults to fontColor()
      * \see setLayerFontColor()
      * \see fontColor()
-     * \since QGIS 3.4.7
+     * \deprecated Use QgsLegendStyle::textFormat() instead.
      */
-    QColor layerFontColor() const {return mLayerFontColor.isValid() ? mLayerFontColor : fontColor() ;}
+    Q_DECL_DEPRECATED QColor layerFontColor() const SIP_DEPRECATED;
 
     /**
      * Sets layer font color to \a fontColor
      * Overrides fontColor()
      * \see layerFontColor()
      * \see fontColor()
-     * \since QGIS 3.4.7
+     * \deprecated Use QgsLegendStyle::textFormat() instead.
      */
-    void setLayerFontColor( const QColor &fontColor ) {mLayerFontColor = fontColor;}
+    Q_DECL_DEPRECATED void setLayerFontColor( const QColor &fontColor ) SIP_DEPRECATED;
 
 
     QSizeF symbolSize() const {return mSymbolSize;}
@@ -299,8 +310,6 @@ class CORE_EXPORT QgsLegendSettings
 
     QString mWrapChar;
 
-    QColor mFontColor;
-
     //! Space between item box and contents
     qreal mBoxSpace = 2;
 
@@ -342,9 +351,6 @@ class CORE_EXPORT QgsLegendSettings
 
     //! DPI to be used when rendering legend
     int mDpi = 96;
-
-    //! Font color for layers, overrides font color
-    QColor mLayerFontColor;
 
     //! Symbol alignment
     Qt::AlignmentFlag mSymbolAlignment = Qt::AlignLeft;
