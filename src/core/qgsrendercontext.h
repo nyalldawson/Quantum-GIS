@@ -914,17 +914,30 @@ class QgsScopedRenderContextPainterSwap
     }
 
     /**
+     * Resets the destination painter for the context back to the original QPainter object.
+     */
+    void reset()
+    {
+      if ( !mReleased )
+      {
+        mContext.setPainter( mPreviousPainter );
+        mReleased = true;
+      }
+    }
+
+    /**
      * Returns the destination painter for the context back to the original QPainter object.
      */
     ~QgsScopedRenderContextPainterSwap()
     {
-      mContext.setPainter( mPreviousPainter );
+      reset();
     }
 
   private:
 
     QgsRenderContext &mContext;
     QPainter *mPreviousPainter = nullptr;
+    bool mReleased = false;
 };
 
 
