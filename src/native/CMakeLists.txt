@@ -138,7 +138,23 @@ TARGET_LINK_LIBRARIES(qgis_native
     )
 
 IF (UNIX AND NOT APPLE AND NOT ANDROID)
-  TARGET_LINK_LIBRARIES(qgis_native Qt5::DBus)
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(GLib REQUIRED glib-2.0)
+pkg_check_modules(GIO_UNIX QUIET gio-unix-2.0)
+        find_path(GLIB_GIO_UNIX_INCLUDE_DIR
+                  NAMES gio/gunixconnection.h
+                  HINTS ${GIO_UNIX_INCLUDEDIR}
+                  PATH_SUFFIXES gio-unix-2.0)
+
+  TARGET_LINK_LIBRARIES(qgis_native
+      Qt5::DBus
+      ${GLib_GIO_LIBRARIES}
+      ${GLib_GOBJECT_LIBRARIES}
+      ${GLib_GTHREAD_LIBRARIES})
+  INCLUDE_DIRECTORIES(SYSTEM
+      ${GLib_INCLUDE_DIRS}
+      ${GLIB_GIO_UNIX_INCLUDE_DIR}
+      )
 ENDIF (UNIX AND NOT APPLE AND NOT ANDROID)
 
 IF (APPLE)

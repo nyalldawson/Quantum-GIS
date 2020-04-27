@@ -15,6 +15,8 @@
  *                                                                         *
  ***************************************************************************/
 
+#define QT_NO_KEYWORDS
+
 #include "qgslinuxnative.h"
 
 #include <QCoreApplication>
@@ -24,6 +26,10 @@
 #include <QtDebug>
 #include <QImage>
 #include <QProcess>
+
+
+#include <gio/gdesktopappinfo.h>
+#include <glib/gstdio.h>
 
 QgsNative::Capabilities QgsLinuxNative::capabilities() const
 {

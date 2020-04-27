@@ -246,7 +246,13 @@ class NATIVE_EXPORT QgsNative : public QObject
      */
     virtual void onRecentProjectsChanged( const std::vector< RecentProjectProperties > &recentProjects );
 
-  signals:
+    struct AppInfo
+    {
+      QString command;
+
+    };
+
+  Q_SIGNALS:
 
     /**
      * Emitted whenever a USB storage device has been inserted or removed.
