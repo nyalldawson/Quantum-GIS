@@ -26,6 +26,7 @@
 #include "qgsfontbutton.h"
 #include "qgslayoutdesignerinterface.h"
 #include "qgslayoutpagecollection.h"
+#include "qgslayoutreportcontext.h"
 #include <QButtonGroup>
 
 //
@@ -283,6 +284,9 @@ QgsLayoutItemPropertiesWidget::QgsLayoutItemPropertiesWidget( QWidget *parent, Q
   mItemFrameColorDDBtn->registerLinkedWidget( mFrameColorButton );
   mItemBackgroundColorDDBtn->registerLinkedWidget( mBackgroundColorButton );
 
+  mFrameSymbolButton->setSymbolType( QgsSymbol::Line );
+  connect( mFrameSymbolButton, &QgsSymbolButton::changed, this, &QgsLayoutItemPropertiesWidget::frameSymbolChanged );
+
   connect( mFrameColorButton, &QgsColorButton::colorChanged, this, &QgsLayoutItemPropertiesWidget::mFrameColorButton_colorChanged );
   connect( mBackgroundColorButton, &QgsColorButton::colorChanged, this, &QgsLayoutItemPropertiesWidget::mBackgroundColorButton_colorChanged );
   connect( mStrokeWidthSpinBox, static_cast < void ( QDoubleSpinBox::* )( double ) > ( &QDoubleSpinBox::valueChanged ), this, &QgsLayoutItemPropertiesWidget::mStrokeWidthSpinBox_valueChanged );
@@ -346,7 +350,11 @@ QgsLayoutItemPropertiesWidget::QgsLayoutItemPropertiesWidget( QWidget *parent, Q
     connect( item->layout(), &QgsLayout::variablesChanged, this, &QgsLayoutItemPropertiesWidget::updateVariables );
     connect( &item->layout()->renderContext(), &QgsLayoutRenderContext::dpiChanged, this, &QgsLayoutItemPropertiesWidget::updateVariables );
     connect( item->layout()->pageCollection(), &QgsLayoutPageCollection::changed, this, &QgsLayoutItemPropertiesWidget::updateVariables );
+    connect( &item->layout()->reportContext(), &QgsLayoutReportContext::layerChanged, mFrameSymbolButton, &QgsSymbolButton::setLayer );
   }
+
+  mFrameSymbolButton->registerExpressionContextGenerator( item );
+  mFrameSymbolButton->setLayer( mConfigObject->coverageLayer() );
 }
 
 void QgsLayoutItemPropertiesWidget::showBackgroundGroup( bool showGroup )
@@ -399,6 +407,16 @@ void QgsLayoutItemPropertiesWidget::mFrameColorButton_colorChanged( const QColor
   mItem->setFrameStrokeColor( newFrameColor );
   mItem->layout()->undoStack()->endCommand();
   mItem->update();
+}
+
+void QgsLayoutItemPropertiesWidget::frameSymbolChanged()
+{
+  if ( !mItem )
+    return;
+
+  mItem->layout()->undoStack()->beginCommand( mItem, tr( "Change Frame Symbol" ), QgsLayoutItem::UndoStrokeColor );
+  mItem->setFrameSymbol( mFrameSymbolButton->clonedSymbol<QgsLineSymbol>() );
+  mItem->layout()->undoStack()->endCommand();
 }
 
 void QgsLayoutItemPropertiesWidget::mBackgroundColorButton_colorChanged( const QColor &newBackgroundColor )
@@ -718,6 +736,8 @@ void QgsLayoutItemPropertiesWidget::setValuesForGuiNonPositionElements()
   mOpacityWidget->setOpacity( mItem->itemOpacity() );
   mItemRotationSpinBox->setValue( mItem->itemRotation() );
   mExcludeFromPrintsCheckBox->setChecked( mItem->excludeFromExports() );
+
+  whileBlocking( mFrameSymbolButton )->setSymbol( mItem->frameSymbol()->clone() );
 
   block( false );
 }
