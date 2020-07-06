@@ -180,11 +180,10 @@ QSizeF QgsLayerTreeModelLegendNode::drawSymbolText( const QgsLegendSettings &set
     format = settings.style( QgsLegendStyle::SymbolLabel ).textFormat();
   }
 
-  const double overallTextHeight = QgsTextRenderer::textHeight( *context, format, lines, QgsTextRenderer::Rect )
-                                   - QgsTextRenderer::fontMetrics( *context, format ).descent();
+  const double overallTextHeight = QgsTextRenderer::textHeight( *context, format, lines, QgsTextRenderer::Rect );
   const double overallTextWidth = QgsTextRenderer::textWidth( *context, format, lines );
 
-  labelSize.rheight() = overallTextHeight / dotsPerMM;
+  labelSize.rheight() = ( overallTextHeight - QgsTextRenderer::fontMetrics( *context, format ).descent() ) / dotsPerMM;
 
   double labelXMin = 0.0;
   double labelXMax = 0.0;
@@ -225,7 +224,7 @@ QSizeF QgsLayerTreeModelLegendNode::drawSymbolText( const QgsLegendSettings &set
     QgsTextRenderer::HAlignment halign = settings.style( QgsLegendStyle::SymbolLabel ).alignment() == Qt::AlignLeft ? QgsTextRenderer::AlignLeft :
                                          settings.style( QgsLegendStyle::SymbolLabel ).alignment() == Qt::AlignRight ? QgsTextRenderer::AlignRight : QgsTextRenderer::AlignCenter;
 
-    QgsTextRenderer::drawText( QRectF( labelXMin * dotsPerMM, labelY * dotsPerMM, ( labelXMax - labelXMin )* dotsPerMM, overallTextHeight * dotsPerMM ), 0, halign, lines, *context, format );
+    QgsTextRenderer::drawText( QRectF( labelXMin * dotsPerMM, labelY * dotsPerMM, ( labelXMax - labelXMin )* dotsPerMM, overallTextHeight ), 0, halign, lines, *context, format );
   }
 
   return labelSize;
