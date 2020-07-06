@@ -63,9 +63,9 @@
       <property name="geometry">
        <rect>
         <x>0</x>
-        <y>-1031</y>
-        <width>387</width>
-        <height>2728</height>
+        <y>-366</y>
+        <width>367</width>
+        <height>2278</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="mainLayout">
@@ -858,7 +858,7 @@
           <item row="4" column="1">
            <widget class="QgsDoubleSpinBox" name="mMaxSymbolSizeSpinBox">
             <property name="suffix">
-             <string>mm</string>
+             <string> mm</string>
             </property>
            </widget>
           </item>
@@ -879,7 +879,7 @@
           <item row="3" column="1">
            <widget class="QgsDoubleSpinBox" name="mMinSymbolSizeSpinBox">
             <property name="suffix">
-             <string>mm</string>
+             <string> mm</string>
             </property>
            </widget>
           </item>
@@ -1283,9 +1283,9 @@
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>
   <customwidget>
-   <class>QgsColorButton</class>
-   <extends>QToolButton</extends>
-   <header>qgscolorbutton.h</header>
+   <class>QgsCollapsibleGroupBoxBasic</class>
+   <extends>QGroupBox</extends>
+   <header location="global">qgscollapsiblegroupbox.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>
@@ -1295,14 +1295,9 @@
    <container>1</container>
   </customwidget>
   <customwidget>
-   <class>QgsSpinBox</class>
-   <extends>QSpinBox</extends>
-   <header>qgsspinbox.h</header>
-  </customwidget>
-  <customwidget>
-   <class>QgsCollapsibleGroupBoxBasic</class>
-   <extends>QGroupBox</extends>
-   <header location="global">qgscollapsiblegroupbox.h</header>
+   <class>QgsColorButton</class>
+   <extends>QToolButton</extends>
+   <header>qgscolorbutton.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>
@@ -1311,14 +1306,19 @@
    <header>qgsdoublespinbox.h</header>
   </customwidget>
   <customwidget>
-   <class>QgsLayoutItemComboBox</class>
-   <extends>QComboBox</extends>
-   <header>qgslayoutitemcombobox.h</header>
-  </customwidget>
-  <customwidget>
    <class>QgsFontButton</class>
    <extends>QToolButton</extends>
    <header>qgsfontbutton.h</header>
+  </customwidget>
+  <customwidget>
+   <class>QgsSpinBox</class>
+   <extends>QSpinBox</extends>
+   <header>qgsspinbox.h</header>
+  </customwidget>
+  <customwidget>
+   <class>QgsLayoutItemComboBox</class>
+   <extends>QComboBox</extends>
+   <header>qgslayoutitemcombobox.h</header>
   </customwidget>
   <customwidget>
    <class>QgsPropertyOverrideButton</class>
@@ -1373,7 +1373,6 @@
   <tabstop>mSubgroupAlignCombo</tabstop>
   <tabstop>mItemFontButton</tabstop>
   <tabstop>mItemAlignCombo</tabstop>
-  <tabstop>mFontColorButton</tabstop>
   <tabstop>mColumnsColGroupBox</tabstop>
   <tabstop>mColumnCountSpinBox</tabstop>
   <tabstop>mColumnsDDBtn</tabstop>

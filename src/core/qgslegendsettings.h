@@ -515,6 +515,12 @@ class CORE_EXPORT QgsLegendSettings
     //! Width and height of symbol icon
     QSizeF mSymbolSize;
 
+    //! Maximum marker symbol size (in mm)
+    double mMaxSymbolSize = 0.0;
+
+    //! Minimum marker symbol size (in mm)
+    double mMinSymbolSize = 0.0;
+
     //! Width and height of WMS legendGraphic pixmap
     QSizeF mWmsLegendSize;
 

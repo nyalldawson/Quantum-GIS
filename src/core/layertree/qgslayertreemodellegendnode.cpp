@@ -72,7 +72,7 @@ QgsLayerTreeModelLegendNode::ItemMetrics QgsLayerTreeModelLegendNode::draw( cons
 {
   const QgsTextFormat f = settings.style( QgsLegendStyle::SymbolLabel ).textFormat();
 
-  double textHeight = QgsTextRenderer::textHeight( *ctx->context, f, QStringList() << QChar( '0' ), QgsTextRenderer::Rect )
+  double textHeight = QgsTextRenderer::fontMetrics( *ctx->context, f ).boundingRect( QChar( '0' ) ).height()
                       - QgsTextRenderer::fontMetrics( *ctx->context, f ).descent();
   textHeight /= ctx->context->scaleFactor();
 
