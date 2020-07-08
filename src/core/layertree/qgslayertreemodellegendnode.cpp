@@ -72,8 +72,7 @@ QgsLayerTreeModelLegendNode::ItemMetrics QgsLayerTreeModelLegendNode::draw( cons
 {
   const QgsTextFormat f = settings.style( QgsLegendStyle::SymbolLabel ).textFormat();
 
-  double textHeight = QgsTextRenderer::fontMetrics( *ctx->context, f ).boundingRect( QChar( '0' ) ).height()
-                      - QgsTextRenderer::fontMetrics( *ctx->context, f ).descent();
+  double textHeight = QgsTextRenderer::textHeight( *ctx->context, f, QChar( '0' ) );
   textHeight /= ctx->context->scaleFactor();
 
   // itemHeight here is not really item height, it is only for symbol
@@ -168,8 +167,6 @@ QSizeF QgsLayerTreeModelLegendNode::drawSymbolText( const QgsLegendSettings &set
   const QStringList lines = settings.evaluateItemText( data( Qt::DisplayRole ).toString(), context->expressionContext() );
 
   const double dotsPerMM = context->scaleFactor();
-  QgsScopedRenderContextScaleToPixels scaleToMm( *context );
-
   QgsTextFormat format;
   if ( ctx && ctx->textFormat )
   {
@@ -180,10 +177,15 @@ QSizeF QgsLayerTreeModelLegendNode::drawSymbolText( const QgsLegendSettings &set
     format = settings.style( QgsLegendStyle::SymbolLabel ).textFormat();
   }
 
+  // calculations are a little odd here, but designed to mimic old behavior...
+  double textHeightMm = QgsTextRenderer::textHeight( *context, format, QChar( '0' ) ) / dotsPerMM;
+  double textDescentMm = QgsTextRenderer::fontMetrics( *context, format, QgsTextRenderer::FONT_WORKAROUND_SCALE ).descent() / QgsTextRenderer::FONT_WORKAROUND_SCALE / dotsPerMM;
+  labelSize.rheight() = lines.count() * textHeightMm + ( lines.count() - 1 ) * ( settings.lineSpacing() + textDescentMm );
+
+  QgsScopedRenderContextScaleToPixels scaleToMm( *context );
+
   const double overallTextHeight = QgsTextRenderer::textHeight( *context, format, lines, QgsTextRenderer::Rect );
   const double overallTextWidth = QgsTextRenderer::textWidth( *context, format, lines );
-
-  labelSize.rheight() = ( overallTextHeight - QgsTextRenderer::fontMetrics( *context, format ).descent() ) / dotsPerMM;
 
   double labelXMin = 0.0;
   double labelXMax = 0.0;

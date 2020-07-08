@@ -760,7 +760,7 @@ QSizeF QgsLegendRenderer::drawLayerTitle( QgsLayerTreeLayer *nodeLayer, QgsRende
   const double overallTextWidth = QgsTextRenderer::textWidth( context, layerFormat, lines );
   const double sideMargin = mSettings.style( nodeLegendStyle( nodeLayer ) ).margin( QgsLegendStyle::Left );
 
-  size.rheight() = ( overallTextHeight - QgsTextRenderer::fontMetrics( context, layerFormat ).descent() ) / dotsPerMM;
+  size.rheight() = ( overallTextHeight - QgsTextRenderer::fontMetrics( context, layerFormat, QgsTextRenderer::FONT_WORKAROUND_SCALE ).descent() ) / dotsPerMM / QgsTextRenderer::FONT_WORKAROUND_SCALE;
   size.rwidth() = overallTextWidth / dotsPerMM + sideMargin *
                   ( mSettings.style( nodeLegendStyle( nodeLayer ) ).alignment() == Qt::AlignHCenter  ? 2 : 1 );
 
@@ -798,7 +798,7 @@ QSizeF QgsLegendRenderer::drawGroupTitle( QgsLayerTreeGroup *nodeGroup, QgsRende
   const double overallTextWidth = QgsTextRenderer::textWidth( context, groupFormat, lines );
   const double sideMargin = mSettings.style( nodeLegendStyle( nodeGroup ) ).margin( QgsLegendStyle::Left );
 
-  size.rheight() = ( overallTextHeight  - QgsTextRenderer::fontMetrics( context, groupFormat ).descent() ) / dotsPerMM;
+  size.rheight() = ( overallTextHeight  - QgsTextRenderer::fontMetrics( context, groupFormat, QgsTextRenderer::FONT_WORKAROUND_SCALE ).descent() ) / dotsPerMM / QgsTextRenderer::FONT_WORKAROUND_SCALE;
   size.rwidth() = overallTextWidth / dotsPerMM + sideMargin *
                   ( mSettings.style( nodeLegendStyle( nodeGroup ) ).alignment() == Qt::AlignHCenter  ? 2 : 1 );
 

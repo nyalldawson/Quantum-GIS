@@ -130,6 +130,7 @@ void QgsLayoutItemLegend::paint( QPainter *painter, const QStyleOptionGraphicsIt
   if ( mSizeToContents )
   {
     QgsRenderContext context = QgsLayoutUtils::createRenderContextForLayout( mLayout, painter );
+    context.setFlag( QgsRenderContext::ApplyScalingWorkaroundForTextRendering, true );
     QSizeF size = legendRenderer.minimumSize( &context );
     if ( mForceResize )
     {
@@ -176,6 +177,8 @@ void QgsLayoutItemLegend::draw( QgsLayoutItemRenderContext &context )
 {
   QPainter *painter = context.renderContext().painter();
   QgsScopedQPainterState painterState( painter );
+  bool prevUseScaledText = context.renderContext().flags() & QgsRenderContext::ApplyScalingWorkaroundForTextRendering;
+  context.renderContext().setFlag( QgsRenderContext::ApplyScalingWorkaroundForTextRendering );
 
   // painter is scaled to dots, so scale back to layout units
   painter->scale( context.renderContext().scaleFactor(), context.renderContext().scaleFactor() );
@@ -201,6 +204,8 @@ void QgsLayoutItemLegend::draw( QgsLayoutItemRenderContext &context )
   legendRenderer.setLegendSize( rect().size() );
 
   legendRenderer.drawLegend( context.renderContext() );
+
+  context.renderContext().setFlag( QgsRenderContext::ApplyScalingWorkaroundForTextRendering, prevUseScaledText );
 }
 
 void QgsLayoutItemLegend::adjustBoxSize()
