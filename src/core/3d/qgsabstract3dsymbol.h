@@ -20,6 +20,7 @@
 #include "qgis_sip.h"
 
 #include "qgspropertycollection.h"
+#include "qgsvector3d.h"
 
 class QDomElement;
 class QString;
@@ -89,6 +90,49 @@ class CORE_EXPORT QgsAbstract3DSymbol
      * If this function is not overloaded we don't try to export anything
      */
     virtual bool exportGeometries( Qgs3DSceneExporter *exporter, Qt3DCore::QEntity *entity, const QString &objectNamePrefix ) const SIP_SKIP;
+
+    /**
+     * Exposes settings relating to how a preview thumbnail for a 3D symbol should be generated.
+     * \ingroup core
+     * \since QGIS 3.16
+     */
+    class CORE_EXPORT PreviewThumbnailSettings
+    {
+      public:
+
+        //! Geometry of 3D shape to render
+        QgsGeometry geometry;
+
+        //! Suggested background color for thumbnail
+        QColor backgroundColor = QColor( 0, 100, 0 );
+
+        //! Flat terrain color
+        QColor planeColor = QColor( 90, 90, 90 );
+
+        //! Full 2D extent of the scene to render for the thumbnail
+        QgsRectangle fullExtent;
+
+        //! Camera target
+        QgsVector3D cameraTarget = QgsVector3D( 0, 0, 0 );
+
+        //! Camera distance
+        float cameraDistance = 2500;
+
+        //! Camera pitch
+        float cameraPitch = 45;
+
+        //! Camera yaw
+        float cameraYaw = 45;
+
+        //! Light source transform
+        QVector3D lightSourceTransform = QVector3D( 1500, 1000, 1300 );
+
+    };
+
+    /**
+     * Returns the thumbnail preview settings for the symbol.
+     */
+    virtual PreviewThumbnailSettings thumbnailSettings() const = 0;
 
   protected:
 
