@@ -282,6 +282,7 @@ if (WITH_3D)
     3d/qgsrulebased3drendererwidget.cpp
     3d/qgssimplelinematerialwidget.cpp
     3d/qgssymbol3dwidget.cpp
+    3d/qgsunlittexturematerialwidget.cpp
     3d/qgsvectorlayer3dpropertieswidget.cpp
     3d/qgsvectorlayer3drendererwidget.cpp
     3d/qgsmeshlayer3drendererwidget.cpp

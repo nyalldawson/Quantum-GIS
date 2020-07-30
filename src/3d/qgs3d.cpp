@@ -39,6 +39,7 @@
 #include "qgssimplelinematerialsettings.h"
 #include "qgsphongtexturedmaterialsettings.h"
 #include "qgsnullmaterialsettings.h"
+#include "qgsunlittexturematerialsettings.h"
 
 #include "qgsstyle.h"
 
@@ -81,6 +82,8 @@ void Qgs3D::initialize()
       QgsSimpleLineMaterialSettings::create, QgsSimpleLineMaterialSettings::supportsTechnique, nullptr, QgsApplication::getThemeIcon( QStringLiteral( "/mIconSimpleLineMaterial.svg" ) ) ) );
   instance()->materialRegistry()->addMaterialSettingsType( new QgsMaterialSettingsMetadata( QStringLiteral( "gooch" ), QObject::tr( "CAD (Gooch)" ),
       QgsGoochMaterialSettings::create, QgsGoochMaterialSettings::supportsTechnique, nullptr, QgsApplication::getThemeIcon( QStringLiteral( "/mIconGoochMaterial.svg" ) ) ) );
+  instance()->materialRegistry()->addMaterialSettingsType( new QgsMaterialSettingsMetadata( QStringLiteral( "unlittexture" ), QObject::tr( "Unlit texture" ),
+      QgsUnlitTextureMaterialSettings::create, QgsUnlitTextureMaterialSettings::supportsTechnique, nullptr ) );
 
   // because we are usually populating the 3d registry AFTER QgsApplication initialization, we need to defer creation
   // of 3d symbols in the default style until now

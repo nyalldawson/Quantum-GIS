@@ -26,6 +26,7 @@ set(QGIS_3D_SRCS
   qgsrulebasedchunkloader_p.cpp
   qgstessellatedpolygongeometry.cpp
   qgstilingscheme.cpp
+  qgsunlittexturematerialsettings.cpp
   qgsvectorlayer3drenderer.cpp
   qgsvectorlayerchunkloader_p.cpp
   qgsmeshlayer3drenderer.cpp
@@ -116,6 +117,7 @@ set(QGIS_3D_HDRS
   qgsrulebased3drenderer.h
   qgstessellatedpolygongeometry.h
   qgstilingscheme.h
+  qgsunlittexturematerialsettings.h
   qgsvectorlayer3drenderer.h
   qgswindow3dengine.h
   qgsskyboxentity.h

@@ -26,6 +26,7 @@
 #include "qgsgoochmaterialwidget.h"
 #include "qgssimplelinematerialwidget.h"
 #include "qgsnullmaterialwidget.h"
+#include "qgsunlittexturematerialwidget.h"
 #include "qgs3dicongenerator.h"
 #include "qgspointcloudrenderer.h"
 #include "qgspointcloud3dsymbol.h"
@@ -45,6 +46,7 @@ void Qgs3DAppUtils::initialize()
   dynamic_cast< QgsMaterialSettingsMetadata * >( Qgs3D::materialRegistry()->materialSettingsMetadata( QStringLiteral( "phongtextured" ) ) )->setWidgetFunction( QgsPhongTexturedMaterialWidget::create );
   dynamic_cast< QgsMaterialSettingsMetadata * >( Qgs3D::materialRegistry()->materialSettingsMetadata( QStringLiteral( "gooch" ) ) )->setWidgetFunction( QgsGoochMaterialWidget::create );
   dynamic_cast< QgsMaterialSettingsMetadata * >( Qgs3D::materialRegistry()->materialSettingsMetadata( QStringLiteral( "simpleline" ) ) )->setWidgetFunction( QgsSimpleLineMaterialWidget::create );
+  dynamic_cast< QgsMaterialSettingsMetadata * >( Qgs3D::materialRegistry()->materialSettingsMetadata( QStringLiteral( "unlittexture" ) ) )->setWidgetFunction( QgsUnlitTextureMaterialWidget::create );
 
   QgsStyleModel::setIconGenerator( new Qgs3DIconGenerator( QgsApplication::defaultStyleModel() ) );
 }
