@@ -68,40 +68,40 @@ class GUI_EXPORT Qgs3DSymbolWidget : public QWidget
 };
 
 
+///@cond PRIVATE
+#ifndef SIP_RUN
 
 /**
  * \ingroup gui
- * \brief A dialog for configuring a 3D symbol.
+ * \brief A dialog for configuring a 3D symbol, including a preview widget.
+ * \note Not available in Python bindings
  * \since QGIS 3.16
  */
-class GUI_EXPORT Qgs3DSymbolDialog : public QDialog
+class GUI_EXPORT QgsAbstract3DSymbolDialogWithPreview : public QDialog
 {
     Q_OBJECT
 
   public:
 
     /**
-     * Constructor for Qgs3DSymbolDialog, initially showing the specified \a symbol.
+     * Constructor for QgsAbstract3DSymbolDialogWithPreview, initially showing the specified \a symbol.
      */
-    Qgs3DSymbolDialog( const QgsAbstract3DSymbol *symbol, QWidget *parent SIP_TRANSFERTHIS = nullptr );
+    QgsAbstract3DSymbolDialogWithPreview( const QgsAbstract3DSymbol *symbol, QWidget *parent = nullptr );
 
     /**
      * Returns a new instance of the symbol defined by the dialog.
      *
      * Caller takes ownership of the returned symbol.
      */
-    QgsAbstract3DSymbol *symbol() const SIP_FACTORY;
+    virtual QgsAbstract3DSymbol *symbol() const;
 
     /**
      * Returns a reference to the dialog's button box.
      */
-    QDialogButtonBox *buttonBox() const;
-
-  private:
-
-    Qgs3DSymbolWidget *mWidget = nullptr;
-    QDialogButtonBox *mButtonBox = nullptr;
+    virtual QDialogButtonBox *buttonBox() const;
 
 };
+#endif
+///@endcond
 
 #endif // QGS3DSYMBOLWIDGET_H

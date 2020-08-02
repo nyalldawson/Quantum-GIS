@@ -79,18 +79,23 @@ void Qgs3DIconGenerator::generateIcon( const Qgs3DIconGenerator::IconRequest &re
   map->setCrs( tempLayer->crs() );
   map->setOrigin( QgsVector3D( thumbnailSettings.fullExtent.center().x(), thumbnailSettings.fullExtent.center().y(), 0 ) );
   map->setLayers( QList<QgsMapLayer *>() << tempLayer );
+  map->setTerrainLayers( QList< QgsMapLayer * >() );
   map->setBackgroundColor( thumbnailSettings.backgroundColor );
   QgsPointLightSettings light;
   light.setPosition( thumbnailSettings.lightSourceTransform );
   map->setPointLights( QList< QgsPointLightSettings >() << light );
-  map->setShowLightSourceOrigins( true );
+// map->setShowLightSourceOrigins( true );
 
   QgsFlatTerrainGenerator *flatTerrain = new QgsFlatTerrainGenerator;
   flatTerrain->setCrs( map->crs() );
   flatTerrain->setExtent( thumbnailSettings.fullExtent );
   map->setTerrainGenerator( flatTerrain );
+
   QgsPhongMaterialSettings terrainMaterial;
   terrainMaterial.setDiffuse( thumbnailSettings.planeColor );
+  terrainMaterial.setAmbient( thumbnailSettings.planeColor );
+  terrainMaterial.setSpecular( thumbnailSettings.planeColor );
+
   map->setTerrainShadingEnabled( true );
   map->setTerrainShadingMaterial( terrainMaterial );
 

@@ -38,7 +38,7 @@ QgsSingleSymbol3DRendererWidget::QgsSingleSymbol3DRendererWidget( QgsVectorLayer
   : QWidget( parent )
   , mLayer( layer )
 {
-  widgetSymbol = new QgsSymbol3DWidget( mLayer, this );
+  widgetSymbol = new QgsSymbol3DWidget( this, mLayer->geometryType(), mLayer );
 
   QVBoxLayout *layout = new QVBoxLayout( this );
   layout->setContentsMargins( 0, 0, 0, 0 );
@@ -54,12 +54,12 @@ void QgsSingleSymbol3DRendererWidget::setLayer( QgsVectorLayer *layer )
   if ( r && r->type() == QStringLiteral( "vector" ) )
   {
     QgsVectorLayer3DRenderer *vectorRenderer = static_cast<QgsVectorLayer3DRenderer *>( r );
-    widgetSymbol->setSymbol( vectorRenderer->symbol(), layer );
+    widgetSymbol->setSymbol( vectorRenderer->symbol(), layer->geometryType(), layer );
   }
   else
   {
     std::unique_ptr<QgsAbstract3DSymbol> sym( QgsApplication::symbol3DRegistry()->defaultSymbolForGeometryType( layer->geometryType() ) );
-    widgetSymbol->setSymbol( sym.get(), layer );
+    widgetSymbol->setSymbol( sym.get(), layer->geometryType(), layer );
   }
 }
 

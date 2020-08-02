@@ -18,9 +18,13 @@
 
 #include "qgis_sip.h"
 #include "qgis_gui.h"
+#include "qgswkbtypes.h"
 
 class QgsVectorLayer;
 class QgsRasterLayer;
+class QWidget;
+class QgsAbstract3DSymbolDialogWithPreview;
+class QgsAbstract3DSymbol;
 
 ///@cond NOT_STABLE
 
@@ -34,7 +38,7 @@ class QgsRasterLayer;
  * \note This is not considered stable API and may change in future QGIS versions.
  * \since QGIS 3.4
  */
-class GUI_EXPORT QgsWindowManagerInterface
+class GUI_EXPORT QgsWindowManagerInterface SIP_ABSTRACT
 {
   public:
 
@@ -56,6 +60,17 @@ class GUI_EXPORT QgsWindowManagerInterface
      */
     virtual QWidget *openStandardDialog( StandardDialog dialog ) = 0;
 
+#ifndef SIP_RUN
+
+    /**
+     * Opens a 3D symbol dialog for configuring the specified \a symbol.
+     *
+     * \note Not available in Python bindings.
+     */
+    virtual QgsAbstract3DSymbolDialogWithPreview *open3DSymbolDialog( const QgsAbstract3DSymbol *symbol,
+        QgsWkbTypes::GeometryType layerType,
+        QWidget *parent = nullptr ) = 0;
+#endif
 };
 
 ///@endcond

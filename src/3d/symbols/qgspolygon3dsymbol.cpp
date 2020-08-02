@@ -137,31 +137,35 @@ QgsAbstract3DSymbol::PreviewThumbnailSettings QgsPolygon3DSymbol::thumbnailSetti
                                    << QgsPoint( 1, 1, 0 )
                                    << QgsPoint( 1, -1, 0 )
                                    << QgsPoint( -1, -1, 0 ) ) ) );
-  mp->addGeometry( new QgsPolygon( new QgsLineString( QVector< QgsPoint >() << QgsPoint( -1, -1, 0 )
-                                   << QgsPoint( -1, 1, 0 )
-                                   << QgsPoint( -1, 1, 1 )
-                                   << QgsPoint( -1, -1, 1 )
-                                   << QgsPoint( -1, -1, 0 ) ) ) );
-  mp->addGeometry( new QgsPolygon( new QgsLineString( QVector< QgsPoint >() << QgsPoint( -1, -1, 0 )
-                                   << QgsPoint( 1, -1, 0 )
-                                   << QgsPoint( 1, -1, 1 )
-                                   << QgsPoint( -1, -1, 1 )
-                                   << QgsPoint( -1, -1, 0 ) ) ) );
-  mp->addGeometry( new QgsPolygon( new QgsLineString( QVector< QgsPoint >() << QgsPoint( -1, 1, 0 )
-                                   << QgsPoint( 1, 1, 0 )
-                                   << QgsPoint( 1, 1, 1 )
-                                   << QgsPoint( -1, 1, 1 )
-                                   << QgsPoint( -1, 1, 0 ) ) ) );
-  mp->addGeometry( new QgsPolygon( new QgsLineString( QVector< QgsPoint >() << QgsPoint( 1, -1, 0 )
-                                   << QgsPoint( 1, 1, 0 )
-                                   << QgsPoint( 1, 1, 1 )
-                                   << QgsPoint( 1, -1, 1 )
-                                   << QgsPoint( 1, -1, 0 ) ) ) );
-  mp->addGeometry( new QgsPolygon( new QgsLineString( QVector< QgsPoint >() << QgsPoint( -1, -1, 1 )
-                                   << QgsPoint( -1, 1, 1 )
-                                   << QgsPoint( 1, 1, 1 )
-                                   << QgsPoint( 1, -1, 1 )
-                                   << QgsPoint( -1, -1, 1 ) ) ) );
+
+  if ( mExtrusionHeight == 0 )
+  {
+    mp->addGeometry( new QgsPolygon( new QgsLineString( QVector< QgsPoint >() << QgsPoint( -1, -1, 0 )
+                                     << QgsPoint( -1, 1, 0 )
+                                     << QgsPoint( -1, 1, 1 )
+                                     << QgsPoint( -1, -1, 1 )
+                                     << QgsPoint( -1, -1, 0 ) ) ) );
+    mp->addGeometry( new QgsPolygon( new QgsLineString( QVector< QgsPoint >() << QgsPoint( -1, -1, 0 )
+                                     << QgsPoint( 1, -1, 0 )
+                                     << QgsPoint( 1, -1, 1 )
+                                     << QgsPoint( -1, -1, 1 )
+                                     << QgsPoint( -1, -1, 0 ) ) ) );
+    mp->addGeometry( new QgsPolygon( new QgsLineString( QVector< QgsPoint >() << QgsPoint( -1, 1, 0 )
+                                     << QgsPoint( 1, 1, 0 )
+                                     << QgsPoint( 1, 1, 1 )
+                                     << QgsPoint( -1, 1, 1 )
+                                     << QgsPoint( -1, 1, 0 ) ) ) );
+    mp->addGeometry( new QgsPolygon( new QgsLineString( QVector< QgsPoint >() << QgsPoint( 1, -1, 0 )
+                                     << QgsPoint( 1, 1, 0 )
+                                     << QgsPoint( 1, 1, 1 )
+                                     << QgsPoint( 1, -1, 1 )
+                                     << QgsPoint( 1, -1, 0 ) ) ) );
+    mp->addGeometry( new QgsPolygon( new QgsLineString( QVector< QgsPoint >() << QgsPoint( -1, -1, 1 )
+                                     << QgsPoint( -1, 1, 1 )
+                                     << QgsPoint( 1, 1, 1 )
+                                     << QgsPoint( 1, -1, 1 )
+                                     << QgsPoint( -1, -1, 1 ) ) ) );
+  }
   settings.geometry = QgsGeometry( std::move( mp ) );
   settings.cameraDistance = 10;
   settings.lightSourceTransform = QVector3D( 5, 15, 5 );

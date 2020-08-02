@@ -16,19 +16,21 @@
 #ifndef QGSSYMBOL3DWIDGET_H
 #define QGSSYMBOL3DWIDGET_H
 
+#include "qgs3dsymbolwidget.h"
+#include "qgswkbtypes.h"
 #include <QWidget>
+#include <QDialog>
 #include <memory>
 
 class QLabel;
 class QStackedWidget;
 
 class QgsAbstract3DSymbol;
-class QgsLine3DSymbolWidget;
-class QgsPoint3DSymbolWidget;
-class QgsPolygon3DSymbolWidget;
 class QgsStyleItemsListWidget;
 
 class QgsVectorLayer;
+class QDialogButtonBox;
+class Qgs3DMapCanvas;
 
 /**
  * Widget for selection of 3D symbol
@@ -38,13 +40,13 @@ class QgsSymbol3DWidget : public QWidget
     Q_OBJECT
 
   public:
-    QgsSymbol3DWidget( QgsVectorLayer *layer, QWidget *parent = nullptr );
+    QgsSymbol3DWidget( QWidget *parent = nullptr, QgsWkbTypes::GeometryType layerType = QgsWkbTypes::UnknownGeometry, QgsVectorLayer *layer = nullptr );
 
     //! Returns a new symbol instance or NULLPTR
     std::unique_ptr< QgsAbstract3DSymbol > symbol();
 
     //! Sets symbol (does not take ownership)
-    void setSymbol( const QgsAbstract3DSymbol *symbol, QgsVectorLayer *vlayer );
+    void setSymbol( const QgsAbstract3DSymbol *symbol, QgsWkbTypes::GeometryType layerType, QgsVectorLayer *vlayer );
 
   signals:
     void widgetChanged();
@@ -59,14 +61,73 @@ class QgsSymbol3DWidget : public QWidget
     void updateSymbolWidget( const QgsAbstract3DSymbol *newSymbol );
 
     QStackedWidget *widgetStack = nullptr;
-    QgsLine3DSymbolWidget *widgetLine = nullptr;
-    QgsPoint3DSymbolWidget *widgetPoint = nullptr;
-    QgsPolygon3DSymbolWidget *widgetPolygon = nullptr;
     QLabel *widgetUnsupported = nullptr;
 
     QgsStyleItemsListWidget *mStyleWidget = nullptr;
 
     QgsVectorLayer *mLayer = nullptr;
+    QgsWkbTypes::GeometryType mLayerType = QgsWkbTypes::UnknownGeometry;
+
+};
+
+
+#include "ui_symbol3dwidget.h"
+
+/**
+ * Widget for selection of 3D symbol
+ */
+class QgsSymbolConfig3DWidget : public QWidget, private Ui::QgsSymbol3DConfigWidgetBase
+{
+    Q_OBJECT
+
+  public:
+    QgsSymbolConfig3DWidget( QgsVectorLayer *layer, QWidget *parent = nullptr );
+
+    //! Returns a new symbol instance or NULLPTR
+    std::unique_ptr< QgsAbstract3DSymbol > symbol();
+
+    //! Sets symbol (does not take ownership)
+    void setSymbol( const QgsAbstract3DSymbol *symbol, QgsWkbTypes::GeometryType layerType, QgsVectorLayer *vlayer );
+
+  private:
+
+    void updatePreview( QgsAbstract3DSymbol *symbol );
+
+    QgsVectorLayer *mLayer = nullptr;
+    Qgs3DMapCanvas *mCanvas = nullptr;
+    QgsVectorLayer *mTempLayer = nullptr;
+
+};
+
+class Qgs3DSymbolConfigDialog : public QgsAbstract3DSymbolDialogWithPreview
+{
+    Q_OBJECT
+
+  public:
+
+    /**
+     * Constructor for Qgs3DSymbolConfigDialog, initially showing the specified \a symbol.
+     */
+    Qgs3DSymbolConfigDialog( const QgsAbstract3DSymbol *symbol,
+                             QgsWkbTypes::GeometryType layerType,
+                             QWidget *parent = nullptr );
+
+    /**
+     * Returns a new instance of the symbol defined by the dialog.
+     *
+     * Caller takes ownership of the returned symbol.
+     */
+    QgsAbstract3DSymbol *symbol() const override;
+
+    /**
+     * Returns a reference to the dialog's button box.
+     */
+    QDialogButtonBox *buttonBox() const override;
+
+  private:
+
+    QgsSymbolConfig3DWidget *mWidget = nullptr;
+    QDialogButtonBox *mButtonBox = nullptr;
 
 };
 

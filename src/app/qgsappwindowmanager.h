@@ -42,6 +42,8 @@ class QgsAppWindowManager : public QgsWindowManagerInterface
 
     QWidget *openStandardDialog( QgsWindowManagerInterface::StandardDialog dialog ) override;
 
+    QgsAbstract3DSymbolDialogWithPreview *open3DSymbolDialog( const QgsAbstract3DSymbol *symbol, QgsWkbTypes::GeometryType layerType, QWidget *parent = nullptr ) override;
+
     /**
      * Opens an instance of a application QGIS dialog. Depending on the dialog,
      * this may either open a new instance of the dialog or bring an

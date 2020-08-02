@@ -25,37 +25,21 @@ Qgs3DSymbolWidget::Qgs3DSymbolWidget( QWidget *parent )
   : QWidget( parent )
 {}
 
-Qgs3DSymbolDialog::Qgs3DSymbolDialog( const QgsAbstract3DSymbol *symbol, QWidget *parent )
+///@cond PRIVATE
+QgsAbstract3DSymbolDialogWithPreview::QgsAbstract3DSymbolDialogWithPreview( const QgsAbstract3DSymbol *, QWidget *parent )
   : QDialog( parent )
 {
-  Q_ASSERT( symbol );
 
-  QgsGui::enableAutoGeometryRestore( this );
-
-  QVBoxLayout *vLayout = new QVBoxLayout();
-
-  if ( Qgs3DSymbolAbstractMetadata *metadata = QgsApplication::symbol3DRegistry()->symbolMetadata( symbol->type() ) )
-  {
-    mWidget = metadata->createSymbolWidget( nullptr );
-    vLayout->addWidget( mWidget );
-    mWidget->setSymbol( symbol, nullptr );
-  }
-
-  mButtonBox = new QDialogButtonBox( QDialogButtonBox::Cancel | QDialogButtonBox::Ok, Qt::Horizontal );
-  connect( mButtonBox, &QDialogButtonBox::accepted, this, &QDialog::accept );
-  connect( mButtonBox, &QDialogButtonBox::rejected, this, &QDialog::reject );
-  vLayout->addStretch();
-  vLayout->addWidget( mButtonBox );
-  setLayout( vLayout );
-  setWindowTitle( tr( "3D Symbol" ) );
 }
 
-QgsAbstract3DSymbol *Qgs3DSymbolDialog::symbol() const
+QgsAbstract3DSymbol *QgsAbstract3DSymbolDialogWithPreview::symbol() const
 {
-  return mWidget ? mWidget->symbol() : nullptr;
+  return nullptr;
 }
 
-QDialogButtonBox *Qgs3DSymbolDialog::buttonBox() const
+QDialogButtonBox *QgsAbstract3DSymbolDialogWithPreview::buttonBox() const
 {
-  return mButtonBox;
+  return nullptr;
 }
+
+///@endcond

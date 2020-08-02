@@ -10,7 +10,7 @@
 
 
 
-class QgsWindowManagerInterface
+class QgsWindowManagerInterface /Abstract/
 {
 %Docstring
 Interface for window manager.

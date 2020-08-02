@@ -421,7 +421,7 @@ class GUI_EXPORT QgsStyleManagerDialog : public QDialog, private Ui::QgsStyleMan
     bool addLegendPatchShape( QgsSymbol::SymbolType type );
     bool editLegendPatchShape();
 
-    bool addSymbol3D( const QString &type );
+    bool addSymbol3D( const QString &type, QgsWkbTypes::GeometryType layerType );
     bool editSymbol3D();
 
     friend class QgsStyleExportImportDialog;

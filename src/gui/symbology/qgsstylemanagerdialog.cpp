@@ -37,6 +37,7 @@
 #include "qgsabstract3dsymbol.h"
 #include "qgs3dsymbolregistry.h"
 #include "qgs3dsymbolwidget.h"
+#include "qgswindowmanagerinterface.h"
 #include <QAction>
 #include <QFile>
 #include <QFileDialog>
@@ -387,15 +388,15 @@ QgsStyleManagerDialog::QgsStyleManagerDialog( QgsStyle *style, QWidget *parent, 
 
     mMenuBtnAddItemAll->addSeparator();
     item = new QAction( QgsApplication::getThemeIcon( QStringLiteral( "3d.svg" ) ), tr( "3D Point Symbol…" ), this );
-    connect( item, &QAction::triggered, this, [ = ]( bool ) { addSymbol3D( QStringLiteral( "point" ) ); } );
+    connect( item, &QAction::triggered, this, [ = ]( bool ) { addSymbol3D( QStringLiteral( "point" ), QgsWkbTypes::PointGeometry ); } );
     mMenuBtnAddItemAll->addAction( item );
     mMenuBtnAddItemSymbol3D->addAction( item );
     item = new QAction( QgsApplication::getThemeIcon( QStringLiteral( "3d.svg" ) ), tr( "3D Line Symbol…" ), this );
-    connect( item, &QAction::triggered, this, [ = ]( bool ) {  addSymbol3D( QStringLiteral( "line" ) ); } );
+    connect( item, &QAction::triggered, this, [ = ]( bool ) {  addSymbol3D( QStringLiteral( "line" ), QgsWkbTypes::LineGeometry ); } );
     mMenuBtnAddItemAll->addAction( item );
     mMenuBtnAddItemSymbol3D->addAction( item );
     item = new QAction( QgsApplication::getThemeIcon( QStringLiteral( "3d.svg" ) ), tr( "3D Polygon Symbol…" ), this );
-    connect( item, &QAction::triggered, this, [ = ]( bool ) {  addSymbol3D( QStringLiteral( "polygon" ) ); } );
+    connect( item, &QAction::triggered, this, [ = ]( bool ) {  addSymbol3D( QStringLiteral( "polygon" ), QgsWkbTypes::PolygonGeometry ); } );
     mMenuBtnAddItemAll->addAction( item );
     mMenuBtnAddItemSymbol3D->addAction( item );
 
@@ -1886,22 +1887,31 @@ bool QgsStyleManagerDialog::editLegendPatchShape()
   return true;
 }
 
-bool QgsStyleManagerDialog::addSymbol3D( const QString &type )
+bool QgsStyleManagerDialog::addSymbol3D( const QString &type, QgsWkbTypes::GeometryType layerType )
 {
   std::unique_ptr< QgsAbstract3DSymbol > symbol( QgsApplication::symbol3DRegistry()->createSymbol( type ) );
   if ( !symbol )
     return false;
 
-  Qgs3DSymbolDialog dialog( symbol.get(), this );
+  QgsAbstract3DSymbolDialogWithPreview *dlg = QgsGui::windowManager()->open3DSymbolDialog( symbol.get(), layerType, this );
+  if ( !dlg )
+    return false;
+
   if ( mReadOnly )
-    dialog.buttonBox()->button( QDialogButtonBox::Ok )->setEnabled( false );
+    dlg->buttonBox()->button( QDialogButtonBox::Ok )->setEnabled( false );
 
-  if ( !dialog.exec() )
+  if ( !dlg->exec() )
+  {
+    delete dlg;
     return false;
+  }
 
-  symbol.reset( dialog.symbol() );
+  symbol.reset( dlg->symbol() );
+  delete dlg;
   if ( !symbol )
+  {
     return false;
+  }
 
   QgsStyleSaveDialog saveDlg( this, QgsStyle::Symbol3DEntity );
   if ( !saveDlg.exec() )
@@ -1969,12 +1979,27 @@ bool QgsStyleManagerDialog::editSymbol3D()
   if ( !symbol )
     return false;
 
+  QgsWkbTypes::GeometryType layerType = QgsWkbTypes::UnknownGeometry;
+  if ( symbol->type() == QLatin1String( "point" ) )
+    layerType = QgsWkbTypes::PointGeometry;
+  else if ( symbol->type() == QLatin1String( "line" ) )
+    layerType = QgsWkbTypes::LineGeometry;
+  else if ( symbol->type() == QLatin1String( "polygon" ) )
+    layerType = QgsWkbTypes::PolygonGeometry;
+
   // let the user edit the symbol and update list when done
-  Qgs3DSymbolDialog dlg( symbol.get(), this );
-  if ( !dlg.exec() )
+  QgsAbstract3DSymbolDialogWithPreview *dlg = QgsGui::windowManager()->open3DSymbolDialog( symbol.get(), layerType, this );
+  if ( !dlg )
     return false;
 
-  symbol.reset( dlg.symbol() );
+  if ( !dlg->exec() )
+  {
+    delete dlg;
+    return false;
+  }
+
+  symbol.reset( dlg->symbol() );
+  delete dlg;
   if ( !symbol )
     return false;
 

@@ -572,8 +572,8 @@ Qgs3DRendererRulePropsWidget::Qgs3DRendererRulePropsWidget( QgsRuleBased3DRender
     mSymbol.reset( QgsApplication::symbol3DRegistry()->defaultSymbolForGeometryType( layer->geometryType() ) );
   }
 
-  mSymbolWidget = new QgsSymbol3DWidget( layer, this );
-  mSymbolWidget->setSymbol( mSymbol.get(), layer );
+  mSymbolWidget = new QgsSymbol3DWidget( this, layer->geometryType(), layer );
+  mSymbolWidget->setSymbol( mSymbol.get(), layer->geometryType(), layer );
   QVBoxLayout *l = new QVBoxLayout;
   l->addWidget( mSymbolWidget );
   groupSymbol->setLayout( l );

@@ -19,6 +19,9 @@
 #include "qgisapp.h"
 #include "qgslayoutmanagerdialog.h"
 #include "qgsrasterlayer.h"
+#ifdef HAVE_3D
+#include "qgssymbol3dwidget.h"
+#endif
 
 QgsAppWindowManager::~QgsAppWindowManager()
 {
@@ -45,6 +48,16 @@ QWidget *QgsAppWindowManager::openStandardDialog( QgsWindowManagerInterface::Sta
     }
   }
   return nullptr;
+}
+
+
+QgsAbstract3DSymbolDialogWithPreview *QgsAppWindowManager::open3DSymbolDialog( const QgsAbstract3DSymbol *symbol, QgsWkbTypes::GeometryType layerType, QWidget *parent )
+{
+#ifdef HAVE_3D
+  return new Qgs3DSymbolConfigDialog( symbol, layerType, parent );
+#else
+  return nullptr;
+#endif
 }
 
 QWidget *QgsAppWindowManager::openApplicationDialog( QgsAppWindowManager::ApplicationDialog dialog )
