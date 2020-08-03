@@ -15,6 +15,7 @@
 
 #include "qgssymbol3dwidget.h"
 #include "qgsabstractmaterialsettings.h"
+#include "qgsphongmaterialsettings.h"
 #include "qgsstyleitemslistwidget.h"
 #include "qgsstylesavedialog.h"
 #include "qgsvectorlayer.h"
