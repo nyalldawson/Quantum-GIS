@@ -18,7 +18,7 @@
 #include "qgs3dutils.h"
 #include "qgsrulebased3drenderer.h"
 #include "qgsrulebased3drendererwidget.h"
-#include "qgssymbol3dwidget.h"
+#include "qgsapp3dsymbolwidget.h"
 #include "qgsvectorlayer.h"
 #include "qgsvectorlayer3dpropertieswidget.h"
 #include "qgsvectorlayer3drenderer.h"
@@ -38,13 +38,13 @@ QgsSingleSymbol3DRendererWidget::QgsSingleSymbol3DRendererWidget( QgsVectorLayer
   : QWidget( parent )
   , mLayer( layer )
 {
-  widgetSymbol = new QgsSymbol3DWidget( this, mLayer->geometryType(), mLayer );
+  widgetSymbol = new QgsApp3DSymbolWidget( this, mLayer->geometryType(), mLayer );
 
   QVBoxLayout *layout = new QVBoxLayout( this );
   layout->setContentsMargins( 0, 0, 0, 0 );
   layout->addWidget( widgetSymbol );
 
-  connect( widgetSymbol, &QgsSymbol3DWidget::widgetChanged, this, &QgsSingleSymbol3DRendererWidget::widgetChanged );
+  connect( widgetSymbol, &QgsApp3DSymbolWidget::widgetChanged, this, &QgsSingleSymbol3DRendererWidget::widgetChanged );
 }
 
 

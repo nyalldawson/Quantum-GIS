@@ -13,7 +13,7 @@
  *                                                                         *
  ***************************************************************************/
 
-#include "qgssymbol3dwidget.h"
+#include "qgsapp3dsymbolwidget.h"
 #include "qgsabstractmaterialsettings.h"
 #include "qgsphongmaterialsettings.h"
 #include "qgsstyleitemslistwidget.h"
@@ -25,11 +25,12 @@
 #include "qgsabstract3dsymbol.h"
 #include "qgsgui.h"
 #include "qgs3dmapcanvas.h"
+#include "qgscameracontroller.h"
 #include <QStackedWidget>
 #include <QMessageBox>
 
 
-QgsSymbol3DWidget::QgsSymbol3DWidget( QWidget *parent, QgsWkbTypes::GeometryType layerType, QgsVectorLayer *layer )
+QgsApp3DSymbolWidget::QgsApp3DSymbolWidget( QWidget *parent, QgsWkbTypes::GeometryType layerType, QgsVectorLayer *layer )
   : QWidget( parent )
   , mLayer( layer )
   , mLayerType( layerType )
@@ -48,13 +49,13 @@ QgsSymbol3DWidget::QgsSymbol3DWidget( QWidget *parent, QgsWkbTypes::GeometryType
   mStyleWidget->setEntityType( QgsStyle::Symbol3DEntity );
   mStyleWidget->setLayerType( mLayerType );
 
-  connect( mStyleWidget, &QgsStyleItemsListWidget::selectionChanged, this, &QgsSymbol3DWidget::setSymbolFromStyle );
-  connect( mStyleWidget, &QgsStyleItemsListWidget::saveEntity, this, &QgsSymbol3DWidget::saveSymbol );
+  connect( mStyleWidget, &QgsStyleItemsListWidget::selectionChanged, this, &QgsApp3DSymbolWidget::setSymbolFromStyle );
+  connect( mStyleWidget, &QgsStyleItemsListWidget::saveEntity, this, &QgsApp3DSymbolWidget::saveSymbol );
 
   layout->addWidget( mStyleWidget, 1 );
 }
 
-std::unique_ptr<QgsAbstract3DSymbol> QgsSymbol3DWidget::symbol()
+std::unique_ptr<QgsAbstract3DSymbol> QgsApp3DSymbolWidget::symbol()
 {
   if ( Qgs3DSymbolWidget *w = qobject_cast< Qgs3DSymbolWidget * >( widgetStack->currentWidget() ) )
   {
@@ -63,7 +64,7 @@ std::unique_ptr<QgsAbstract3DSymbol> QgsSymbol3DWidget::symbol()
   return nullptr;
 }
 
-void QgsSymbol3DWidget::setSymbol( const QgsAbstract3DSymbol *symbol, QgsWkbTypes::GeometryType layerType, QgsVectorLayer *vlayer )
+void QgsApp3DSymbolWidget::setSymbol( const QgsAbstract3DSymbol *symbol, QgsWkbTypes::GeometryType layerType, QgsVectorLayer *vlayer )
 {
   mLayer = vlayer;
   mLayerType = layerType;
@@ -82,7 +83,7 @@ void QgsSymbol3DWidget::setSymbol( const QgsAbstract3DSymbol *symbol, QgsWkbType
   updateSymbolWidget( symbol );
 }
 
-void QgsSymbol3DWidget::setSymbolFromStyle( const QString &name )
+void QgsApp3DSymbolWidget::setSymbolFromStyle( const QString &name )
 {
   // get new instance of symbol from style
   std::unique_ptr< QgsAbstract3DSymbol > s( QgsStyle::defaultStyle()->symbol3D( name ) );
@@ -92,7 +93,7 @@ void QgsSymbol3DWidget::setSymbolFromStyle( const QString &name )
   setSymbol( s.get(), mLayerType, mLayer );
 }
 
-void QgsSymbol3DWidget::saveSymbol()
+void QgsApp3DSymbolWidget::saveSymbol()
 {
   QgsStyleSaveDialog saveDlg( this, QgsStyle::Symbol3DEntity );
   saveDlg.setDefaultTags( mStyleWidget->currentTagFilter() );
@@ -128,13 +129,13 @@ void QgsSymbol3DWidget::saveSymbol()
   QgsStyle::defaultStyle()->saveSymbol3D( saveDlg.name(), s, saveDlg.isFavorite(), symbolTags );
 }
 
-void QgsSymbol3DWidget::updateSymbolWidget( const QgsAbstract3DSymbol *newSymbol )
+void QgsApp3DSymbolWidget::updateSymbolWidget( const QgsAbstract3DSymbol *newSymbol )
 {
   if ( widgetStack->currentWidget() != widgetUnsupported )
   {
     // stop updating from the original widget
     if ( Qgs3DSymbolWidget *w = qobject_cast< Qgs3DSymbolWidget * >( widgetStack->currentWidget() ) )
-      disconnect( w, &Qgs3DSymbolWidget::changed, this, &QgsSymbol3DWidget::widgetChanged );
+      disconnect( w, &Qgs3DSymbolWidget::changed, this, &QgsApp3DSymbolWidget::widgetChanged );
     widgetStack->removeWidget( widgetStack->currentWidget() );
   }
 
@@ -147,7 +148,7 @@ void QgsSymbol3DWidget::updateSymbolWidget( const QgsAbstract3DSymbol *newSymbol
       widgetStack->addWidget( w );
       widgetStack->setCurrentWidget( w );
       // start receiving updates from widget
-      connect( w, &Qgs3DSymbolWidget::changed, this, &QgsSymbol3DWidget::widgetChanged );
+      connect( w, &Qgs3DSymbolWidget::changed, this, &QgsApp3DSymbolWidget::widgetChanged );
       return;
     }
   }
@@ -158,7 +159,7 @@ void QgsSymbol3DWidget::updateSymbolWidget( const QgsAbstract3DSymbol *newSymbol
 //
 // QgsSymbolConfig3DWidget
 //
-QgsSymbolConfig3DWidget::QgsSymbolConfig3DWidget( QgsVectorLayer *layer, QWidget *parent )
+QgsApp3DSymbolWidgetWithPreview::QgsApp3DSymbolWidgetWithPreview( QgsVectorLayer *layer, QWidget *parent )
   : QWidget( parent )
   , mLayer( layer )
 {
@@ -168,14 +169,14 @@ QgsSymbolConfig3DWidget::QgsSymbolConfig3DWidget( QgsVectorLayer *layer, QWidget
   vLayout->addWidget( mCanvas );
   mPreviewWidget->setLayout( vLayout );
 
-  connect( mSymbolWidget, &QgsSymbol3DWidget::widgetChanged, this, [ = ]
+  connect( mSymbolWidget, &QgsApp3DSymbolWidget::widgetChanged, this, [ = ]
   {
     std::unique_ptr< QgsAbstract3DSymbol > newSymb = mSymbolWidget->symbol();
     updatePreview( newSymb.release() );
   } );
 }
 
-std::unique_ptr<QgsAbstract3DSymbol> QgsSymbolConfig3DWidget::symbol()
+std::unique_ptr<QgsAbstract3DSymbol> QgsApp3DSymbolWidgetWithPreview::symbol()
 {
   return mSymbolWidget->symbol();
 }
@@ -185,14 +186,14 @@ std::unique_ptr<QgsAbstract3DSymbol> QgsSymbolConfig3DWidget::symbol()
 #include "qgs3dmapsettings.h"
 #include "qgsflatterraingenerator.h"
 
-void QgsSymbolConfig3DWidget::setSymbol( const QgsAbstract3DSymbol *symbol, QgsWkbTypes::GeometryType layerType, QgsVectorLayer *vlayer )
+void QgsApp3DSymbolWidgetWithPreview::setSymbol( const QgsAbstract3DSymbol *symbol, QgsWkbTypes::GeometryType layerType, QgsVectorLayer *vlayer )
 {
   mLayer = vlayer;
   mSymbolWidget->setSymbol( symbol, layerType, vlayer );
   updatePreview( symbol->clone() );
 }
 
-void QgsSymbolConfig3DWidget::updatePreview( QgsAbstract3DSymbol *symbol )
+void QgsApp3DSymbolWidgetWithPreview::updatePreview( QgsAbstract3DSymbol *symbol )
 {
   const QgsAbstract3DSymbol::PreviewThumbnailSettings thumbnailSettings = symbol->thumbnailSettings();
 
@@ -227,6 +228,9 @@ void QgsSymbolConfig3DWidget::updatePreview( QgsAbstract3DSymbol *symbol )
     map->setTerrainShadingMaterial( terrainMaterial );
     mCanvas->setMap( map );
 
+
+    mCanvas->cameraController()->setLookingAtPoint( thumbnailSettings.cameraTarget, thumbnailSettings.cameraDistance,
+        thumbnailSettings.cameraPitch, thumbnailSettings.cameraYaw );
   }
   else
   {
@@ -244,7 +248,7 @@ void QgsSymbolConfig3DWidget::updatePreview( QgsAbstract3DSymbol *symbol )
 //
 
 
-Qgs3DSymbolConfigDialog::Qgs3DSymbolConfigDialog( const QgsAbstract3DSymbol *symbol, QgsWkbTypes::GeometryType layerType, QWidget *parent )
+Qgs3DSymbolDialog::Qgs3DSymbolDialog( const QgsAbstract3DSymbol *symbol, QgsWkbTypes::GeometryType layerType, QWidget *parent )
   : QgsAbstract3DSymbolDialogWithPreview( symbol, parent )
 {
   Q_ASSERT( symbol );
@@ -253,7 +257,7 @@ Qgs3DSymbolConfigDialog::Qgs3DSymbolConfigDialog( const QgsAbstract3DSymbol *sym
 
   QVBoxLayout *vLayout = new QVBoxLayout();
 
-  mWidget = new QgsSymbolConfig3DWidget( nullptr );
+  mWidget = new QgsApp3DSymbolWidgetWithPreview( nullptr );
   vLayout->addWidget( mWidget );
   mWidget->setSymbol( symbol, layerType, nullptr );
 
@@ -266,12 +270,12 @@ Qgs3DSymbolConfigDialog::Qgs3DSymbolConfigDialog( const QgsAbstract3DSymbol *sym
   setWindowTitle( tr( "3D Symbol" ) );
 }
 
-QgsAbstract3DSymbol *Qgs3DSymbolConfigDialog::symbol() const
+QgsAbstract3DSymbol *Qgs3DSymbolDialog::symbol() const
 {
   return mWidget->symbol().release();
 }
 
-QDialogButtonBox *Qgs3DSymbolConfigDialog::buttonBox() const
+QDialogButtonBox *Qgs3DSymbolDialog::buttonBox() const
 {
   return mButtonBox;
 }

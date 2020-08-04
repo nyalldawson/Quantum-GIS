@@ -100,7 +100,7 @@ class CORE_EXPORT QgsAbstract3DSymbol
     {
       public:
 
-        //! Geometry of 3D shape to render
+        //! Geometry of the 3D shape to render
         QgsGeometry geometry;
 
         //! Suggested background color for thumbnail

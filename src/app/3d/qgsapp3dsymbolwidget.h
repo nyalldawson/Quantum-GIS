@@ -35,12 +35,12 @@ class Qgs3DMapCanvas;
 /**
  * Widget for selection of 3D symbol
  */
-class QgsSymbol3DWidget : public QWidget
+class QgsApp3DSymbolWidget : public QWidget
 {
     Q_OBJECT
 
   public:
-    QgsSymbol3DWidget( QWidget *parent = nullptr, QgsWkbTypes::GeometryType layerType = QgsWkbTypes::UnknownGeometry, QgsVectorLayer *layer = nullptr );
+    QgsApp3DSymbolWidget( QWidget *parent = nullptr, QgsWkbTypes::GeometryType layerType = QgsWkbTypes::UnknownGeometry, QgsVectorLayer *layer = nullptr );
 
     //! Returns a new symbol instance or NULLPTR
     std::unique_ptr< QgsAbstract3DSymbol > symbol();
@@ -74,14 +74,14 @@ class QgsSymbol3DWidget : public QWidget
 #include "ui_symbol3dwidget.h"
 
 /**
- * Widget for selection of 3D symbol
+ * Widget for selection of 3D symbol, including an interactive preview widget
  */
-class QgsSymbolConfig3DWidget : public QWidget, private Ui::QgsSymbol3DConfigWidgetBase
+class QgsApp3DSymbolWidgetWithPreview : public QWidget, private Ui::QgsSymbol3DConfigWidgetBase
 {
     Q_OBJECT
 
   public:
-    QgsSymbolConfig3DWidget( QgsVectorLayer *layer, QWidget *parent = nullptr );
+    QgsApp3DSymbolWidgetWithPreview( QgsVectorLayer *layer, QWidget *parent = nullptr );
 
     //! Returns a new symbol instance or NULLPTR
     std::unique_ptr< QgsAbstract3DSymbol > symbol();
@@ -99,18 +99,18 @@ class QgsSymbolConfig3DWidget : public QWidget, private Ui::QgsSymbol3DConfigWid
 
 };
 
-class Qgs3DSymbolConfigDialog : public QgsAbstract3DSymbolDialogWithPreview
+class Qgs3DSymbolDialog : public QgsAbstract3DSymbolDialogWithPreview
 {
     Q_OBJECT
 
   public:
 
     /**
-     * Constructor for Qgs3DSymbolConfigDialog, initially showing the specified \a symbol.
+     * Constructor for Qgs3DSymbolDialog, initially showing the specified \a symbol.
      */
-    Qgs3DSymbolConfigDialog( const QgsAbstract3DSymbol *symbol,
-                             QgsWkbTypes::GeometryType layerType,
-                             QWidget *parent = nullptr );
+    Qgs3DSymbolDialog( const QgsAbstract3DSymbol *symbol,
+                       QgsWkbTypes::GeometryType layerType,
+                       QWidget *parent = nullptr );
 
     /**
      * Returns a new instance of the symbol defined by the dialog.
@@ -126,7 +126,7 @@ class Qgs3DSymbolConfigDialog : public QgsAbstract3DSymbolDialogWithPreview
 
   private:
 
-    QgsSymbolConfig3DWidget *mWidget = nullptr;
+    QgsApp3DSymbolWidgetWithPreview *mWidget = nullptr;
     QDialogButtonBox *mButtonBox = nullptr;
 
 };

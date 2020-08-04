@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>635</width>
+    <width>553</width>
     <height>327</height>
    </rect>
   </property>
@@ -19,17 +19,24 @@
      <property name="orientation">
       <enum>Qt::Horizontal</enum>
      </property>
-     <widget class="QWidget" name="mPreviewWidget" native="true"/>
-     <widget class="QgsSymbol3DWidget" name="mSymbolWidget" native="true"/>
+     <widget class="QWidget" name="mPreviewWidget" native="true">
+      <property name="minimumSize">
+       <size>
+        <width>200</width>
+        <height>0</height>
+       </size>
+      </property>
+     </widget>
+     <widget class="QgsApp3DSymbolWidget" name="mSymbolWidget" native="true"/>
     </widget>
    </item>
   </layout>
  </widget>
  <customwidgets>
   <customwidget>
-   <class>QgsSymbol3DWidget</class>
+   <class>QgsApp3DSymbolWidget</class>
    <extends>QWidget</extends>
-   <header>qgssymbol3dwidget.h</header>
+   <header>qgsapp3dsymbolwidget.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

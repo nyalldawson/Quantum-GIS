@@ -20,7 +20,7 @@
 #include "qgslogger.h"
 #include "qgsrulebased3drenderer.h"
 #include "qgsvectorlayer.h"
-#include "qgssymbol3dwidget.h"
+#include "qgsapp3dsymbolwidget.h"
 #include "qgsapplication.h"
 #include "qgs3dsymbolregistry.h"
 
@@ -572,7 +572,7 @@ Qgs3DRendererRulePropsWidget::Qgs3DRendererRulePropsWidget( QgsRuleBased3DRender
     mSymbol.reset( QgsApplication::symbol3DRegistry()->defaultSymbolForGeometryType( layer->geometryType() ) );
   }
 
-  mSymbolWidget = new QgsSymbol3DWidget( this, layer->geometryType(), layer );
+  mSymbolWidget = new QgsApp3DSymbolWidget( this, layer->geometryType(), layer );
   mSymbolWidget->setSymbol( mSymbol.get(), layer->geometryType(), layer );
   QVBoxLayout *l = new QVBoxLayout;
   l->addWidget( mSymbolWidget );
@@ -583,7 +583,7 @@ Qgs3DRendererRulePropsWidget::Qgs3DRendererRulePropsWidget( QgsRuleBased3DRender
   connect( editFilter, &QLineEdit::textEdited, this, &Qgs3DRendererRulePropsWidget::widgetChanged );
   connect( editDescription, &QLineEdit::textChanged, this, &Qgs3DRendererRulePropsWidget::widgetChanged );
   connect( groupSymbol, &QGroupBox::toggled, this, &Qgs3DRendererRulePropsWidget::widgetChanged );
-  connect( mSymbolWidget, &QgsSymbol3DWidget::widgetChanged, this, &Qgs3DRendererRulePropsWidget::widgetChanged );
+  connect( mSymbolWidget, &QgsApp3DSymbolWidget::widgetChanged, this, &Qgs3DRendererRulePropsWidget::widgetChanged );
   connect( mFilterRadio, &QRadioButton::toggled, this, [ = ]( bool toggled ) { filterFrame->setEnabled( toggled ) ; } );
   connect( mElseRadio, &QRadioButton::toggled, this, [ = ]( bool toggled ) { if ( toggled ) editFilter->setText( QStringLiteral( "ELSE" ) );} );
 }

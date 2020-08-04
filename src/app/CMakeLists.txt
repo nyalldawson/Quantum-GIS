@@ -272,6 +272,7 @@ IF (WITH_3D)
     3d/qgs3dmeasuredialog.cpp
     3d/qgs3dmodelsourcelineedit.cpp
     3d/qgs3dnavigationwidget.cpp
+    3d/qgsapp3dsymbolwidget.cpp
     3d/qgsgoochmaterialwidget.cpp
     3d/qgslightswidget.cpp
     3d/qgsline3dsymbolwidget.cpp
@@ -283,7 +284,6 @@ IF (WITH_3D)
     3d/qgsphongtexturedmaterialwidget.cpp
     3d/qgsrulebased3drendererwidget.cpp
     3d/qgssimplelinematerialwidget.cpp
-    3d/qgssymbol3dwidget.cpp
     3d/qgsvectorlayer3dpropertieswidget.cpp
     3d/qgsvectorlayer3drendererwidget.cpp
     3d/qgsmeshlayer3drendererwidget.cpp

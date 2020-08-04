@@ -31,7 +31,7 @@ class QgsVectorLayer;
 class QgsMapCanvas;
 
 class QgsRuleBased3DRendererWidget;
-class QgsSymbol3DWidget;
+class QgsApp3DSymbolWidget;
 class QgsVectorLayer3DPropertiesWidget;
 
 
@@ -51,7 +51,7 @@ class QgsSingleSymbol3DRendererWidget : public QWidget
     void widgetChanged();
 
   private:
-    QgsSymbol3DWidget *widgetSymbol = nullptr;
+    QgsApp3DSymbolWidget *widgetSymbol = nullptr;
     QgsVectorLayer *mLayer = nullptr;
 
 };

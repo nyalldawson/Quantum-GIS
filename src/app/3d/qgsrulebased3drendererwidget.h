@@ -126,7 +126,7 @@ class QgsRuleBased3DRendererWidget : public QgsPanelWidget, private Ui::QgsRuleB
 
 //////
 
-class QgsSymbol3DWidget;
+class QgsApp3DSymbolWidget;
 
 #include "ui_qgs3drendererrulepropswidget.h"
 
@@ -160,7 +160,7 @@ class Qgs3DRendererRulePropsWidget : public QgsPanelWidget, private Ui::Qgs3DRen
     QgsRuleBased3DRenderer::Rule *mRule; // borrowed
     QgsVectorLayer *mLayer = nullptr;
 
-    QgsSymbol3DWidget *mSymbolWidget = nullptr;
+    QgsApp3DSymbolWidget *mSymbolWidget = nullptr;
     std::unique_ptr<QgsAbstract3DSymbol> mSymbol; // a clone of original symbol
 
 };
