@@ -453,12 +453,11 @@ void TestQgsCoordinateReferenceSystem::createFromWktUnknown()
   const QString wkt = QStringLiteral( R"""(PROJCS["Belge 1972 / Belgian Lambert 72",GEOGCS["Belge 1972",DATUM["Reseau_National_Belge_1972",SPHEROID["International 1924",6378388,297],AUTHORITY["EPSG","6313"]],PRIMEM["Greenwich",0],UNIT["Degree",0.0174532925199433]],PROJECTION["Lambert_Conformal_Conic_2SP"],PARAMETER["latitude_of_origin",90],PARAMETER["central_meridian",4.36798666666667],PARAMETER["standard_parallel_1",49.8333339],PARAMETER["standard_parallel_2",51.1666672333333],PARAMETER["false_easting",150000.01256],PARAMETER["false_northing",5400088.4378],UNIT["metre",1,AUTHORITY["EPSG","9001"]],AXIS["Easting",EAST],AXIS["Northing",NORTH]])""" );
 
 #if PROJ_VERSION_MAJOR>=6
-  const QString expectedWkt = QStringLiteral( R"""(PROJCRS["Belge 1972 / Belgian Lambert 72",BASEGEOGCRS["Belge 1972",DATUM["Reseau National Belge 1972",ELLIPSOID["International 1924",6378388,297,LENGTHUNIT["metre",1]],ID["EPSG",6313]],PRIMEM["Greenwich",0,ANGLEUNIT["Degree",0.0174532925199433]]],CONVERSION["unnamed",METHOD["Lambert Conic Conformal (2SP)",ID["EPSG",9802]],PARAMETER["Latitude of false origin",90,ANGLEUNIT["Degree",0.0174532925199433],ID["EPSG",8821]],PARAMETER["Longitude of false origin",4.36798666666667,ANGLEUNIT["Degree",0.0174532925199433],ID["EPSG",8822]],PARAMETER["Latitude of 1st standard parallel",49.8333339,ANGLEUNIT["Degree",0.0174532925199433],ID["EPSG",8823]],PARAMETER["Latitude of 2nd standard parallel",51.1666672333333,ANGLEUNIT["Degree",0.0174532925199433],ID["EPSG",8824]],PARAMETER["Easting at false origin",150000.01256,LENGTHUNIT["metre",1],ID["EPSG",8826]],PARAMETER["Northing at false origin",5400088.4378,LENGTHUNIT["metre",1],ID["EPSG",8827]]],CS[Cartesian,2],AXIS["easting",east,ORDER[1],LENGTHUNIT["metre",1,ID["EPSG",9001]]],AXIS["northing",north,ORDER[2],LENGTHUNIT["metre",1,ID["EPSG",9001]]]])""" );
+  const QString expectedWkt = QStringLiteral( R"""(PROJCRS["Test CRS",BASEGEOGCRS["Belge 1972",DATUM["Reseau National Belge 1972",ELLIPSOID["International 1924",6378388,297,LENGTHUNIT["metre",1]],ID["EPSG",6313]],PRIMEM["Greenwich",0,ANGLEUNIT["Degree",0.0174532925199433]]],CONVERSION["unnamed",METHOD["Lambert Conic Conformal (2SP)",ID["EPSG",9802]],PARAMETER["Latitude of false origin",90,ANGLEUNIT["Degree",0.0174532925199433],ID["EPSG",8821]],PARAMETER["Longitude of false origin",4.36798666666667,ANGLEUNIT["Degree",0.0174532925199433],ID["EPSG",8822]],PARAMETER["Latitude of 1st standard parallel",49.8333339,ANGLEUNIT["Degree",0.0174532925199433],ID["EPSG",8823]],PARAMETER["Latitude of 2nd standard parallel",51.1666672333333,ANGLEUNIT["Degree",0.0174532925199433],ID["EPSG",8824]],PARAMETER["Easting at false origin",150000.01256,LENGTHUNIT["metre",1],ID["EPSG",8826]],PARAMETER["Northing at false origin",5400088.4378,LENGTHUNIT["metre",1],ID["EPSG",8827]]],CS[Cartesian,2],AXIS["easting",east,ORDER[1],LENGTHUNIT["metre",1,ID["EPSG",9001]]],AXIS["northing",north,ORDER[2],LENGTHUNIT["metre",1,ID["EPSG",9001]]]])""" );
 #else
   // When used with proj < 6, a lossy conversion to proj string is used
   const QString expectedWkt = QStringLiteral( R"""(PROJCS["unnamed",GEOGCS["International 1909 (Hayford)",DATUM["unknown",SPHEROID["intl",6378388,297],TOWGS84[-106.8686,52.2978,-103.7239,0.3366,-0.457,1.8422,-1.2747]],PRIMEM["Greenwich",0],UNIT["degree",0.0174532925199433]],PROJECTION["Lambert_Conformal_Conic_2SP"],PARAMETER["standard_parallel_1",49.8333339],PARAMETER["standard_parallel_2",51.1666672333333],PARAMETER["latitude_of_origin",90],PARAMETER["central_meridian",4.36798666666667],PARAMETER["false_easting",150000.01256],PARAMETER["false_northing",5400088.4378],UNIT["Meter",1]])""" );
 #endif
-  QgsDebugMsg( expectedWkt );
 
   crs.createFromWkt( wkt );
   QVERIFY( crs.isValid() );
@@ -993,6 +992,7 @@ void TestQgsCoordinateReferenceSystem::readWriteXml()
 #if PROJ_VERSION_MAJOR>=6
   QCOMPARE( myCrs9.toProj(), QStringLiteral( "+proj=aea +lat_1=20 +lat_2=-23 +lat_0=4 +lon_0=29 +x_0=10.123 +y_0=3 +datum=WGS84 +units=m +no_defs" ) );
   QCOMPARE( myCrs9.authid(), QStringLiteral( "USER:100002" ) );
+  QgsDebugMsg( myCrs9.toWkt( QgsCoordinateReferenceSystem::WKT2_2019 ) );
   QCOMPARE( myCrs9.toWkt( QgsCoordinateReferenceSystem::WKT2_2019 ), QStringLiteral( R"""(PROJCRS["unknown",BASEGEOGCRS["unknown",DATUM["World Geodetic System 1984",ELLIPSOID["WGS 84",6378137,298.257223563,LENGTHUNIT["metre",1]],ID["EPSG",6326]],PRIMEM["Greenwich",0,ANGLEUNIT["degree",0.0174532925199433],ID["EPSG",8901]]],CONVERSION["unknown",METHOD["Albers Equal Area",ID["EPSG",9822]],PARAMETER["Latitude of false origin",4,ANGLEUNIT["degree",0.0174532925199433],ID["EPSG",8821]],PARAMETER["Longitude of false origin",29,ANGLEUNIT["degree",0.0174532925199433],ID["EPSG",8822]],PARAMETER["Latitude of 1st standard parallel",20,ANGLEUNIT["degree",0.0174532925199433],ID["EPSG",8823]],PARAMETER["Latitude of 2nd standard parallel",-23,ANGLEUNIT["degree",0.0174532925199433],ID["EPSG",8824]],PARAMETER["Easting at false origin",10.123,LENGTHUNIT["metre",1],ID["EPSG",8826]],PARAMETER["Northing at false origin",3,LENGTHUNIT["metre",1],ID["EPSG",8827]]],CS[Cartesian,2],AXIS["(E)",east,ORDER[1],LENGTHUNIT["metre",1,ID["EPSG",9001]]],AXIS["(N)",north,ORDER[2],LENGTHUNIT["metre",1,ID["EPSG",9001]]]])""" ) );
 #else
   QCOMPARE( myCrs9.toProj(), QStringLiteral( "+proj=aea +lat_1=20 +lat_2=-23 +lat_0=4 +lon_0=29 +x_0=10.123 +y_0=3 +datum=WGS84 +units=m +no_defs" ) );
@@ -1492,6 +1492,20 @@ void TestQgsCoordinateReferenceSystem::saveAsUserCrs()
   QCOMPARE( userCrs.authid(), QStringLiteral( "USER:100000" ) );
   QCOMPARE( userCrs.description(), QStringLiteral( "babies first projection" ) );
 
+#if PROJ_VERSION_MAJOR>=6
+  // confirm that WKT generated from userCrs includes the description as the projection name
+  QgsDebugMsg( userCrs.toWkt( QgsCoordinateReferenceSystem::WKT2_2019 ) );
+  QVERIFY( userCrs.toWkt( QgsCoordinateReferenceSystem::WKT2_2019 ).contains( QLatin1String( R"""(PROJCRS["babies first projection",)""" ) ) );
+  QVERIFY( userCrs.toWkt( QgsCoordinateReferenceSystem::WKT2_2019 ).contains( QLatin1String( R"""(BASEGEOGCRS["unknown",DATUM["World Geodetic System 1984")""" ) ) );
+  QVERIFY( userCrs.toWkt( QgsCoordinateReferenceSystem::WKT2_2019 ).contains( QLatin1String( R"""(CONVERSION["unknown",METHOD["Albers Equal Area",)""" ) ) );
+  QVERIFY( userCrs.toWkt( QgsCoordinateReferenceSystem::WKT2_2019 ).contains( QLatin1String( R"""(PARAMETER["Latitude of false origin",4,)""" ) ) );
+  QVERIFY( userCrs.toWkt( QgsCoordinateReferenceSystem::WKT2_2019 ).contains( QLatin1String( R"""(PARAMETER["Longitude of false origin",29,)""" ) ) );
+  QVERIFY( userCrs.toWkt( QgsCoordinateReferenceSystem::WKT2_2019 ).contains( QLatin1String( R"""(PARAMETER["Latitude of 1st standard parallel",20,)""" ) ) );
+  QVERIFY( userCrs.toWkt( QgsCoordinateReferenceSystem::WKT2_2019 ).contains( QLatin1String( R"""(PARAMETER["Latitude of 2nd standard parallel",-23,)""" ) ) );
+  QVERIFY( userCrs.toWkt( QgsCoordinateReferenceSystem::WKT2_2019 ).contains( QLatin1String( R"""(PARAMETER["Easting at false origin",10,)""" ) ) );
+  QVERIFY( userCrs.toWkt( QgsCoordinateReferenceSystem::WKT2_2019 ).contains( QLatin1String( R"""(PARAMETER["Northing at false origin",3,)""" ) ) );
+#endif
+
   // new CRS with same definition, check that it's matched to user crs
   QgsCoordinateReferenceSystem userCrs2 = QgsCoordinateReferenceSystem::fromProj( madeUpProjection );
   QVERIFY( userCrs2.isValid() );
@@ -1500,6 +1514,19 @@ void TestQgsCoordinateReferenceSystem::saveAsUserCrs()
   QCOMPARE( userCrs2.authid(), QStringLiteral( "USER:100000" ) );
   QCOMPARE( userCrs2.description(), QStringLiteral( "babies first projection" ) );
 
+#if PROJ_VERSION_MAJOR>=6
+  QgsDebugMsg( userCrs2.toWkt( QgsCoordinateReferenceSystem::WKT2_2019 ) );
+  QVERIFY( userCrs2.toWkt( QgsCoordinateReferenceSystem::WKT2_2019 ).contains( QLatin1String( R"""(PROJCRS["babies first projection",)""" ) ) );
+  QVERIFY( userCrs2.toWkt( QgsCoordinateReferenceSystem::WKT2_2019 ).contains( QLatin1String( R"""(BASEGEOGCRS["unknown",DATUM["World Geodetic System 1984")""" ) ) );
+  QVERIFY( userCrs2.toWkt( QgsCoordinateReferenceSystem::WKT2_2019 ).contains( QLatin1String( R"""(CONVERSION["unknown",METHOD["Albers Equal Area",)""" ) ) );
+  QVERIFY( userCrs2.toWkt( QgsCoordinateReferenceSystem::WKT2_2019 ).contains( QLatin1String( R"""(PARAMETER["Latitude of false origin",4,)""" ) ) );
+  QVERIFY( userCrs2.toWkt( QgsCoordinateReferenceSystem::WKT2_2019 ).contains( QLatin1String( R"""(PARAMETER["Longitude of false origin",29,)""" ) ) );
+  QVERIFY( userCrs2.toWkt( QgsCoordinateReferenceSystem::WKT2_2019 ).contains( QLatin1String( R"""(PARAMETER["Latitude of 1st standard parallel",20,)""" ) ) );
+  QVERIFY( userCrs2.toWkt( QgsCoordinateReferenceSystem::WKT2_2019 ).contains( QLatin1String( R"""(PARAMETER["Latitude of 2nd standard parallel",-23,)""" ) ) );
+  QVERIFY( userCrs2.toWkt( QgsCoordinateReferenceSystem::WKT2_2019 ).contains( QLatin1String( R"""(PARAMETER["Easting at false origin",10,)""" ) ) );
+  QVERIFY( userCrs2.toWkt( QgsCoordinateReferenceSystem::WKT2_2019 ).contains( QLatin1String( R"""(PARAMETER["Northing at false origin",3,)""" ) ) );
+#endif
+
   // createFromString with user crs
   QgsCoordinateReferenceSystem userCrs3;
   userCrs3.createFromString( QStringLiteral( "USER:100000" ) );
@@ -1507,6 +1534,19 @@ void TestQgsCoordinateReferenceSystem::saveAsUserCrs()
   QCOMPARE( userCrs3.authid(), QStringLiteral( "USER:100000" ) );
   QCOMPARE( userCrs3.toProj(), madeUpProjection );
   QCOMPARE( userCrs3.description(), QStringLiteral( "babies first projection" ) );
+
+#if PROJ_VERSION_MAJOR>=6
+  QgsDebugMsg( userCrs3.toWkt( QgsCoordinateReferenceSystem::WKT2_2019 ) );
+  QVERIFY( userCrs.toWkt( QgsCoordinateReferenceSystem::WKT2_2019 ).contains( QLatin1String( R"""(PROJCRS["babies first projection",)""" ) ) );
+  QVERIFY( userCrs3.toWkt( QgsCoordinateReferenceSystem::WKT2_2019 ).contains( QLatin1String( R"""(BASEGEOGCRS["unknown",DATUM["World Geodetic System 1984")""" ) ) );
+  QVERIFY( userCrs3.toWkt( QgsCoordinateReferenceSystem::WKT2_2019 ).contains( QLatin1String( R"""(CONVERSION["unknown",METHOD["Albers Equal Area",)""" ) ) );
+  QVERIFY( userCrs3.toWkt( QgsCoordinateReferenceSystem::WKT2_2019 ).contains( QLatin1String( R"""(PARAMETER["Latitude of false origin",4,)""" ) ) );
+  QVERIFY( userCrs3.toWkt( QgsCoordinateReferenceSystem::WKT2_2019 ).contains( QLatin1String( R"""(PARAMETER["Longitude of false origin",29,)""" ) ) );
+  QVERIFY( userCrs3.toWkt( QgsCoordinateReferenceSystem::WKT2_2019 ).contains( QLatin1String( R"""(PARAMETER["Latitude of 1st standard parallel",20,)""" ) ) );
+  QVERIFY( userCrs3.toWkt( QgsCoordinateReferenceSystem::WKT2_2019 ).contains( QLatin1String( R"""(PARAMETER["Latitude of 2nd standard parallel",-23,)""" ) ) );
+  QVERIFY( userCrs3.toWkt( QgsCoordinateReferenceSystem::WKT2_2019 ).contains( QLatin1String( R"""(PARAMETER["Easting at false origin",10,)""" ) ) );
+  QVERIFY( userCrs3.toWkt( QgsCoordinateReferenceSystem::WKT2_2019 ).contains( QLatin1String( R"""(PARAMETER["Northing at false origin",3,)""" ) ) );
+#endif
 }
 
 void TestQgsCoordinateReferenceSystem::projectWithCustomCrs()

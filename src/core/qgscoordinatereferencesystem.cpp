@@ -700,6 +700,12 @@ bool QgsCoordinateReferenceSystem::loadFromDatabase( const QString &db, const QS
       }
       else
         setProjString( d->mProj4 );
+
+      // set name for proj CRS object, so that if we export the CRS to WKT we get a lossless representation of the user CRS...
+      if ( d->hasPj() )
+      {
+        d->setPj( QgsProjUtils::proj_pj_unique_ptr( proj_alter_name( QgsProjContext::get(), d->threadLocalProjObject(), d->mDescription.toLocal8Bit().constData() ) ) );
+      }
     }
   }
   else
@@ -2366,6 +2372,13 @@ long QgsCoordinateReferenceSystem::saveAsUserCrs( const QString &name, Format na
     if ( authid().isEmpty() )
       d->mAuthId = QStringLiteral( "USER:%1" ).arg( returnId );
     d->mDescription = name;
+
+    // set name for proj CRS object, so that if we export the CRS to WKT we get a lossless representation of the user CRS...
+    if ( d->hasPj() )
+    {
+      d->setPj( QgsProjUtils::proj_pj_unique_ptr( proj_alter_name( QgsProjContext::get(), d->threadLocalProjObject(), d->mDescription.toLocal8Bit().constData() ) ) );
+    }
+    d->mWktPreferred.clear();
   }
 
   invalidateCache();
