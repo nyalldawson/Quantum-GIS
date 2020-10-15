@@ -118,6 +118,7 @@ class CORE_EXPORT QgsCompoundCurve: public QgsCurve
     QgsCompoundCurve *reversed() const override SIP_FACTORY;
     QgsPoint *interpolatePoint( double distance ) const override SIP_FACTORY;
     QgsCompoundCurve *curveSubstring( double startDistance, double endDistance ) const override SIP_FACTORY;
+    QVector< QgsCurve * > explodeToSegments( bool useCompoundCurves = false ) const override SIP_FACTORY;
 
     bool addZValue( double zValue = 0 ) override;
     bool addMValue( double mValue = 0 ) override;

@@ -21,6 +21,7 @@
 #include "qgscircularstring.h"
 #include "qgscompoundcurve.h"
 #include "qgsgeometrycollection.h"
+#include "qgsgeometryutils.h"
 
 ///@cond PRIVATE
 
@@ -91,14 +92,15 @@ QgsFeatureList QgsExplodeAlgorithm::processFeature( const QgsFeature &f, QgsProc
   }
   else
   {
-    const std::vector<QgsGeometry> parts = extractAsParts( f.geometry() );
+    const QVector<QgsCurve *> parts = QgsGeometryUtils::explodeLineToSegments( f.geometry().constGet() );
     QgsFeature outputFeature;
     QgsFeatureList features;
     features.reserve( parts.size() );
-    for ( const QgsGeometry &part : parts )
+    for ( QgsCurve *part : parts )
     {
       outputFeature.setAttributes( f.attributes() );
-      outputFeature.setGeometry( part );
+      // takes ownership of part!
+      outputFeature.setGeometry( QgsGeometry( part ) );
       features << outputFeature;
     }
     return features;
@@ -108,98 +110,6 @@ QgsFeatureList QgsExplodeAlgorithm::processFeature( const QgsFeature &f, QgsProc
 QgsFeatureSink::SinkFlags QgsExplodeAlgorithm::sinkFlags() const
 {
   return QgsFeatureSink::RegeneratePrimaryKey;
-}
-
-std::vector<QgsGeometry> QgsExplodeAlgorithm::extractAsParts( const QgsGeometry &geometry ) const
-{
-  if ( geometry.isMultipart() )
-  {
-    std::vector<QgsGeometry> parts;
-    const QgsGeometryCollection *collection = qgsgeometry_cast< const QgsGeometryCollection * >( geometry.constGet() );
-    for ( int part = 0; part < collection->numGeometries(); ++part )
-    {
-      std::vector<QgsGeometry> segments = curveAsSingleSegments( qgsgeometry_cast< const QgsCurve * >( collection->geometryN( part ) ) );
-      parts.reserve( parts.size() + segments.size() );
-      std::move( std::begin( segments ), std::end( segments ), std::back_inserter( parts ) );
-    }
-    return parts;
-  }
-  else
-  {
-    return curveAsSingleSegments( qgsgeometry_cast< const QgsCurve * >( geometry.constGet() ) );
-  }
-}
-
-std::vector<QgsGeometry> QgsExplodeAlgorithm::curveAsSingleSegments( const QgsCurve *curve, bool useCompoundCurves ) const
-{
-  std::vector<QgsGeometry> parts;
-  if ( !curve )
-    return parts;
-  switch ( QgsWkbTypes::flatType( curve->wkbType() ) )
-  {
-    case QgsWkbTypes::LineString:
-    {
-      const QgsLineString *line = qgsgeometry_cast< const QgsLineString * >( curve );
-      for ( int i = 0; i < line->numPoints() - 1; ++i )
-      {
-        QgsPoint ptA = line->pointN( i );
-        QgsPoint ptB = line->pointN( i + 1 );
-        std::unique_ptr< QgsLineString > ls = qgis::make_unique< QgsLineString >( QVector< QgsPoint >() << ptA << ptB );
-        if ( !useCompoundCurves )
-        {
-          parts.emplace_back( QgsGeometry( std::move( ls ) ) );
-        }
-        else
-        {
-          std::unique_ptr< QgsCompoundCurve > cc = qgis::make_unique< QgsCompoundCurve >();
-          cc->addCurve( ls.release() );
-          parts.emplace_back( QgsGeometry( std::move( cc ) ) );
-        }
-      }
-      break;
-    }
-
-    case QgsWkbTypes::CircularString:
-    {
-      const QgsCircularString *string = qgsgeometry_cast< const QgsCircularString * >( curve );
-      for ( int i = 0; i < string->numPoints() - 2; i += 2 )
-      {
-        QgsPoint ptA = string->pointN( i );
-        QgsPoint ptB = string->pointN( i + 1 );
-        QgsPoint ptC = string->pointN( i + 2 );
-        std::unique_ptr< QgsCircularString > cs = qgis::make_unique< QgsCircularString >();
-        cs->setPoints( QgsPointSequence() << ptA << ptB << ptC );
-        if ( !useCompoundCurves )
-        {
-          parts.emplace_back( QgsGeometry( std::move( cs ) ) );
-        }
-        else
-        {
-          std::unique_ptr< QgsCompoundCurve > cc = qgis::make_unique< QgsCompoundCurve >();
-          cc->addCurve( cs.release() );
-          parts.emplace_back( QgsGeometry( std::move( cc ) ) );
-        }
-      }
-      break;
-    }
-
-    case QgsWkbTypes::CompoundCurve:
-    {
-      const QgsCompoundCurve *compoundCurve = qgsgeometry_cast< QgsCompoundCurve * >( curve );
-      for ( int i = 0; i < compoundCurve->nCurves(); ++i )
-      {
-        std::vector<QgsGeometry> segments = curveAsSingleSegments( compoundCurve->curveAt( i ), true );
-        parts.reserve( parts.size() + segments.size() );
-        std::move( std::begin( segments ), std::end( segments ), std::back_inserter( parts ) );
-      }
-      break;
-    }
-
-    default:
-      break;
-
-  }
-  return parts;
 }
 
 ///@endcond

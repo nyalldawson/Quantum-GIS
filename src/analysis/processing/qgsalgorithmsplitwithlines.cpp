@@ -18,6 +18,9 @@
 #include "qgsalgorithmsplitwithlines.h"
 #include "qgsgeometryengine.h"
 #include "qgsvectorlayer.h"
+#include "qgsgeometryutils.h"
+#include "qgsgeometrycollection.h"
+
 ///@cond PRIVATE
 
 QString QgsSplitWithLinesAlgorithm::name() const
@@ -139,11 +142,14 @@ QVariantMap QgsSplitWithLinesAlgorithm::processAlgorithm( const QVariantMap &par
     const QgsFeatureIds splitLineCandidates = qgis::listToSet( splitLinesIndex.intersects( originalGeometry.boundingBox() ) );
     if ( !splitLineCandidates.empty() ) // has intersection of bounding boxes
     {
-      QVector< QgsGeometry > splittingLines;
+      std::vector< const QgsAbstractGeometry * > splittingLines;
+      QVector< QgsGeometry> splitLineCandidateGeometries;
+      std::vector< std::unique_ptr< QgsAbstractGeometry >> ownedParts;
 
       // use prepared geometries for faster intersection tests
       std::unique_ptr< QgsGeometryEngine > originalGeometryEngine;
 
+      splitLineCandidateGeometries.reserve( splitLineCandidates.size() );
       for ( QgsFeatureId splitLineCandidateId : splitLineCandidates )
       {
         // check if trying to self-intersect
@@ -159,20 +165,76 @@ QVariantMap QgsSplitWithLinesAlgorithm::processAlgorithm( const QVariantMap &par
 
         if ( originalGeometryEngine->intersects( splitLineCandidate.constGet() ) )
         {
-          QVector< QgsGeometry > splitGeomParts = splitLineCandidate.asGeometryCollection();
-          splittingLines.append( splitGeomParts );
+          splitLineCandidateGeometries << splitLineCandidate;
+          switch ( QgsWkbTypes::geometryType( source->wkbType() ) )
+          {
+            case QgsWkbTypes::PolygonGeometry:
+              // if we are splitting polygon features, then we have to leave the split lines as complete linestrings
+              // (we just break them up into parts alone)
+              if ( const QgsGeometryCollection *collection = qgsgeometry_cast< const QgsGeometryCollection * >( splitLineCandidate.constGet() ) )
+              {
+                const int size = collection->numGeometries();
+                for ( int i = 0; i < size; ++i )
+                {
+                  // only record parts which intersect the input geometry, if we can discard any parts of the split line here let's do it!
+                  const QgsAbstractGeometry *splitLinePart = collection->geometryN( i );
+                  if ( originalGeometryEngine->intersects( splitLinePart ) )
+                  {
+                    splittingLines.emplace_back( splitLinePart );
+                  }
+                }
+              }
+              else
+              {
+                splittingLines.emplace_back( splitLineCandidate.constGet() );
+              }
+              break;
+
+            case QgsWkbTypes::LineGeometry:
+            {
+              // but if we are splitting line features, then we can optimise things by exploding the split lines
+              // into all their component segments. This means that when we later test exactly where the split line
+              // intersects the original geometry we can potentially discard a huge number of segments immediately
+              // and only process the segments which do actually intersect the original geometry, instead of
+              // a complete original linestring which may have 1000s of vertices...
+              const QVector< QgsCurve * > parts = QgsGeometryUtils::explodeLineToSegments( splitLineCandidate.constGet() );
+              splittingLines.reserve( splittingLines.size() + parts.size() );
+              ownedParts.reserve( ownedParts.size() + parts.size() );
+              for ( QgsCurve *part : parts )
+              {
+                if ( originalGeometryEngine->intersects( part ) )
+                {
+                  // keep this segment for splitting
+                  splittingLines.emplace_back( part );
+                  // take ownership
+                  ownedParts.emplace_back( part );
+                }
+                else
+                {
+                  // throw it away -- this segment doesn't touch the original geometry
+                  delete part;
+                }
+              }
+              break;
+            }
+
+            case QgsWkbTypes::PointGeometry:
+            case QgsWkbTypes::UnknownGeometry:
+            case QgsWkbTypes::NullGeometry:
+              break;
+          }
         }
       }
 
       if ( !splittingLines.empty() )
       {
-        for ( const QgsGeometry &splitGeom : qgis::as_const( splittingLines ) )
+        for ( const QgsAbstractGeometry *splitGeom : splittingLines )
         {
           QgsPointSequence splitterPList;
           QVector< QgsGeometry > outGeoms;
 
           // use prepared geometries for faster intersection tests
-          std::unique_ptr< QgsGeometryEngine > splitGeomEngine( QgsGeometry::createGeometryEngine( splitGeom.constGet() ) );
+          std::unique_ptr< QgsGeometryEngine > splitGeomEngine( QgsGeometry::createGeometryEngine( splitGeom ) );
           splitGeomEngine->prepareGeometry();
           while ( !inGeoms.empty() )
           {
@@ -190,7 +252,7 @@ QVariantMap QgsSplitWithLinesAlgorithm::processAlgorithm( const QVariantMap &par
               QgsGeometry before = inGeom;
               if ( splitterPList.empty() )
               {
-                const QgsCoordinateSequence sequence = splitGeom.constGet()->coordinateSequence();
+                const QgsCoordinateSequence sequence = splitGeom->coordinateSequence();
                 for ( const QgsRingSequence &part : sequence )
                 {
                   for ( const QgsPointSequence &ring : part )

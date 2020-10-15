@@ -148,6 +148,19 @@ class CORE_EXPORT QgsCurve: public QgsAbstractGeometry
      */
     virtual QgsCurve *reversed() const = 0 SIP_FACTORY;
 
+    /**
+     * Explodes the curve to a series of single segment curves. E.g. for a LineString geometry this
+     * will return a list of straight line segments.
+     *
+     * Caller takes ownership of the returned curves.
+     *
+     * If \a useCompoundCurves is TRUE then compound curves will always be returned, even when the
+     * original geometry is a LineString or CircularString.
+     *
+     * \since QGIS 3.16
+     */
+    virtual QVector< QgsCurve * > explodeToSegments( bool useCompoundCurves = false ) const = 0 SIP_FACTORY;
+
     QgsAbstractGeometry *boundary() const override SIP_FACTORY;
 
     QString asKml( int precision = 17 ) const override;

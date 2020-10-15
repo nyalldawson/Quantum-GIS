@@ -1112,6 +1112,47 @@ QgsCompoundCurve *QgsLineString::toCurveType() const
   return compoundCurve;
 }
 
+QVector<QgsCurve *> QgsLineString::explodeToSegments( bool useCompoundCurves ) const
+{
+  const int size = mX.size();
+  QVector< QgsCurve * > parts;
+  if ( size < 2 )
+    return parts;
+
+  const double *x = mX.constData();
+  const double *y = mY.constData();
+  const double *z = is3D() ? mZ.constData() : nullptr;
+  const double *m = isMeasure() ? mM.constData() : nullptr;
+
+  QgsPoint ptA( *x++,
+                *y++,
+                z ? *z++ : std::numeric_limits<double>::quiet_NaN(),
+                m ? *m++ : std::numeric_limits<double>::quiet_NaN() );
+
+  parts.reserve( size - 1 );
+  for ( int i = 1; i < size ; ++i )
+  {
+    QgsPoint ptB( *x++,
+                  *y++,
+                  z ? *z++ : std::numeric_limits<double>::quiet_NaN(),
+                  m ? *m++ : std::numeric_limits<double>::quiet_NaN() );
+
+    std::unique_ptr< QgsLineString > ls = qgis::make_unique< QgsLineString >( QVector< QgsPoint >() << ptA << ptB );
+    if ( !useCompoundCurves )
+    {
+      parts.push_back( ls.release() );
+    }
+    else
+    {
+      std::unique_ptr< QgsCompoundCurve > cc = qgis::make_unique< QgsCompoundCurve >();
+      cc->addCurve( ls.release() );
+      parts.push_back( cc.release() );
+    }
+    ptA = ptB;
+  }
+  return parts;
+}
+
 void QgsLineString::extend( double startDistance, double endDistance )
 {
   if ( mX.size() < 2 || mY.size() < 2 )

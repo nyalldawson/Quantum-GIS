@@ -727,6 +727,18 @@ class CORE_EXPORT QgsGeometryUtils
      */
     static bool setZValueFromPoints( const QgsPointSequence &points, QgsPoint &point );
 
+    /**
+     * Explodes a line (or multiline) \a geometry to a series of single segment curves.
+     * E.g. for a LineString geometry this will return a list of straight line segments.
+     *
+     * Caller takes ownership of the returned curves.
+     *
+     * If \a geometry is not a line type then an empty list will be returned.
+     *
+     * \since QGIS 3.16
+     */
+    static QVector< QgsCurve * > explodeLineToSegments( const QgsAbstractGeometry *geometry ) SIP_FACTORY;
+
     //! \note not available in Python bindings
     enum ComponentType SIP_SKIP
     {

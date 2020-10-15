@@ -700,6 +700,18 @@ A Z dimension is added to ``point`` if one of the point in the list
 .. versionadded:: 3.0
 %End
 
+    static QVector< QgsCurve * > explodeLineToSegments( const QgsAbstractGeometry *geometry ) /Factory/;
+%Docstring
+Explodes a line (or multiline) ``geometry`` to a series of single segment curves.
+E.g. for a LineString geometry this will return a list of straight line segments.
+
+Caller takes ownership of the returned curves.
+
+If ``geometry`` is not a line type then an empty list will be returned.
+
+.. versionadded:: 3.16
+%End
+
 
 };
 

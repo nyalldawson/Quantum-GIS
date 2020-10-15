@@ -566,6 +566,32 @@ double QgsCircularString::yAt( int index ) const
     return 0.0;
 }
 
+QVector<QgsCurve *> QgsCircularString::explodeToSegments( bool useCompoundCurves ) const
+{
+  QVector< QgsCurve * > parts;
+  const int size = numPoints();
+  parts.reserve( size - 2 );
+  for ( int i = 0; i < size - 2; i += 2 )
+  {
+    QgsPoint ptA = pointN( i );
+    QgsPoint ptB = pointN( i + 1 );
+    QgsPoint ptC = pointN( i + 2 );
+    std::unique_ptr< QgsCircularString > cs = qgis::make_unique< QgsCircularString >();
+    cs->setPoints( QgsPointSequence() << ptA << ptB << ptC );
+    if ( !useCompoundCurves )
+    {
+      parts.push_back( cs.release() );
+    }
+    else
+    {
+      std::unique_ptr< QgsCompoundCurve > cc = qgis::make_unique< QgsCompoundCurve >();
+      cc->addCurve( cs.release() );
+      parts.push_back( cc.release() );
+    }
+  }
+  return parts;
+}
+
 void QgsCircularString::filterVertices( const std::function<bool ( const QgsPoint & )> &filter )
 {
   bool hasZ = is3D();

@@ -1717,3 +1717,29 @@ bool QgsGeometryUtils::setZValueFromPoints( const QgsPointSequence &points, QgsP
 
   return rc;
 }
+
+QVector<QgsCurve *> QgsGeometryUtils::explodeLineToSegments( const QgsAbstractGeometry *geometry )
+{
+  if ( const QgsGeometryCollection *collection = qgsgeometry_cast< const QgsGeometryCollection * >( geometry ) )
+  {
+    QVector<QgsCurve *> parts;
+    for ( int part = 0; part < collection->numGeometries(); ++part )
+    {
+      if ( const QgsCurve *curve = qgsgeometry_cast< const QgsCurve * >( collection->geometryN( part ) ) )
+      {
+        QVector<QgsCurve *> segments = curve->explodeToSegments();
+        parts.reserve( parts.size() + segments.size() );
+        std::move( std::begin( segments ), std::end( segments ), std::back_inserter( parts ) );
+      }
+    }
+    return parts;
+  }
+  else if ( const QgsCurve *curve = qgsgeometry_cast< const QgsCurve * >( geometry ) )
+  {
+    return curve->explodeToSegments();
+  }
+  else
+  {
+    return QVector< QgsCurve * >();
+  }
+}

@@ -146,6 +146,8 @@ Appends first point if not already closed.
 
     virtual QgsCompoundCurve *curveSubstring( double startDistance, double endDistance ) const /Factory/;
 
+    virtual QVector< QgsCurve * > explodeToSegments( bool useCompoundCurves = false ) const /Factory/;
+
 
     virtual bool addZValue( double zValue = 0 );
 

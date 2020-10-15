@@ -49,9 +49,6 @@ class QgsExplodeAlgorithm : public QgsProcessingFeatureBasedAlgorithm
     QgsWkbTypes::Type outputWkbType( QgsWkbTypes::Type inputWkbType ) const override;
     QgsFeatureList processFeature( const QgsFeature &feature,  QgsProcessingContext &context, QgsProcessingFeedback *feedback ) override;
     QgsFeatureSink::SinkFlags sinkFlags() const override;
-
-    std::vector< QgsGeometry > extractAsParts( const QgsGeometry &geometry ) const;
-    std::vector< QgsGeometry > curveAsSingleSegments( const QgsCurve *curve, bool useCompoundCurves = false ) const;
 };
 
 ///@endcond PRIVATE

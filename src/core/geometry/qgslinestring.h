@@ -558,6 +558,8 @@ class CORE_EXPORT QgsLineString: public QgsCurve
     */
     QgsCompoundCurve *toCurveType() const override SIP_FACTORY;
 
+    QVector< QgsCurve * > explodeToSegments( bool useCompoundCurves = false ) const override SIP_FACTORY;
+
     /**
      * Extends the line geometry by extrapolating out the start or end of the line
      * by a specified distance. Lines are extended using the bearing of the first or last

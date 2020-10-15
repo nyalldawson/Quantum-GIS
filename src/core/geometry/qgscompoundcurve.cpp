@@ -945,6 +945,19 @@ QgsCompoundCurve *QgsCompoundCurve::curveSubstring( double startDistance, double
   return substring.release();
 }
 
+QVector<QgsCurve *> QgsCompoundCurve::explodeToSegments( bool ) const
+{
+  QVector<QgsCurve *> parts;
+  const int size = nCurves();
+  for ( int i = 0; i < size; ++i )
+  {
+    QVector<QgsCurve *> segments = curveAt( i )->explodeToSegments( true );
+    parts.reserve( parts.size() + segments.size() );
+    std::move( std::begin( segments ), std::end( segments ), std::back_inserter( parts ) );
+  }
+  return parts;
+}
+
 bool QgsCompoundCurve::addZValue( double zValue )
 {
   if ( QgsWkbTypes::hasZ( mWkbType ) )

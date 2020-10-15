@@ -126,6 +126,7 @@ class CORE_EXPORT QgsCircularString: public QgsCurve
     void swapXy() override;
     double xAt( int index ) const override SIP_HOLDGIL;
     double yAt( int index ) const override SIP_HOLDGIL;
+    QVector< QgsCurve * > explodeToSegments( bool useCompoundCurves = false ) const override SIP_FACTORY;
 
 #ifndef SIP_RUN
     void filterVertices( const std::function< bool( const QgsPoint & ) > &filter ) override;
