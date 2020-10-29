@@ -61,6 +61,7 @@ INCLUDE_DIRECTORIES(SYSTEM
   ${QCA_INCLUDE_DIR}
   ${QTKEYCHAIN_INCLUDE_DIR}
   ${QSCINTILLA_INCLUDE_DIR}
+  /usr/local/include/kddockwidgets/
 )
 
 

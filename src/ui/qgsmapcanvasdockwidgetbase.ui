@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
  <class>QgsMapCanvasDockWidgetBase</class>
- <widget class="QgsDockWidget" name="QgsMapCanvasDockWidgetBase">
+ <widget class="QWidget" name="QgsMapCanvasDockWidgetBase">
   <property name="geometry">
    <rect>
     <x>0</x>

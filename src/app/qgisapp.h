@@ -181,6 +181,9 @@ class QgsNetworkLoggerWidgetFactory;
 #include <QGestureEvent>
 #include <QTapAndHoldGesture>
 
+#include <MainWindow.h>
+#include <DockWidget.h>
+
 #ifdef Q_OS_WIN
 #include <windows.h>
 #endif
@@ -195,7 +198,7 @@ class QgsGeoreferencerMainWindow;
  * \class QgisApp
  * \brief Main window for the QGIS application
  */
-class APP_EXPORT QgisApp : public QMainWindow, private Ui::MainWindow
+class APP_EXPORT QgisApp : public KDDockWidgets::MainWindow, private Ui::MainWindow
 {
     Q_OBJECT
   public:
@@ -2274,14 +2277,14 @@ class APP_EXPORT QgisApp : public QMainWindow, private Ui::MainWindow
      * The \a isFloating and \a dockGeometry arguments can be used to specify an initial floating state
      * and widget geometry rect for the dock.
      */
-    void setupDockWidget( QDockWidget *dockWidget, bool isFloating = false, QRect dockGeometry = QRect(),
+    void setupDockWidget( KDDockWidgets::DockWidget *dockWidget, bool isFloating = false, QRect dockGeometry = QRect(),
                           Qt::DockWidgetArea area = Qt::RightDockWidgetArea );
 
     /**
      * Reads dock widget's position settings from a DOM element and calls setupDockWidget()
      * \sa writeDockWidgetSettings()
      */
-    void readDockWidgetSettings( QDockWidget *dockWidget, const QDomElement &elem );
+    void readDockWidgetSettings( KDDockWidgets::DockWidget *dockWidget, const QDomElement &elem );
 
     /**
      * Writes dock widget's position settings to a DOM element
@@ -2585,7 +2588,7 @@ class APP_EXPORT QgisApp : public QMainWindow, private Ui::MainWindow
 
     QgsPluginManager *mPluginManager = nullptr;
     QgsUserProfileManager *mUserProfileManager = nullptr;
-    QgsDockWidget *mMapStylingDock = nullptr;
+    KDDockWidgets::DockWidget *mMapStylingDock = nullptr;
     QgsLayerStylingWidget *mMapStyleWidget = nullptr;
     QgsDockWidget *mDevToolsDock = nullptr;
     QgsDevToolsPanelWidget *mDevToolsWidget = nullptr;

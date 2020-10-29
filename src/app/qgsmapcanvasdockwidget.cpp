@@ -36,9 +36,10 @@
 #include <QToolButton>
 #include <QRadioButton>
 
+static int sCounter = 0;
 
 QgsMapCanvasDockWidget::QgsMapCanvasDockWidget( const QString &name, QWidget *parent )
-  : QgsDockWidget( parent )
+  :  KDDockWidgets::DockWidget( QStringLiteral( "mapcanvas%1" ).arg( ++sCounter ) )
 {
   setupUi( this );
   setAttribute( Qt::WA_DeleteOnClose );

@@ -49,8 +49,10 @@
 #include "qgsmap3dexportwidget.h"
 #include "qgs3dmapexportsettings.h"
 
+static int sCounter = 0;
+
 Qgs3DMapCanvasDockWidget::Qgs3DMapCanvasDockWidget( QWidget *parent )
-  : QgsDockWidget( parent )
+  : KDDockWidgets::DockWidget( QStringLiteral( "3dmapcanvas%1" ).arg( ++sCounter ) )
 {
   QgsSettings setting;
   setAttribute( Qt::WA_DeleteOnClose );  // removes the dock widget from main window when

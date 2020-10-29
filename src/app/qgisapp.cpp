@@ -843,7 +843,7 @@ QgisApp *QgisApp::sInstance = nullptr;
 
 // constructor starts here
 QgisApp::QgisApp( QSplashScreen *splash, bool restorePlugins, bool skipVersionCheck, const QString &rootProfileLocation, const QString &activeProfile, QWidget *parent, Qt::WindowFlags fl )
-  : QMainWindow( parent, fl )
+  : KDDockWidgets::MainWindow( QStringLiteral( "QgisApp" ), KDDockWidgets::MainWindowOption_None, parent, fl )
   , mSplash( splash )
 {
   if ( sInstance )
@@ -880,6 +880,8 @@ QgisApp::QgisApp( QSplashScreen *splash, bool restorePlugins, bool skipVersionCh
   this->addAction( mActionTogglePanelsVisibility );
   this->addAction( mActionToggleMapOnly );
   endProfile();
+
+  setAffinities( QStringList() );
 
   setDockOptions( dockOptions() | QMainWindow::GroupedDragging );
 
@@ -1143,20 +1145,20 @@ QgisApp::QgisApp( QSplashScreen *splash, bool restorePlugins, bool skipVersionCh
   mUndoDock->hide();
 
   startProfile( tr( "Layer style dock" ) );
-  mMapStylingDock = new QgsDockWidget( this );
+  mMapStylingDock = new KDDockWidgets::DockWidget( "layer styling" );
   mMapStylingDock->setWindowTitle( tr( "Layer Styling" ) );
   mMapStylingDock->setObjectName( QStringLiteral( "LayerStyling" ) );
   QShortcut *showStylingDock = new QShortcut( QKeySequence( tr( "Ctrl+3" ) ), this );
-  connect( showStylingDock, &QShortcut::activated, mMapStylingDock, &QgsDockWidget::toggleUserVisible );
+// connect( showStylingDock, &QShortcut::activated, mMapStylingDock, &QgsDockWidget::toggleUserVisible );
   showStylingDock->setObjectName( QStringLiteral( "ShowLayerStylingPanel" ) );
   showStylingDock->setWhatsThis( tr( "Show Style Panel" ) );
 
   mMapStyleWidget = new QgsLayerStylingWidget( mMapCanvas, mInfoBar, mMapLayerPanelFactories );
   mMapStylingDock->setWidget( mMapStyleWidget );
   connect( mMapStyleWidget, &QgsLayerStylingWidget::styleChanged, this, &QgisApp::updateLabelToolButtons );
-  connect( mMapStylingDock, &QDockWidget::visibilityChanged, mActionStyleDock, &QAction::setChecked );
+// connect( mMapStylingDock, &QDockWidget::visibilityChanged, mActionStyleDock, &QAction::setChecked );
 
-  addDockWidget( Qt::RightDockWidgetArea, mMapStylingDock );
+  KDDockWidgets::MainWindow::addDockWidget( mMapStylingDock, KDDockWidgets::Location_OnRight );
   mMapStylingDock->hide();
   endProfile();
 
@@ -1710,7 +1712,7 @@ QgisApp::QgisApp( QSplashScreen *splash, bool restorePlugins, bool skipVersionCh
 } // QgisApp ctor
 
 QgisApp::QgisApp()
-  : QMainWindow( nullptr, Qt::WindowFlags() )
+  : KDDockWidgets::MainWindow( QStringLiteral( "QgisApp" ), KDDockWidgets::MainWindowOption_HasCentralFrame, nullptr, Qt::WindowFlags() )
 #ifdef Q_OS_MAC
   , mWindowMenu( nullptr )
 #endif
@@ -4581,7 +4583,7 @@ QgsMapCanvasDockWidget *QgisApp::createNewMapCanvasDock( const QString &name )
   }
 
   QgsMapCanvasDockWidget *mapCanvasWidget = new QgsMapCanvasDockWidget( name, this );
-  mapCanvasWidget->setAllowedAreas( Qt::AllDockWidgetAreas );
+  //mapCanvasWidget->setAllowedAreas( Qt::AllDockWidgetAreas );
   mapCanvasWidget->setMainCanvas( mMapCanvas );
 
   QgsMapCanvas *mapCanvas = mapCanvasWidget->mapCanvas();
@@ -4605,21 +4607,43 @@ QgsMapCanvasDockWidget *QgisApp::createNewMapCanvasDock( const QString &name )
   mapCanvas->setCustomDropHandlers( mCustomDropHandlers );
 
   markDirty();
-  connect( mapCanvasWidget, &QgsMapCanvasDockWidget::closed, this, &QgisApp::markDirty );
+  //connect( mapCanvasWidget, &QgsMapCanvasDockWidget::closed, this, &QgisApp::markDirty );
   connect( mapCanvasWidget, &QgsMapCanvasDockWidget::renameTriggered, this, &QgisApp::renameView );
 
   return mapCanvasWidget;
 }
 
 
-void QgisApp::setupDockWidget( QDockWidget *dockWidget, bool isFloating, QRect dockGeometry, Qt::DockWidgetArea area )
+void QgisApp::setupDockWidget( KDDockWidgets::DockWidget *dockWidget, bool isFloating, QRect dockGeometry, Qt::DockWidgetArea area )
 {
-  dockWidget->setFloating( isFloating );
+  KDDockWidgets::Location location = KDDockWidgets::Location_None;
+  switch ( area )
+  {
+    case Qt::LeftDockWidgetArea:
+      location = KDDockWidgets::Location_OnLeft;
+      break;
+
+    case Qt::RightDockWidgetArea:
+      location = KDDockWidgets::Location_OnRight;
+      break;
+
+    case Qt::TopDockWidgetArea:
+      location = KDDockWidgets::Location_OnTop;
+      break;
+
+    case Qt::BottomDockWidgetArea:
+      location = KDDockWidgets::Location_OnBottom;
+      break;
+  }
+
+  KDDockWidgets::MainWindow::addDockWidget( dockWidget, location );
+#if 0
+// dockWidget->setFloating( isFloating );
   if ( dockGeometry.isEmpty() )
   {
     // try to guess a nice initial placement for view - about 3/4 along, half way down
     dockWidget->setGeometry( QRect( static_cast< int >( rect().width() * 0.75 ), static_cast< int >( rect().height() * 0.5 ), 400, 400 ) );
-    addDockWidget( area, dockWidget );
+    KDDockWidgets::MainWindow::addDockWidget( dockWidget, location );
   }
   else
   {
@@ -4627,7 +4651,7 @@ void QgisApp::setupDockWidget( QDockWidget *dockWidget, bool isFloating, QRect d
     {
       // ugly hack, but only way to set dock size correctly for Qt < 5.6
       dockWidget->setFixedSize( dockGeometry.size() );
-      addDockWidget( area, dockWidget );
+      KDDockWidgets::MainWindow::addDockWidget( dockWidget, location );
       dockWidget->resize( dockGeometry.size() );
       QgsApplication::processEvents(); // required!
       dockWidget->setFixedSize( QWIDGETSIZE_MAX, QWIDGETSIZE_MAX );
@@ -4635,9 +4659,10 @@ void QgisApp::setupDockWidget( QDockWidget *dockWidget, bool isFloating, QRect d
     else
     {
       dockWidget->setGeometry( dockGeometry );
-      addDockWidget( area, dockWidget );
+      KDDockWidgets::MainWindow::addDockWidget( dockWidget, location );
     }
   }
+#endif
 }
 
 void QgisApp::closeMapCanvas( const QString &name )
@@ -8597,7 +8622,7 @@ void QgisApp::setMapStyleDockLayer( QgsMapLayer *layer )
 
 void QgisApp::mapStyleDock( bool enabled )
 {
-  mMapStylingDock->setUserVisible( enabled );
+  //mMapStylingDock->setUserVisible( enabled );
   setMapStyleDockLayer( activeLayer() );
 }
 
@@ -13206,7 +13231,7 @@ Qgs3DMapCanvasDockWidget *QgisApp::createNew3DMapCanvasDock( const QString &name
   markDirty();
 
   Qgs3DMapCanvasDockWidget *map3DWidget = new Qgs3DMapCanvasDockWidget( this );
-  map3DWidget->setAllowedAreas( Qt::AllDockWidgetAreas );
+  //map3DWidget->setAllowedAreas( Qt::AllDockWidgetAreas );
   map3DWidget->setWindowTitle( name );
   map3DWidget->mapCanvas3D()->setObjectName( name );
   map3DWidget->setMainCanvas( mMapCanvas );
@@ -15839,7 +15864,7 @@ void QgisApp::writeProject( QDomDocument &doc )
     node.setAttribute( QStringLiteral( "scaleFactor" ), w->scaleFactor() );
     node.setAttribute( QStringLiteral( "showLabels" ), w->labelsVisible() );
     node.setAttribute( QStringLiteral( "zoomSelected" ), w->isAutoZoomToSelected() );
-    writeDockWidgetSettings( w, node );
+    //writeDockWidgetSettings( w, node );
     mapViewNode.appendChild( node );
   }
   qgisNode.appendChild( mapViewNode );
@@ -15859,7 +15884,7 @@ void QgisApp::writeProject( QDomDocument &doc )
     elem3DMap.appendChild( elemCamera );
     QDomElement elemAnimation = w->animationWidget()->animation().writeXml( doc );
     elem3DMap.appendChild( elemAnimation );
-    writeDockWidgetSettings( w, elem3DMap );
+    //writeDockWidgetSettings( w, elem3DMap );
     elem3DMaps.appendChild( elem3DMap );
   }
   qgisNode.appendChild( elem3DMaps );
@@ -15912,7 +15937,7 @@ bool QgisApp::askUserForDatumTransform( const QgsCoordinateReferenceSystem &sour
   return QgsDatumTransformDialog::run( sourceCrs, destinationCrs, this, mMapCanvas, title );
 }
 
-void QgisApp::readDockWidgetSettings( QDockWidget *dockWidget, const QDomElement &elem )
+void QgisApp::readDockWidgetSettings( KDDockWidgets::DockWidget *dockWidget, const QDomElement &elem )
 {
   int x = elem.attribute( QStringLiteral( "x" ), QStringLiteral( "0" ) ).toInt();
   int y = elem.attribute( QStringLiteral( "y" ), QStringLiteral( "0" ) ).toInt();

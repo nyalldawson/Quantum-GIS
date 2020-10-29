@@ -34,12 +34,14 @@ class QgsRubberBand;
 class QCheckBox;
 class QRadioButton;
 
+#include <DockWidget.h>
+
 /**
  * \class QgsMapCanvasDockWidget
  * A dock widget with an embedded map canvas, for additional map views.
  * \since QGIS 3.0
  */
-class APP_EXPORT QgsMapCanvasDockWidget : public QgsDockWidget, private Ui::QgsMapCanvasDockWidgetBase
+class APP_EXPORT QgsMapCanvasDockWidget : public KDDockWidgets::DockWidget, private Ui::QgsMapCanvasDockWidgetBase
 {
     Q_OBJECT
   public:

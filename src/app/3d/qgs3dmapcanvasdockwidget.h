@@ -33,9 +33,9 @@ class Qgs3DMapToolIdentify;
 class Qgs3DMapToolMeasureLine;
 class QgsMapCanvas;
 
+#include <DockWidget.h>
 
-
-class APP_EXPORT Qgs3DMapCanvasDockWidget : public QgsDockWidget
+class APP_EXPORT Qgs3DMapCanvasDockWidget : public KDDockWidgets::DockWidget
 {
     Q_OBJECT
   public:

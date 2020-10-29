@@ -1393,6 +1393,13 @@ GENERATE_EXPORT_HEADER(
 
 SET(QGIS_GUI_HDRS ${QGIS_GUI_HDRS} ${CMAKE_CURRENT_BINARY_DIR}/qgis_gui.h)
 
+if(NOT TARGET kddockwidgets)
+  # This will look for Qt, do find_package yourself manually before
+  # if you want to look for a specific Qt version for instance.
+  find_package(KDDockWidgets REQUIRED)
+endif()
+
+
 IF(NOT APPLE)
   IF (WIN32 )
     INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/src/native/win)
@@ -1442,6 +1449,7 @@ TARGET_LINK_LIBRARIES(qgis_gui
   ${QWT_LIBRARY}
   ${QSCINTILLA_LIBRARY}
   ${Qt5QuickWidgets_LIBRARIES}
+  KDAB::kddockwidgets
 )
 
 IF (FORCE_STATIC_PROVIDERS)

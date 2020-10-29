@@ -505,6 +505,7 @@ INCLUDE_DIRECTORIES(SYSTEM
   ${QT_QTUITOOLS_INCLUDE_DIR}
   ${QSCINTILLA_INCLUDE_DIR}
   ${CMAKE_SOURCE_DIR}/external/qt-unix-signals
+  /usr/local/include/kddockwidgets/
 )
 INCLUDE_DIRECTORIES(
   ../analysis/processing
