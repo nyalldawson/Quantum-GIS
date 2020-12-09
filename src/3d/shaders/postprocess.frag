@@ -87,6 +87,21 @@ float linearizeDepth(float depth)
   return (2.0 * nearPlane * farPlane) / (farPlane + nearPlane - ndc * (farPlane - nearPlane));
 }
 
+
+float fogFactor(float depth)
+{
+  float FogMax = 600.0;
+  float FogMin = 400.0;
+
+  if (depth>=FogMax)
+      return 1.0;
+  if (depth<=FogMin)
+      return 0.0;
+
+  return 1.0 - (FogMax - depth) / (FogMax - FogMin);
+}
+
+
 float edlFactor(vec2 coords)
 {
   vec2 texelSize = 2.0 / textureSize(depthTexture, 0);
@@ -109,7 +124,8 @@ float edlFactor(vec2 coords)
 
 void main()
 {
-  vec3 worldPosition = WorldPosFromDepth(texture(depthTexture, texCoord).r);
+  float depth = texture(depthTexture, texCoord).r;
+  vec3 worldPosition = WorldPosFromDepth(depth);
   vec4 positionInLightSpace = projectionMatrix * viewMatrix * vec4(worldPosition, 1.0f);
   positionInLightSpace /= positionInLightSpace.w;
   vec3 color = texture(colorTexture, texCoord).rgb;
@@ -125,4 +141,7 @@ void main()
     float shade = exp(-edlFactor(texCoord) * edlStrength);
     fragColor = vec4(fragColor.rgb * shade, fragColor.a);
   }
+
+  float fog = fogFactor(linearizeDepth( texture(depthTexture, texCoord).r ));
+  fragColor = mix(fragColor, vec4(1.0f, 1.0f, 1.0f,1.0f), fog*0.6);
 }
