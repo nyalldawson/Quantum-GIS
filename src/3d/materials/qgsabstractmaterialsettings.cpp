@@ -51,6 +51,16 @@ QByteArray QgsAbstractMaterialSettings::dataDefinedVertexColorsAsByte( const Qgs
   return QByteArray();
 }
 
+bool QgsAbstractMaterialSettings::requiresTextureCoordinates() const
+{
+  return false;
+}
+
+float QgsAbstractMaterialSettings::textureRotation() const
+{
+  return 0;
+}
+
 void QgsAbstractMaterialSettings::applyDataDefinedToGeometry( Qt3DRender::QGeometry *geometry, int vertexCount, const QByteArray &dataDefinedBytes ) const
 {
   Q_UNUSED( geometry )

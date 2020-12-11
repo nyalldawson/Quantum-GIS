@@ -232,6 +232,17 @@ class _3D_EXPORT QgsAbstractMaterialSettings SIP_ABSTRACT
      * \since QGIS 3.18
      */
     virtual int dataDefinedByteStride() const {return 0;}
+
+    /**
+     * Returns TRUE if the material requires texture coordinates to be generated
+     * during triangulation.
+     */
+    virtual bool requiresTextureCoordinates() const;
+
+    /**
+     * Returns the texture rotation, in degrees.
+     */
+    virtual float textureRotation() const;
 #endif
 
   private:

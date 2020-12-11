@@ -18,6 +18,7 @@
 #include "qgssymbollayerutils.h"
 #include "qgsapplication.h"
 #include "qgsimagecache.h"
+#include "qgsimagetexture.h"
 #include <Qt3DExtras/QDiffuseMapMaterial>
 #include <Qt3DExtras/QPhongMaterial>
 #include <Qt3DRender/QPaintedTextureImage>
@@ -89,29 +90,6 @@ void QgsPhongTexturedMaterialSettings::writeXml( QDomElement &elem, const QgsRea
   QgsAbstractMaterialSettings::writeXml( elem, context );
 }
 
-///@cond PRIVATE
-class QgsQImageTextureImage : public Qt3DRender::QPaintedTextureImage
-{
-  public:
-    QgsQImageTextureImage( const QImage &image, Qt3DCore::QNode *parent = nullptr )
-      : Qt3DRender::QPaintedTextureImage( parent )
-      , mImage( image )
-    {
-      setSize( mImage.size() );
-    }
-
-    void paint( QPainter *painter ) override
-    {
-      painter->drawImage( mImage.rect(), mImage, mImage.rect() );
-    }
-
-  private:
-
-    QImage mImage;
-
-};
-
-///@endcond
 Qt3DRender::QMaterial *QgsPhongTexturedMaterialSettings::toMaterial( QgsMaterialSettingsRenderingTechnique technique, const QgsMaterialContext &context ) const
 {
   switch ( technique )
@@ -131,7 +109,7 @@ Qt3DRender::QMaterial *QgsPhongTexturedMaterialSettings::toMaterial( QgsMaterial
       {
         Qt3DExtras::QDiffuseMapMaterial *material = new Qt3DExtras::QDiffuseMapMaterial;
 
-        QgsQImageTextureImage *textureImage = new QgsQImageTextureImage( textureSourceImage );
+        QgsImageTexture *textureImage = new QgsImageTexture( textureSourceImage );
         material->diffuse()->addTextureImage( textureImage );
 
         material->diffuse()->wrapMode()->setX( Qt3DRender::QTextureWrapMode::Repeat );
@@ -183,6 +161,11 @@ QMap<QString, QString> QgsPhongTexturedMaterialSettings::toExportParameters() co
   parameters[ QStringLiteral( "Ks" ) ] = QStringLiteral( "%1 %2 %3" ).arg( mSpecular.redF() ).arg( mSpecular.greenF() ).arg( mSpecular.blueF() );
   parameters[ QStringLiteral( "Ns" ) ] = QString::number( mShininess );
   return parameters;
+}
+
+bool QgsPhongTexturedMaterialSettings::requiresTextureCoordinates() const
+{
+  return !mDiffuseTexturePath.isEmpty();
 }
 
 void QgsPhongTexturedMaterialSettings::addParametersToEffect( Qt3DRender::QEffect *effect ) const

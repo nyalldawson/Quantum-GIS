@@ -78,16 +78,9 @@ class _3D_EXPORT QgsPhongTexturedMaterialSettings : public QgsAbstractMaterialSe
      */
     float textureScale() const { return mTextureScale; }
 
-    /**
-     * Returns TRUE if the material requires texture coordinates to be generated
-     * during triangulation.quiresTextureCoordinates
-     */
-    bool requiresTextureCoordinates() const { return !mDiffuseTexturePath.isEmpty(); }
+    bool requiresTextureCoordinates() const override;
 
-    /**
-     * Returns the texture rotation, in degrees.
-     */
-    float textureRotation() const;
+    float textureRotation() const override;
 
     //! Sets ambient color component
     void setAmbient( const QColor &ambient ) { mAmbient = ambient; }

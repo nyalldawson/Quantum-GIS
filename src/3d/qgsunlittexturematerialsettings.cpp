@@ -16,6 +16,7 @@
 #include "qgsunlittexturematerialsettings.h"
 #include "qgsapplication.h"
 #include "qgsimagecache.h"
+#include "qgsimagetexture.h"
 
 #include <QDomElement>
 #include <Qt3DRender/QPaintedTextureImage>
@@ -29,16 +30,14 @@ QString QgsUnlitTextureMaterialSettings::type() const
   return QStringLiteral( "unlittexture" );
 }
 
-bool QgsUnlitTextureMaterialSettings::requiresTextureCoordinates() const
-{
-  return !mTexturePath.isEmpty();
-}
-
 bool QgsUnlitTextureMaterialSettings::supportsTechnique( QgsMaterialSettingsRenderingTechnique technique )
 {
   switch ( technique )
   {
     case QgsMaterialSettingsRenderingTechnique::Triangles:
+    case QgsMaterialSettingsRenderingTechnique::TrianglesWithFixedTexture:
+    case QgsMaterialSettingsRenderingTechnique::TrianglesFromModel:
+    case QgsMaterialSettingsRenderingTechnique::TrianglesDataDefined:
       return true;
 
     case QgsMaterialSettingsRenderingTechnique::Lines:
@@ -57,6 +56,11 @@ QgsAbstractMaterialSettings *QgsUnlitTextureMaterialSettings::create()
 QgsUnlitTextureMaterialSettings *QgsUnlitTextureMaterialSettings::clone() const
 {
   return new QgsUnlitTextureMaterialSettings( *this );
+}
+
+bool QgsUnlitTextureMaterialSettings::requiresTextureCoordinates() const
+{
+  return true;
 }
 
 float QgsUnlitTextureMaterialSettings::textureRotation() const
@@ -78,33 +82,19 @@ void QgsUnlitTextureMaterialSettings::writeXml( QDomElement &elem, const QgsRead
   elem.setAttribute( QStringLiteral( "texture-rotation" ), mTextureRotation );
 }
 
-///@cond PRIVATE
-class QgsQImageTextureImage : public Qt3DRender::QPaintedTextureImage
+QMap<QString, QString> QgsUnlitTextureMaterialSettings::toExportParameters() const
 {
-  public:
-    QgsQImageTextureImage( const QImage &image, Qt3DCore::QNode *parent = nullptr )
-      : Qt3DRender::QPaintedTextureImage( parent )
-      , mImage( image )
-    {
-      setSize( mImage.size() );
-    }
+  return QMap<QString, QString>();
+}
 
-    void paint( QPainter *painter ) override
-    {
-      painter->drawImage( mImage.rect(), mImage, mImage.rect() );
-    }
-
-  private:
-
-    QImage mImage;
-
-};
-///@endcond
 Qt3DRender::QMaterial *QgsUnlitTextureMaterialSettings::toMaterial( QgsMaterialSettingsRenderingTechnique technique, const QgsMaterialContext &context ) const
 {
   switch ( technique )
   {
     case QgsMaterialSettingsRenderingTechnique::Triangles:
+    case QgsMaterialSettingsRenderingTechnique::TrianglesWithFixedTexture:
+    case QgsMaterialSettingsRenderingTechnique::TrianglesFromModel:
+    case QgsMaterialSettingsRenderingTechnique::TrianglesDataDefined:
     {
 
       bool fitsInCache = false;
@@ -115,9 +105,10 @@ Qt3DRender::QMaterial *QgsUnlitTextureMaterialSettings::toMaterial( QgsMaterialS
       {
         Qt3DExtras::QTextureMaterial *material = new Qt3DExtras::QTextureMaterial;
 
-        QgsQImageTextureImage *textureImage = new QgsQImageTextureImage( textureSourceImage );
+        QgsImageTexture *textureImage = new QgsImageTexture( textureSourceImage );
         Qt3DRender::QTexture2D *texture = new Qt3DRender::QTexture2D();
         texture->addTextureImage( textureImage );
+        //texture->setSize( textureSourceImage.width(), textureSourceImage.height() );
 
         texture->wrapMode()->setX( Qt3DRender::QTextureWrapMode::Repeat );
         texture->wrapMode()->setY( Qt3DRender::QTextureWrapMode::Repeat );

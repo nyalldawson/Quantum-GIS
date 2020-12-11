@@ -95,14 +95,14 @@ bool QgsPolygon3DSymbolHandler::prepare( const Qgs3DRenderContext &context, QSet
   const QgsPhongTexturedMaterialSettings *texturedMaterialSettings = dynamic_cast< const QgsPhongTexturedMaterialSettings * >( mSymbol->material() );
 
   outNormal.tessellator.reset( new QgsTessellator( context.map().origin().x(), context.map().origin().y(), true, mSymbol->invertNormals(), mSymbol->addBackFaces(), false,
-                               texturedMaterialSettings && texturedMaterialSettings->requiresTextureCoordinates(),
+                               mSymbol->material() && mSymbol->material()->requiresTextureCoordinates(),
                                mSymbol->renderedFacade(),
-                               texturedMaterialSettings ? texturedMaterialSettings->textureRotation() : 0 ) );
+                               mSymbol->material() ? mSymbol->material()->textureRotation() : 0 ) );
   outSelected.tessellator.reset( new QgsTessellator( context.map().origin().x(), context.map().origin().y(), true, mSymbol->invertNormals(),
                                  mSymbol->addBackFaces(), false,
-                                 texturedMaterialSettings && texturedMaterialSettings->requiresTextureCoordinates(),
+                                 mSymbol->material() && mSymbol->material()->requiresTextureCoordinates(),
                                  mSymbol->renderedFacade(),
-                                 texturedMaterialSettings ? texturedMaterialSettings->textureRotation() : 0 ) );
+                                 mSymbol->material() ? mSymbol->material()->textureRotation() : 0 ) );
 
   QSet<QString> attrs = mSymbol->dataDefinedProperties().referencedFields( context.expressionContext() );
   attributeNames.unite( attrs );
@@ -259,7 +259,7 @@ void QgsPolygon3DSymbolHandler::makeEntity( Qt3DCore::QEntity *parent, const Qgs
   const QgsPhongTexturedMaterialSettings *texturedMaterialSettings = dynamic_cast< const QgsPhongTexturedMaterialSettings * >( mSymbol->material() );
 
   QgsTessellatedPolygonGeometry *geometry = new QgsTessellatedPolygonGeometry( true, mSymbol->invertNormals(), mSymbol->addBackFaces(),
-      texturedMaterialSettings && texturedMaterialSettings->requiresTextureCoordinates() );
+      mSymbol->material() && mSymbol->material()->requiresTextureCoordinates() );
   geometry->setData( data, nVerts, out.triangleIndexFids, out.triangleIndexStartingIndices );
   if ( mSymbol->material()->dataDefinedProperties().hasActiveProperties() )
     mSymbol->material()->applyDataDefinedToGeometry( geometry, nVerts, out.materialDataDefined );
