@@ -83,6 +83,8 @@ class CORE_EXPORT QgsLabelThinningSettings
      * Returns the minimum distance to labels with duplicate text. Units are specified through minimumDistanceToDuplicateUnits().
      * \see setMinimumDistanceToDuplicate()
      * \see minimumDistanceToDuplicateUnits()
+     *
+     * \since QGIS 3.20
      */
     double minimumDistanceToDuplicate() const { return mMinDistanceToDuplicate; }
 
@@ -90,6 +92,8 @@ class CORE_EXPORT QgsLabelThinningSettings
      * Sets the minimum \a distance to labels with duplicate text. Units are specified through setMinimumLengthUnit().
      * \see minimumDistanceToDuplicate()
      * \see setMinimumDistanceToDuplicateUnits()
+     *
+     * \since QGIS 3.20
      */
     void setMinimumDistanceToDuplicate( double length ) { mMinDistanceToDuplicate = length; }
 
@@ -97,6 +101,8 @@ class CORE_EXPORT QgsLabelThinningSettings
      * Sets the \a unit for the minimum distance to labels with duplicate text.
      * \see minimumDistanceToDuplicateUnits()
      * \see setMinimumDistanceToDuplicate()
+     *
+     * \since QGIS 3.20
     */
     void setMinimumDistanceToDuplicateUnits( QgsUnitTypes::RenderUnit unit ) { mMinDistanceToDuplicateUnits = unit; }
 
@@ -104,6 +110,8 @@ class CORE_EXPORT QgsLabelThinningSettings
      * Returns the units for the minimum distance to labels with duplicate text.
      * \see setMinimumDistanceToDuplicateUnits()
      * \see minimumDistanceToDuplicate()
+     *
+     * \since QGIS 3.20
     */
     QgsUnitTypes::RenderUnit minimumDistanceToDuplicateUnits() const { return mMinDistanceToDuplicateUnits; }
 
@@ -112,6 +120,8 @@ class CORE_EXPORT QgsLabelThinningSettings
      * \see minimumDistanceToDuplicateMapUnitScale()
      * \see minimumDistanceToDuplicateUnits()
      * \see setMinimumDistanceToDuplicate()
+     *
+     * \since QGIS 3.20
      */
     void setMinimumDistanceToDuplicateMapUnitScale( const QgsMapUnitScale &scale ) { mMinDistanceToDuplicateScale = scale; }
 
@@ -120,18 +130,24 @@ class CORE_EXPORT QgsLabelThinningSettings
      * \see setMinimumDistanceToDuplicateMapUnitScale()
      * \see minimumDistanceToDuplicateUnits()
      * \see minimumDistanceToDuplicate()
+     *
+     * \since QGIS 3.20
      */
     const QgsMapUnitScale &minimumDistanceToDuplicateMapUnitScale() const { return mMinDistanceToDuplicateScale; }
 
     /**
      * Returns whether duplicate label removal is permitted for this layer.
      * \see setAllowDuplicateRemoval()
+     *
+     * \since QGIS 3.20
      */
     bool allowDuplicateRemoval() const { return mAllowDuplicateRemoval; }
 
     /**
      * Sets whether duplicate label removal is permitted for this layer.
      * \see setAllowDuplicateRemoval()
+     *
+     * \since QGIS 3.20
      */
     void setAllowDuplicateRemoval( bool allow ) { mAllowDuplicateRemoval = allow; }
 
@@ -161,7 +177,7 @@ class CORE_EXPORT QgsLabelThinningSettings
  * Contains settings related to how the label engine removes candidate label positions and reduces the number
  * of displayed labels for one particular label feature.
  *
- * \since QGIS 3.12
+ * \since QGIS 3.20
  */
 class CORE_EXPORT QgsLabelFeatureThinningSettings
 {

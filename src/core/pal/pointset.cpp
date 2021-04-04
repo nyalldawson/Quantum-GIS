@@ -839,7 +839,11 @@ double PointSet::minDistance( const PointSet &other ) const
   try
   {
     double dist;
+#if GEOS_VERSION_MAJOR>3 || GEOS_VERSION_MINOR>=9
+    if ( GEOSPreparedDistance_r( geosctxt, preparedGeom(), otherGeom, &dist ) != 0 )
+#else
     if ( GEOSDistance_r( geosctxt, mGeos, otherGeom, &dist ) != 0 )
+#endif
     {
       return dist;
     }
