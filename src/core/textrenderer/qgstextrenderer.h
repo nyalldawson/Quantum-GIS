@@ -138,6 +138,18 @@ class CORE_EXPORT QgsTextRenderer
                           bool drawAsOutlines = true );
 
     /**
+     * Draws text along a line using the specified settings.
+     * \param line line to render text along
+     * \param offsetAlongLine offset along the line (in painter units) to start text at
+     * \param text text to draw
+     * \param context render context
+     * \param format text format
+     * \since QGIS 3.20
+     */
+    static void drawTextOnLine( const QPolygonF &line, double offsetAlongLine, const QString &text,
+                                QgsRenderContext &context, const QgsTextFormat &format );
+
+    /**
      * Draws a single component of rendered text using the specified settings.
      * \param rect destination rectangle for text
      * \param rotation text rotation

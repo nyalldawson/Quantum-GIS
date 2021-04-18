@@ -23,6 +23,8 @@
 #include "qgspainterswapper.h"
 #include "qgsmarkersymbollayer.h"
 #include "qgssymbollayerutils.h"
+#include "qgstextrendererutils.h"
+#include "qgstextmetrics.h"
 
 #include <QTextBoundaryFinder>
 
@@ -118,6 +120,98 @@ void QgsTextRenderer::drawText( QPointF point, double rotation, QgsTextRenderer:
   }
 
   drawPart( point, rotation, alignment, document, context, tmpFormat, Text );
+}
+
+void QgsTextRenderer::drawTextOnLine( const QPolygonF &line, double offsetAlongLine, const QString &text, QgsRenderContext &context, const QgsTextFormat &format )
+{
+  QgsTextFormat tmpFormat = format;
+  if ( format.dataDefinedProperties().hasActiveProperties() ) // note, we use format instead of tmpFormat here, it's const and potentially avoids a detach
+    tmpFormat.updateDataDefinedProperties( context );
+  tmpFormat = updateShadowPosition( tmpFormat );
+
+  QgsTextDocument document = tmpFormat.allowHtmlFormatting() ? QgsTextDocument::fromHtml( { text } ) : QgsTextDocument::fromPlainText( { text } );
+  document.applyCapitalization( tmpFormat.capitalization() );
+
+  const QFont font = tmpFormat.scaledFont( context );
+  const QFontMetricsF fontMetrics( font );
+  const double characterHeight = fontMetrics.height();
+  QStringList graphemes;
+  QVector< QgsTextCharacterFormat > graphemeFormats;
+
+  for ( const QgsTextBlock &block : std::as_const( document ) )
+  {
+    for ( const QgsTextFragment &fragment : block )
+    {
+      const QStringList fragmentGraphemes = QgsPalLabeling::splitToGraphemes( fragment.text() );
+      for ( const QString &grapheme : fragmentGraphemes )
+      {
+        graphemes.append( grapheme );
+        graphemeFormats.append( fragment.characterFormat() );
+      }
+    }
+  }
+
+  const double wordSpacing = font.wordSpacing();
+  const double letterSpacing = font.letterSpacing();
+
+  QVector< double > characterWidths( graphemes.count() );
+  for ( int i = 0; i < graphemes.count(); i++ )
+  {
+    // reconstruct how Qt creates word spacing, then adjust per individual stored character
+    // this will allow PAL to create each candidate width = character width + correct spacing
+
+    qreal wordSpaceFix = qreal( 0.0 );
+    if ( graphemes[i] == QLatin1String( " " ) )
+    {
+      // word spacing only gets added once at end of consecutive run of spaces, see QTextEngine::shapeText()
+      int nxt = i + 1;
+      wordSpaceFix = ( nxt < graphemes.count() && graphemes[nxt] != QLatin1String( " " ) ) ? wordSpacing : qreal( 0.0 );
+    }
+    // this workaround only works for clusters with a single character. Not sure how it should be handled
+    // with multi-character clusters.
+    if ( graphemes[i].length() == 1 &&
+         !qgsDoubleNear( fontMetrics.horizontalAdvance( QString( graphemes[i].at( 0 ) ) ), fontMetrics.horizontalAdvance( graphemes[i].at( 0 ) ) + letterSpacing ) )
+    {
+      // word spacing applied when it shouldn't be
+      wordSpaceFix -= wordSpacing;
+    }
+
+    characterWidths[i] = fontMetrics.horizontalAdvance( QString( graphemes[i] ) ) + wordSpaceFix;
+  }
+
+  QgsPrecalculatedTextMetrics metrics( graphemes, characterHeight, std::move( characterWidths ) );
+  metrics.setGraphemeFormats( graphemeFormats );
+
+  std::unique_ptr< QgsTextRendererUtils::CurvePlacementProperties > placement = QgsTextRendererUtils::generateCurvedTextPlacement( metrics, line, offsetAlongLine );
+  if ( placement->graphemePlacement.empty() )
+    return;
+
+  if ( tmpFormat.background().enabled() )
+  {
+    for ( const QgsTextRendererUtils::CurvedGraphemePlacement &grapheme : std::as_const( placement->graphemePlacement ) )
+    {
+      const QString text = graphemes.at( grapheme.graphemeIndex );
+      const QgsTextCharacterFormat &textFormat = graphemeFormats[ grapheme.graphemeIndex ];
+      drawPart( QPointF( grapheme.x, grapheme.y ), -grapheme.angle, AlignLeft, QgsTextDocument( QgsTextFragment( text, textFormat ) ), context, tmpFormat, Background );
+    }
+  }
+
+  if ( tmpFormat.buffer().enabled() )
+  {
+    for ( const QgsTextRendererUtils::CurvedGraphemePlacement &grapheme : std::as_const( placement->graphemePlacement ) )
+    {
+      const QString text = graphemes.at( grapheme.graphemeIndex );
+      const QgsTextCharacterFormat &textFormat = graphemeFormats[ grapheme.graphemeIndex ];
+      drawPart( QPointF( grapheme.x, grapheme.y ), -grapheme.angle, AlignLeft, QgsTextDocument( QgsTextFragment( text, textFormat ) ), context, tmpFormat, Buffer );
+    }
+  }
+
+  for ( const QgsTextRendererUtils::CurvedGraphemePlacement &grapheme : std::as_const( placement->graphemePlacement ) )
+  {
+    const QString text = graphemes.at( grapheme.graphemeIndex );
+    const QgsTextCharacterFormat &textFormat = graphemeFormats[ grapheme.graphemeIndex ];
+    drawPart( QPointF( grapheme.x, grapheme.y ), -grapheme.angle, AlignLeft, QgsTextDocument( QgsTextFragment( text, textFormat ) ), context, tmpFormat, Text );
+  }
 }
 
 QgsTextFormat QgsTextRenderer::updateShadowPosition( const QgsTextFormat &format )
