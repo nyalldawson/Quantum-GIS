@@ -204,6 +204,18 @@ class CORE_EXPORT Qgis
     Q_DECLARE_FLAGS( SymbolPreviewFlags, SymbolPreviewFlag )
 
     /**
+     * Flags which control how data providers will scan for sublayers in a dataset.
+     *
+     * \since QGIS 3.20.0
+     */
+    enum class SublayerQueryFlag : int
+    {
+      ResolveGeometryType = 1 << 0, //!< Attempt to resolve the geometry type for vector sublayers
+      CountFeatures = 1 << 1, //!< Count features in vector sublayers
+    };
+    Q_DECLARE_FLAGS( SublayerQueryFlags, SublayerQueryFlag )
+
+    /**
      * Identify search radius in mm
      * \since QGIS 2.3
      */
@@ -318,6 +330,7 @@ class CORE_EXPORT Qgis
 
 Q_DECLARE_OPERATORS_FOR_FLAGS( Qgis::SymbolRenderHints )
 Q_DECLARE_OPERATORS_FOR_FLAGS( Qgis::SymbolPreviewFlags )
+Q_DECLARE_OPERATORS_FOR_FLAGS( Qgis::SublayerQueryFlags )
 
 
 // hack to workaround warnings when casting void pointers

@@ -267,6 +267,15 @@ The default method returns ``False`` for all URIs.
 .. versionadded:: 3.18
 %End
 
+    virtual QList< QgsProviderSublayerDetails > querySublayers( const QString &uri, Qgis::SublayerQueryFlags flags = Qgis::SublayerQueryFlags() ) const;
+%Docstring
+Queries the specified ``uri`` and returns a list of any valid sublayers found in the dataset which can be handled by this provider.
+
+The optional ``flags`` argument can be used to control the behavior of the query.
+
+.. versionadded:: 3.20
+%End
+
     virtual QgsDataProvider *createProvider( const QString &uri,
         const QgsDataProvider::ProviderOptions &options,
         QgsDataProvider::ReadFlags flags = QgsDataProvider::ReadFlags() ) /Factory/;

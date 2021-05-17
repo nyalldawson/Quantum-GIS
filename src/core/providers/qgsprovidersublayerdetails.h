@@ -17,13 +17,13 @@
 #define QGSPROVIDERSUBLAYERDETAILS_H
 
 #include "qgis_core.h"
-#include "qgscoreenums.h"
+#include "qgis.h"
 
 #include <QString>
 #include <QStringList>
 
 /**
- * \class QgsProviderSubLayerDetails
+ * \class QgsProviderSublayerDetails
  * \ingroup core
  *
  * \brief Contains details about a sub layer available from a dataset.
@@ -39,7 +39,7 @@
  *
  * \since QGIS 3.20
  */
-class CORE_EXPORT QgsProviderSubLayerDetails
+class CORE_EXPORT QgsProviderSublayerDetails
 {
   public:
 
@@ -154,7 +154,7 @@ class CORE_EXPORT QgsProviderSubLayerDetails
 #ifdef SIP_RUN
     SIP_PYOBJECT __repr__();
     % MethodCode
-    QString str = QStringLiteral( "<QgsProviderSubLayerDetails: %1 - %2>" ).arg( sipCpp->providerKey(), sipCpp->name() );
+    QString str = QStringLiteral( "<QgsProviderSublayerDetails: %1 - %2>" ).arg( sipCpp->providerKey(), sipCpp->name() );
     sipRes = PyUnicode_FromString( str.toUtf8().constData() );
     % End
 #endif
@@ -165,7 +165,7 @@ class CORE_EXPORT QgsProviderSubLayerDetails
     QgsMapLayerType mType = QgsMapLayerType::VectorLayer;
     QString mName;
     QString mDescription;
-    long mFeatureCount = static_cast< long >( FeatureCountState::UnknownCount );
+    long mFeatureCount = static_cast< long >( Qgis::FeatureCountState::UnknownCount );
     QString mGeometryColumnName;
     QStringList mPath;
 

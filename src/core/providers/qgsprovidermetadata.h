@@ -44,6 +44,7 @@ class QgsRasterDataProvider;
 class QgsMeshDataProvider;
 class QgsAbstractDatabaseProviderConnection;
 class QgsLayerMetadata;
+class QgsProviderSublayerDetails;
 
 struct QgsMesh;
 
@@ -324,6 +325,15 @@ class CORE_EXPORT QgsProviderMetadata : public QObject
      * \since QGIS 3.18
      */
     virtual bool uriIsBlocklisted( const QString &uri ) const;
+
+    /**
+     * Queries the specified \a uri and returns a list of any valid sublayers found in the dataset which can be handled by this provider.
+     *
+     * The optional \a flags argument can be used to control the behavior of the query.
+     *
+     * \since QGIS 3.20
+    */
+    virtual QList< QgsProviderSublayerDetails > querySublayers( const QString &uri, Qgis::SublayerQueryFlags flags = Qgis::SublayerQueryFlags() ) const;
 
     /**
      * Class factory to return a pointer to a newly created QgsDataProvider object

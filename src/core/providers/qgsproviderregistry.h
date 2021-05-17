@@ -39,6 +39,7 @@ class QgsCoordinateReferenceSystem;
 class QgsDataItemProvider;
 class QgsDataItem;
 class QgsRasterDataProvider;
+class QgsProviderSublayerDetails;
 
 /**
  * \ingroup core
@@ -541,6 +542,17 @@ class CORE_EXPORT QgsProviderRegistry
      * \since QGIS 3.18
      */
     bool uriIsBlocklisted( const QString &uri ) const;
+
+    /**
+     * Queries the specified \a uri and returns a list of any valid sublayers found in the dataset which can be handled by any registered data provider.
+     *
+     * This method iteratively queries each registered data provider and returns the complete collated list of all valid sublayers found in the dataset which can be opened by the data providers.
+     *
+     * The optional \a flags argument can be used to control the behavior of the query.
+     *
+     * \since QGIS 3.20
+    */
+    QList< QgsProviderSublayerDetails > querySublayers( const QString &uri, Qgis::SublayerQueryFlags flags = Qgis::SublayerQueryFlags() ) const;
 
     /**
      * Returns a file filter string for supported vector files.

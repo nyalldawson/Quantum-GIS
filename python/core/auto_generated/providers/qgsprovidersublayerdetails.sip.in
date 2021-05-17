@@ -8,7 +8,7 @@
 
 
 
-class QgsProviderSubLayerDetails
+class QgsProviderSublayerDetails
 {
 %Docstring(signature="appended")
 
@@ -143,7 +143,7 @@ Set to an empty string if not applicable.
 
     SIP_PYOBJECT __repr__();
 %MethodCode
-    QString str = QStringLiteral( "<QgsProviderSubLayerDetails: %1 - %2>" ).arg( sipCpp->providerKey(), sipCpp->name() );
+    QString str = QStringLiteral( "<QgsProviderSublayerDetails: %1 - %2>" ).arg( sipCpp->providerKey(), sipCpp->name() );
     sipRes = PyUnicode_FromString( str.toUtf8().constData() );
 %End
 
