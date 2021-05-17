@@ -33,7 +33,8 @@ class QgsSublayersDialog : QDialog
       Ogr,
       Gdal,
       Vsifile,
-      Mdal
+      Mdal,
+      Unified,
     };
 
     struct LayerDefinition
@@ -71,6 +72,8 @@ Populate the table with layers
 
 .. versionadded:: 2.16
 %End
+
+    void populateLayerTable( const QList< QgsProviderSublayerDetails> &layers );
 
     LayerDefinitionList selection();
 %Docstring

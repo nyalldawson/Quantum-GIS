@@ -7593,6 +7593,34 @@ bool QgisApp::openLayer( const QString &fileName, bool allowInteractive )
     }
   }
 
+
+  CPLPopErrorHandler();
+
+  const QList< QgsProviderSublayerDetails > sublayers = QgsProviderRegistry::instance()->querySublayers( fileName, SublayerQueryFlag::ResolveGeometryType | SublayerQueryFlag::CountFeatures );
+  if ( !sublayers.empty() )
+  {
+    if ( sublayers.size() == 1 )
+    {
+      // only one candidate, load straight away
+
+      return true;
+    }
+    else
+    {
+      QgsSublayersDialog chooseSublayersDialog( QgsSublayersDialog::Unified, QStringLiteral( "ogr" ), this, Qt::WindowFlags(), fileName );
+      chooseSublayersDialog.setShowAddToGroupCheckbox( true );
+      chooseSublayersDialog.populateLayerTable( sublayers );
+
+      if ( !chooseSublayersDialog.exec() )
+      {
+        return true;
+      }
+
+      return true;
+    }
+  }
+
+  CPLPushErrorHandler( CPLQuietErrorHandler );
   // try to load it as raster
   if ( QgsRasterLayer::isValidRasterFileName( fileName ) )
   {
