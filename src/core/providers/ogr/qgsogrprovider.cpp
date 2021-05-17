@@ -51,6 +51,7 @@ email                : sherman at mrcc.com
 #include "qgsembeddedsymbolrenderer.h"
 #include "qgsmetadatautils.h"
 #include "qgssymbol.h"
+#include "qgsprovidersublayerdetails.h"
 
 #define CPL_SUPRESS_CPLUSPLUS  //#spellok
 #include <gdal.h>         // to collect version information
@@ -690,7 +691,7 @@ QString QgsOgrProvider::subsetString() const
   return mSubsetString;
 }
 
-QString QgsOgrProvider::ogrWkbGeometryTypeName( OGRwkbGeometryType type ) const
+QString QgsOgrProviderUtils::ogrWkbGeometryTypeName( OGRwkbGeometryType type )
 {
   QString geom;
 
@@ -816,23 +817,24 @@ static OGRwkbGeometryType ogrWkbGeometryTypeFromName( const QString &typeName )
   return wkbUnknown;
 }
 
-void QgsOgrProvider::addSubLayerDetailsToSubLayerList( int i, QgsOgrLayer *layer, bool withFeatureCount ) const
+QList< QgsProviderSublayerDetails > QgsOgrProviderUtils::querySubLayerList( int i, QgsOgrLayer *layer, const QString &driverName, SublayerQueryFlags flags, bool isSubLayer )
 {
   QString layerName = QString::fromUtf8( layer->name() );
 
-  if ( !mIsSubLayer && ( layerName == QLatin1String( "layer_styles" ) ||
-                         layerName == QLatin1String( "qgis_projects" ) ) )
+  if ( !isSubLayer && ( layerName == QLatin1String( "layer_styles" ) ||
+                        layerName == QLatin1String( "qgis_projects" ) ) )
   {
     // Ignore layer_styles (coming from QGIS styling support) and
     // qgis_projects (coming from http://plugins.qgis.org/plugins/QgisGeopackage/)
-    return;
+    return {};
   }
+
   // Get first column name,
   // TODO: add support for multiple
   QString geometryColumnName;
   OGRwkbGeometryType layerGeomType = wkbUnknown;
-  const bool slowGeomTypeRetrieval =
-    mGDALDriverName == QLatin1String( "OAPIF" ) || mGDALDriverName == QLatin1String( "WFS3" ) || mGDALDriverName == QLatin1String( "PGeo" );
+
+  const bool slowGeomTypeRetrieval = driverName == QLatin1String( "OAPIF" ) || driverName == QLatin1String( "WFS3" ) || driverName == QLatin1String( "PGeo" );
   if ( !slowGeomTypeRetrieval )
   {
     QgsOgrFeatureDefn &fdef = layer->GetLayerDefn();
@@ -845,7 +847,7 @@ void QgsOgrProvider::addSubLayerDetailsToSubLayerList( int i, QgsOgrLayer *layer
   }
 
   QString longDescription;
-  if ( mGDALDriverName == QLatin1String( "OAPIF" ) || mGDALDriverName == QLatin1String( "WFS3" ) )
+  if ( driverName == QLatin1String( "OAPIF" ) || driverName == QLatin1String( "WFS3" ) )
   {
     longDescription = layer->GetMetadataItem( "TITLE" );
   }
@@ -854,20 +856,18 @@ void QgsOgrProvider::addSubLayerDetailsToSubLayerList( int i, QgsOgrLayer *layer
 
   if ( slowGeomTypeRetrieval || wkbFlatten( layerGeomType ) != wkbUnknown )
   {
-    int layerFeatureCount = withFeatureCount ? layer->GetApproxFeatureCount() : -1;
+    const long layerFeatureCount = flags & Qgis::SublayerQueryFlag::CountFeatures ? layer->GetApproxFeatureCount() : static_cast< long >( FeatureCountState::Uncounted );
 
-    QString geom = ogrWkbGeometryTypeName( layerGeomType );
+    QgsProviderSublayerDetails details;
+    details.setLayerNumber( i );
+    details.setName( layerName );
+    details.setFeatureCount( layerFeatureCount );
+    details.setWkbType( QgsOgrUtils::ogrGeometryTypeToQgsWkbType( layerGeomType ) );
+    details.setGeometryColumnName( geometryColumnName );
+    details.setDescription( longDescription );
+    details.setProviderKey( TEXT_PROVIDER_KEY );
 
-    // For feature count, -1 indicates an unknown count state
-    QStringList parts = QStringList()
-                        << QString::number( i )
-                        << layerName
-                        << QString::number( layerFeatureCount )
-                        << geom
-                        << geometryColumnName
-                        << longDescription;
-
-    mSubLayerList << parts.join( sublayerSeparator() );
+    return { details };
   }
   else
   {
@@ -925,24 +925,25 @@ void QgsOgrProvider::addSubLayerDetailsToSubLayerList( int i, QgsOgrLayer *layer
       fCount.remove( wkbCircularString );
     }
 
+    QList< QgsProviderSublayerDetails > res;
+    res.reserve( fCount.size() );
+
     bool bIs25D = wkbHasZ( layerGeomType );
     QMap<OGRwkbGeometryType, int>::const_iterator countIt = fCount.constBegin();
     for ( ; countIt != fCount.constEnd(); ++countIt )
     {
-      QString geom = ogrWkbGeometryTypeName( ( bIs25D ) ? wkbSetZ( countIt.key() ) : countIt.key() );
+      QgsProviderSublayerDetails details;
+      details.setLayerNumber( i );
+      details.setName( layerName );
+      details.setFeatureCount( fCount.value( countIt.key() ) );
+      details.setWkbType( QgsOgrUtils::ogrGeometryTypeToQgsWkbType( ( bIs25D ) ? wkbSetZ( countIt.key() ) : countIt.key() ) );
+      details.setGeometryColumnName( geometryColumnName );
+      details.setDescription( longDescription );
+      details.setProviderKey( TEXT_PROVIDER_KEY );
 
-      QStringList parts = QStringList()
-                          << QString::number( i )
-                          << layerName
-                          << QString::number( fCount.value( countIt.key() ) )
-                          << geom
-                          << geometryColumnName
-                          << longDescription;
-
-      QString sl = parts.join( sublayerSeparator() );
-      QgsDebugMsgLevel( "sub layer: " + sl, 2 );
-      mSubLayerList << sl;
+      res << details;
     }
+    return res;
   }
 }
 
@@ -959,10 +960,32 @@ uint QgsOgrProvider::subLayerCount() const
   return count;
 }
 
+QStringList subLayerDetailsToStringList( const QList< QgsProviderSublayerDetails > &layers )
+{
+  QStringList res;
+  res.reserve( layers.size() );
+
+  for ( const QgsProviderSublayerDetails &layer : layers )
+  {
+    const OGRwkbGeometryType ogrGeomType = QgsOgrProviderUtils::ogrTypeFromQgisType( layer.wkbType() );
+
+    const QStringList parts { QString::number( layer.layerNumber() ),
+                              layer.name(),
+                              QString::number( layer.featureCount() ),
+                              QgsOgrProviderUtils::ogrWkbGeometryTypeName( ogrGeomType ),
+                              layer.geometryColumnName(),
+                              layer.description() };
+    res << parts.join( QgsDataProvider::sublayerSeparator() );
+  }
+  return res;
+}
+
 QStringList QgsOgrProvider::subLayers() const
 {
   const bool withFeatureCount = ( mReadFlags & QgsDataProvider::SkipFeatureCount ) == 0;
-  return _subLayers( withFeatureCount );
+  return subLayerDetailsToStringList( _subLayers( withFeatureCount
+                                      ? ( Qgis::SublayerQueryFlag::CountFeatures | Qgis::SublayerQueryFlag::ResolveGeometryType )
+                                      : Qgis::SublayerQueryFlag::ResolveGeometryType ) );
 }
 
 QgsLayerMetadata QgsOgrProvider::layerMetadata() const
@@ -972,17 +995,17 @@ QgsLayerMetadata QgsOgrProvider::layerMetadata() const
 
 QStringList QgsOgrProvider::subLayersWithoutFeatureCount() const
 {
-  return _subLayers( false );
+  return subLayerDetailsToStringList( _subLayers( Qgis::SublayerQueryFlag::ResolveGeometryType ) );
 }
 
-QStringList QgsOgrProvider::_subLayers( bool withFeatureCount )  const
+QList<QgsProviderSublayerDetails> QgsOgrProvider::_subLayers( Qgis::SublayerQueryFlags flags )  const
 {
   QgsCPLHTTPFetchOverrider oCPLHTTPFetcher( mAuthCfg );
   QgsSetCPLHTTPFetchOverriderInitiatorClass( oCPLHTTPFetcher, QStringLiteral( "QgsOgrProvider" ) );
 
   if ( !mValid )
   {
-    return QStringList();
+    return {};
   }
 
   if ( !mSubLayerList.isEmpty() )
@@ -990,7 +1013,7 @@ QStringList QgsOgrProvider::_subLayers( bool withFeatureCount )  const
 
   if ( mOgrLayer && ( mIsSubLayer || layerCount() == 1 ) )
   {
-    addSubLayerDetailsToSubLayerList( mLayerIndex, mOgrLayer, withFeatureCount );
+    mSubLayerList << QgsOgrProviderUtils::querySubLayerList( mLayerIndex, mOgrLayer, mGDALDriverName, flags, mIsSubLayer );
   }
   else
   {
@@ -1013,7 +1036,7 @@ QStringList QgsOgrProvider::_subLayers( bool withFeatureCount )  const
       if ( !layer )
         continue;
 
-      addSubLayerDetailsToSubLayerList( i, layer.get(), withFeatureCount );
+      mSubLayerList << QgsOgrProviderUtils::querySubLayerList( i, layer.get(), mGDALDriverName, flags, mIsSubLayer );
       if ( firstLayer == nullptr )
       {
         firstLayer = std::move( layer );
@@ -2657,7 +2680,7 @@ bool QgsOgrProvider::_setSubsetString( const QString &theSQL, bool updateFeature
 
   if ( mOgrGeometryTypeFilter != wkbUnknown )
   {
-    parts.insert( QStringLiteral( "geometryType" ), ogrWkbGeometryTypeName( mOgrGeometryTypeFilter ) );
+    parts.insert( QStringLiteral( "geometryType" ), QgsOgrProviderUtils::ogrWkbGeometryTypeName( mOgrGeometryTypeFilter ) );
   }
 
   if ( !mOpenOptions.isEmpty() )
@@ -5031,14 +5054,14 @@ void QgsOgrProvider::recalculateFeatureCount() const
     mOgrLayer->ResetReading();
     gdal::ogr_feature_unique_ptr fet;
     const OGRwkbGeometryType flattenGeomTypeFilter =
-      QgsOgrProvider::ogrWkbSingleFlatten( mOgrGeometryTypeFilter );
+      QgsOgrProviderUtils::ogrWkbSingleFlatten( mOgrGeometryTypeFilter );
     while ( fet.reset( mOgrLayer->GetNextFeature() ), fet )
     {
       OGRGeometryH geom = OGR_F_GetGeometryRef( fet.get() );
       if ( geom )
       {
         OGRwkbGeometryType gType = OGR_G_GetGeometryType( geom );
-        gType = QgsOgrProvider::ogrWkbSingleFlatten( gType );
+        gType = QgsOgrProviderUtils::ogrWkbSingleFlatten( gType );
         if ( gType == flattenGeomTypeFilter ) mFeaturesCounted++;
       }
     }
@@ -5069,7 +5092,7 @@ QgsFeatureRenderer *QgsOgrProvider::createRenderer( const QVariantMap & ) const
   return new QgsEmbeddedSymbolRenderer( defaultSymbol.release() );
 }
 
-OGRwkbGeometryType QgsOgrProvider::ogrWkbSingleFlatten( OGRwkbGeometryType type )
+OGRwkbGeometryType QgsOgrProviderUtils::ogrWkbSingleFlatten( OGRwkbGeometryType type )
 {
   type = wkbFlatten( type );
   switch ( type )
@@ -7671,6 +7694,63 @@ bool QgsOgrProviderMetadata::uriIsBlocklisted( const QString &uri ) const
     return true;
 
   return false;
+}
+
+QList<QgsProviderSublayerDetails> QgsOgrProviderMetadata::querySublayers( const QString &uri, SublayerQueryFlags flags ) const
+{
+  QStringList skippedLayerNames;
+
+  // TODO FIX URI
+
+  QStringList options { QStringLiteral( "@LIST_ALL_TABLES=YES" ) };
+
+  QString errCause;
+  QgsOgrLayerUniquePtr firstLayer = QgsOgrProviderUtils::getLayer( uri, false, options, 0, errCause, true );
+  if ( !firstLayer )
+    return {};
+
+  const QString driverName = firstLayer->driverName();
+  if ( driverName == QLatin1String( "SQLite" ) )
+  {
+    skippedLayerNames = QgsSqliteUtils::systemTables();
+  }
+
+  const unsigned int layerCount = firstLayer->GetLayerCount();
+
+  if ( layerCount == 1 )
+  {
+    return QgsOgrProviderUtils::querySubLayerList( 0, firstLayer.get(), driverName, flags, false );
+  }
+  else
+  {
+    QList<QgsProviderSublayerDetails> res;
+    // In case there is no free opened dataset in the cache, keep the first
+    // layer alive while we iterate over the other layers, so that we can
+    // reuse the same dataset. Can help in a particular with a FileGDB with
+    // the FileGDB driver
+    for ( unsigned int i = 0; i < layerCount; i++ )
+    {
+      QString errCause;
+      QgsOgrLayerUniquePtr layer;
+
+      if ( i != 0 )
+      {
+        layer = QgsOgrProviderUtils::getLayer( firstLayer->datasetName(),
+                                               false,
+                                               firstLayer->options(),
+                                               i,
+                                               errCause,
+                                               // do not check timestamp beyond the first
+                                               // layer
+                                               firstLayer == nullptr );
+        if ( !layer )
+          continue;
+      }
+
+      res << QgsOgrProviderUtils::querySubLayerList( i, i == 0 ? firstLayer.get() : layer.get(), driverName, flags, false );
+    }
+    return res;
+  }
 }
 
 QMap<QString, QgsAbstractProviderConnection *> QgsOgrProviderMetadata::connections( bool cached )

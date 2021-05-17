@@ -27,6 +27,7 @@
 #include "qgscolorrampshader.h"
 #include "qgsrasterbandstats.h"
 #include "qgsprovidermetadata.h"
+#include "qgsprovidersublayerdetails.h"
 
 #include <QString>
 #include <QStringList>
@@ -157,6 +158,8 @@ class QgsGdalProvider final: public QgsRasterDataProvider, QgsGdalProviderBase
     QString htmlMetadata() override;
     QStringList subLayers() const override;
     static QStringList subLayers( GDALDatasetH dataset );
+
+    static QList< QgsProviderSublayerDetails > sublayerDetails( GDALDatasetH dataset );
 
     bool hasStatistics( int bandNo,
                         int stats = QgsRasterBandStats::All,
@@ -298,7 +301,7 @@ class QgsGdalProvider final: public QgsRasterDataProvider, QgsGdalProviderBase
     QList<QgsRasterPyramid> mPyramidList;
 
     //! \brief sublayers list saved for subsequent access
-    QStringList mSubLayers;
+    QList< QgsProviderSublayerDetails > mSubLayers;
 
     //! Whether a per-dataset mask band is exposed as an alpha band for the point of view of the rest of the application.
     bool mMaskBandExposedAsAlpha = false;
@@ -383,6 +386,7 @@ class QgsGdalProviderMetadata final: public QgsProviderMetadata
     QList< QgsDataItemProvider * > dataItemProviders() const override;
     QList<QPair<QString, QString> > pyramidResamplingMethods() override;
     ProviderCapabilities providerCapabilities() const override;
+    QList< QgsProviderSublayerDetails > querySublayers( const QString &uri, SublayerQueryFlags flags = SublayerQueryFlags() ) const override;
 };
 
 ///@endcond

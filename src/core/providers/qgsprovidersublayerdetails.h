@@ -18,6 +18,7 @@
 
 #include "qgis_core.h"
 #include "qgis.h"
+#include "qgswkbtypes.h"
 
 #include <QString>
 #include <QStringList>
@@ -136,6 +137,22 @@ class CORE_EXPORT QgsProviderSublayerDetails
     void setFeatureCount( long count ) { mFeatureCount = count; }
 
     /**
+     * Returns the layer's WKB type, or QgsWkbTypes::Unknown if the WKB type is not application or unknown.
+     *
+     * \see setWkbType()
+     */
+    QgsWkbTypes::Type wkbType() const { return mWkbType; }
+
+    /**
+     * Set the layer's WKB \a type.
+     *
+     * Set to QgsWkbTypes::Unknown if the WKB type is not application or unknown.
+     *
+     * \see wkbType()
+     */
+    void setWkbType( QgsWkbTypes::Type type ) { mWkbType = type; }
+
+    /**
      * Returns the layer's geometry column name, or an empty string if not applicable.
      *
      * \see setGeometryColumnName()
@@ -159,15 +176,31 @@ class CORE_EXPORT QgsProviderSublayerDetails
     % End
 #endif
 
+    /**
+     * Returns the associated layer number, for providers which order sublayers.
+     *
+     * \see setLayerNumber()
+     */
+    int layerNumber() const { return mLayerNumber; }
+
+    /**
+     * Sets the associated layer \a number, for providers which order sublayers.
+     *
+     * \see layerNumber()
+     */
+    void setLayerNumber( int number ) { mLayerNumber = number; }
+
   private:
 
     QString mProviderKey;
     QgsMapLayerType mType = QgsMapLayerType::VectorLayer;
+    int mLayerNumber = 0;
     QString mName;
     QString mDescription;
     long mFeatureCount = static_cast< long >( Qgis::FeatureCountState::UnknownCount );
     QString mGeometryColumnName;
     QStringList mPath;
+    QgsWkbTypes::Type mWkbType = QgsWkbTypes::Unknown;
 
 };
 

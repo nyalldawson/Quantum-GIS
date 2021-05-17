@@ -165,9 +165,6 @@ class QgsOgrProvider final: public QgsVectorDataProvider
     //! Returns OGR geometry type
     static OGRwkbGeometryType getOgrGeomType( const QString &driverName, OGRLayerH ogrLayer );
 
-    //! Gets single flatten geometry type
-    static OGRwkbGeometryType ogrWkbSingleFlatten( OGRwkbGeometryType type );
-
     QString layerName() const { return mLayerName; }
 
     QString filePath() const { return mFilePath; }
@@ -216,7 +213,6 @@ class QgsOgrProvider final: public QgsVectorDataProvider
 
   private:
     unsigned char *getGeometryPointer( OGRFeatureH fet );
-    QString ogrWkbGeometryTypeName( OGRwkbGeometryType type ) const;
     static QString createIndexName( QString tableName, QString field );
 
     //! Starts a transaction if possible and return true in that case
@@ -231,9 +227,7 @@ class QgsOgrProvider final: public QgsVectorDataProvider
     //! Does the real job of settings the subset string and adds an argument to disable update capabilities
     bool _setSubsetString( const QString &theSQL, bool updateFeatureCount = true, bool updateCapabilities = true, bool hasExistingRef = true );
 
-    void addSubLayerDetailsToSubLayerList( int i, QgsOgrLayer *layer, bool withFeatureCount ) const;
-
-    QStringList _subLayers( bool withFeatureCount ) const;
+    QList< QgsProviderSublayerDetails > _subLayers( SublayerQueryFlags flags ) const;
 
     QgsFields mAttributeFields;
 
@@ -312,7 +306,7 @@ class QgsOgrProvider final: public QgsVectorDataProvider
 
     mutable long mFeaturesCounted = static_cast< long >( Qgis::FeatureCountState::Uncounted );
 
-    mutable QStringList mSubLayerList;
+    mutable QList<QgsProviderSublayerDetails> mSubLayerList;
 
     //! Converts \a value from json QVariant to QString
     QString jsonStringValue( const QVariant &value ) const;
@@ -544,6 +538,11 @@ class CORE_EXPORT QgsOgrProviderUtils
     //! Converts a OGR WKB type to the corresponding QGIS wkb type
     static QgsWkbTypes::Type qgisTypeFromOgrType( OGRwkbGeometryType type );
 
+    //! Gets single flatten geometry type
+    static OGRwkbGeometryType ogrWkbSingleFlatten( OGRwkbGeometryType type );
+
+    static QString ogrWkbGeometryTypeName( OGRwkbGeometryType type );
+
     //! Whether a driver can share the same dataset handle among different layers
     static bool canDriverShareSameDatasetAmongLayers( const QString &driverName );
 
@@ -551,6 +550,9 @@ class CORE_EXPORT QgsOgrProviderUtils
     static bool canDriverShareSameDatasetAmongLayers( const QString &driverName,
         bool updateMode,
         const QString &dsName );
+
+    static QList<QgsProviderSublayerDetails> querySubLayerList( int i, QgsOgrLayer *layer, const QString &driverName, SublayerQueryFlags flags, bool isSubLayer );
+
 };
 
 
@@ -802,6 +804,7 @@ class QgsOgrProviderMetadata final: public QgsProviderMetadata
     QString filters( FilterType type ) override;
     ProviderCapabilities providerCapabilities() const override;
     bool uriIsBlocklisted( const QString &uri ) const override;
+    QList< QgsProviderSublayerDetails > querySublayers( const QString &uri, SublayerQueryFlags flags = SublayerQueryFlags() ) const override;
     QgsVectorLayerExporter::ExportError createEmptyLayer(
       const QString &uri,
       const QgsFields &fields,

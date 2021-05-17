@@ -285,6 +285,7 @@ QList<QgsOgrDbLayerInfo *> QgsOgrLayerItem::subLayers( const QString &path, cons
   return children;
 }
 
+
 QString QgsOgrLayerItem::layerName() const
 {
   QFileInfo info( name() );

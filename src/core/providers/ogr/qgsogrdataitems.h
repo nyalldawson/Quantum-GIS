@@ -91,6 +91,7 @@ class CORE_EXPORT QgsOgrLayerItem final: public QgsLayerItem
      * If the layer is not valid, throw a std::exception
      */
     static QList<QgsOgrDbLayerInfo *> subLayers( const QString &path, const QString &driver );
+
     //! Returns a LayerType from a geometry type string
     static QgsLayerItem::LayerType layerTypeFromDb( const QString &geometryType );
     bool isSubLayer() const;

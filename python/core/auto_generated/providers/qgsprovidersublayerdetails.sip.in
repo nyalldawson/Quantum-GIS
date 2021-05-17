@@ -125,6 +125,22 @@ Set to -1 if no feature count is applicable or available.
 .. seealso:: :py:func:`featureCount`
 %End
 
+    QgsWkbTypes::Type wkbType() const;
+%Docstring
+Returns the layer's WKB type, or :py:class:`QgsWkbTypes`.Unknown if the WKB type is not application or unknown.
+
+.. seealso:: :py:func:`setWkbType`
+%End
+
+    void setWkbType( QgsWkbTypes::Type type );
+%Docstring
+Set the layer's WKB ``type``.
+
+Set to :py:class:`QgsWkbTypes`.Unknown if the WKB type is not application or unknown.
+
+.. seealso:: :py:func:`wkbType`
+%End
+
     QString geometryColumnName() const;
 %Docstring
 Returns the layer's geometry column name, or an empty string if not applicable.
@@ -145,6 +161,20 @@ Set to an empty string if not applicable.
 %MethodCode
     QString str = QStringLiteral( "<QgsProviderSublayerDetails: %1 - %2>" ).arg( sipCpp->providerKey(), sipCpp->name() );
     sipRes = PyUnicode_FromString( str.toUtf8().constData() );
+%End
+
+    int layerNumber() const;
+%Docstring
+Returns the associated layer number, for providers which order sublayers.
+
+.. seealso:: :py:func:`setLayerNumber`
+%End
+
+    void setLayerNumber( int number );
+%Docstring
+Sets the associated layer ``number``, for providers which order sublayers.
+
+.. seealso:: :py:func:`layerNumber`
 %End
 
 };

@@ -44,6 +44,7 @@
 #include "qgssettings.h"
 #include "qgsogrutils.h"
 #include "qgsruntimeprofiler.h"
+#include "qgsprovidersublayerdetails.h"
 
 #include <QImage>
 #include <QColor>
@@ -1640,15 +1641,14 @@ QgsRasterDataProvider::ProviderCapabilities QgsGdalProvider::providerCapabilitie
          ProviderCapability::ReloadData;
 }
 
-// This is used also by global isValidRasterFileName
-QStringList QgsGdalProvider::subLayers( GDALDatasetH dataset )
+QList<QgsProviderSublayerDetails> QgsGdalProvider::sublayerDetails( GDALDatasetH dataset )
 {
-  QStringList subLayers;
+  QList<QgsProviderSublayerDetails> res;
 
   if ( !dataset )
   {
     QgsDebugMsg( QStringLiteral( "dataset is nullptr" ) );
-    return subLayers;
+    return res;
   }
 
   char **metadata = GDALGetMetadata( dataset, "SUBDATASETS" );
@@ -1669,17 +1669,18 @@ QStringList QgsGdalProvider::subLayers( GDALDatasetH dataset )
         {
           desc = sepPtr + 3;
         }
-        subLayers << QString::fromUtf8( name ) + QgsDataProvider::sublayerSeparator() + QString::fromUtf8( desc );
+
+        QgsProviderSublayerDetails details;
+        details.setProviderKey( PROVIDER_KEY );
+        details.setType( QgsMapLayerType::RasterLayer );
+        details.setName( QString::fromUtf8( name ) );
+        details.setDescription( QString::fromUtf8( desc ) );
+
+        res << details;
       }
     }
   }
-
-  if ( !subLayers.isEmpty() )
-  {
-    QgsDebugMsgLevel( "sublayers:\n  " + subLayers.join( "\n  " ), 3 );
-  }
-
-  return subLayers;
+  return res;
 }
 
 bool QgsGdalProvider::hasHistogram( int bandNo,
@@ -2320,7 +2321,11 @@ QList<QgsRasterPyramid> QgsGdalProvider::buildPyramidList( const QList<int> &lis
 
 QStringList QgsGdalProvider::subLayers() const
 {
-  return mSubLayers;
+  QStringList res;
+  res.reserve( mSubLayers.size() );
+  for ( const QgsProviderSublayerDetails &layer : mSubLayers )
+    res << layer.name() + QgsDataProvider::sublayerSeparator() + layer.description();
+  return res;
 }
 
 QVariantMap QgsGdalProviderMetadata::decodeUri( const QString &uri ) const
@@ -2588,8 +2593,7 @@ bool QgsGdalProvider::isValidRasterFileName( QString const &fileNameQString, QSt
   }
   else if ( GDALGetRasterCount( myDataset.get() ) == 0 )
   {
-    QStringList layers = QgsGdalProvider::subLayers( myDataset.get() );
-    if ( layers.isEmpty() )
+    if ( QgsGdalProvider::sublayerDetails( myDataset.get() ).isEmpty() )
     {
       retErrMsg = QObject::tr( "This raster file has no bands and is invalid as a raster layer." );
       return false;
@@ -2970,7 +2974,7 @@ void QgsGdalProvider::initBaseDataset()
   }
 
   // get sublayers
-  mSubLayers = QgsGdalProvider::subLayers( mGdalDataset );
+  mSubLayers = QgsGdalProvider::sublayerDetails( mGdalDataset );
 
   // check if this file has bands or subdatasets
   CPLErrorReset();
@@ -3534,6 +3538,55 @@ QList<QPair<QString, QString> > QgsGdalProviderMetadata::pyramidResamplingMethod
 QgsProviderMetadata::ProviderCapabilities QgsGdalProviderMetadata::providerCapabilities() const
 {
   return FileBasedUris;
+}
+
+QList<QgsProviderSublayerDetails> QgsGdalProviderMetadata::querySublayers( const QString &uri, SublayerQueryFlags ) const
+{
+  gdal::dataset_unique_ptr dataset;
+
+  QgsGdalProviderBase::registerGdalDrivers();
+
+  CPLErrorReset();
+
+  QString gdalUri = uri;
+
+  // Try to open using VSIFileHandler
+  QString vsiPrefix = QgsZipItem::vsiPrefix( gdalUri );
+  if ( !vsiPrefix.isEmpty() )
+  {
+    if ( !gdalUri.startsWith( vsiPrefix ) )
+      gdalUri = vsiPrefix + gdalUri;
+  }
+
+  dataset.reset( QgsGdalProviderBase::gdalOpen( gdalUri, GDAL_OF_READONLY ) );
+  if ( !dataset )
+  {
+    if ( CPLGetLastErrorNo() != CPLE_OpenFailed )
+      QgsDebugMsg( QStringLiteral( "Error querying sublayers: %1 " ).arg( QString::fromUtf8( CPLGetLastErrorMsg() ) ) );
+    return {};
+  }
+
+  const QList< QgsProviderSublayerDetails > res = QgsGdalProvider::sublayerDetails( dataset.get() );
+  if ( res.empty() )
+  {
+    QgsProviderSublayerDetails details;
+    details.setProviderKey( PROVIDER_KEY );
+    details.setType( QgsMapLayerType::RasterLayer );
+
+    QString name;
+    const QVariantMap parts = decodeUri( uri );
+    if ( parts.contains( QStringLiteral( "path" ) ) )
+    {
+      QFileInfo fi( parts.value( QStringLiteral( "path" ) ).toString() );
+      name = fi.baseName();
+    }
+    details.setName( name.isEmpty() ? uri : name );
+    return {details};
+  }
+  else
+  {
+    return res;
+  }
 }
 
 QList<QgsDataItemProvider *> QgsGdalProviderMetadata::dataItemProviders() const
