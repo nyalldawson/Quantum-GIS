@@ -21,6 +21,7 @@
 #include "ui_qgssublayersdialogbase.h"
 #include "qgis_sip.h"
 #include "qgis_gui.h"
+#include "qgsprovidersublayerdetails.h"
 
 /**
  * \ingroup gui
@@ -65,7 +66,8 @@ class GUI_EXPORT QgsSublayersDialog : public QDialog, private Ui::QgsSublayersDi
       Ogr,
       Gdal,
       Vsifile,
-      Mdal //!< \since QGIS 3.14
+      Mdal, //!< \since QGIS 3.14
+      Unified, //!< Shows a unified view of all sublayers regardless of the provider (since QGIS 3.20)
     };
 
     /**
@@ -111,6 +113,8 @@ class GUI_EXPORT QgsSublayersDialog : public QDialog, private Ui::QgsSublayersDi
      * \since QGIS 2.16
      */
     void populateLayerTable( const LayerDefinitionList &list );
+
+    void populateLayerTable( const QList< QgsProviderSublayerDetails> &layers );
 
     /**
      * Returns list of selected layers
@@ -163,6 +167,8 @@ class GUI_EXPORT QgsSublayersDialog : public QDialog, private Ui::QgsSublayersDi
   private:
 
     bool mShowAddToGroupCheckbox = false;   //!< Whether to show the add to group checkbox
+
+    QList< QgsProviderSublayerDetails> mLayers;
 };
 
 #endif

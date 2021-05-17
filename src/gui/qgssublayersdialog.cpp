@@ -73,11 +73,20 @@ QgsSublayersDialog::QgsSublayersDialog( ProviderType providerType,
       title = tr( "Select Mesh Layers to Add…" );
       layersTable->setHeaderLabels( QStringList() << tr( "Layer ID" ) << tr( "Mesh name" ) );
       break;
-    default:
+
+    case Unified:
       title = tr( "Select Layers to Add…" );
       layersTable->setHeaderLabels( QStringList() << tr( "Layer ID" ) << tr( "Layer name" )
                                     << tr( "Type" ) );
       mShowType = true;
+      break;
+
+    case Vsifile:
+      title = tr( "Select Layers to Add…" );
+      layersTable->setHeaderLabels( QStringList() << tr( "Layer ID" ) << tr( "Layer name" )
+                                    << tr( "Type" ) );
+      mShowType = true;
+      break;
   }
 
   const QVariantMap dataSourceUriParsed = QgsProviderRegistry::instance()->decodeUri( name, dataSourceUri );
@@ -173,6 +182,40 @@ void QgsSublayersDialog::populateLayerTable( const QgsSublayersDialog::LayerDefi
       layersTable->resizeColumnToContents( i );
     layersTable->setColumnWidth( 1, layersTable->columnWidth( 1 ) + 10 );
   }
+}
+
+void QgsSublayersDialog::populateLayerTable( const QList<QgsProviderSublayerDetails> &layers )
+{
+  mLayers = layers;
+
+  for ( const QgsProviderSublayerDetails &item : layers )
+  {
+    QStringList elements;
+    elements << QString::number( item.layerNumber() ) << item.name();
+    if ( mShowCount )
+      elements << ( item.featureCount() < 0 ? tr( "Unknown" ) : QString::number( item.featureCount() ) );
+    if ( mShowType )
+      elements << QString() ; //item.type;
+    if ( mShowDescription )
+      elements << item.description();
+    layersTable->addTopLevelItem( new SubLayerItem( elements ) );
+  }
+
+  // resize columns
+  QgsSettings settings;
+  QByteArray ba = settings.value( "/Windows/" + mName + "SubLayers/headerState" ).toByteArray();
+  int savedColumnCount = settings.value( "/Windows/" + mName + "SubLayers/headerColumnCount" ).toInt();
+  if ( ! ba.isNull() && savedColumnCount == layersTable->columnCount() )
+  {
+    layersTable->header()->restoreState( ba );
+  }
+  else
+  {
+    for ( int i = 0; i < layersTable->columnCount(); i++ )
+      layersTable->resizeColumnToContents( i );
+    layersTable->setColumnWidth( 1, layersTable->columnWidth( 1 ) + 10 );
+  }
+
 }
 
 // override exec() instead of using showEvent()
