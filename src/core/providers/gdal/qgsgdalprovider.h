@@ -386,7 +386,7 @@ class QgsGdalProviderMetadata final: public QgsProviderMetadata
     QList< QgsDataItemProvider * > dataItemProviders() const override;
     QList<QPair<QString, QString> > pyramidResamplingMethods() override;
     ProviderCapabilities providerCapabilities() const override;
-    QList< QgsProviderSublayerDetails > querySublayers( const QString &uri, SublayerQueryFlags flags = SublayerQueryFlags() ) const override;
+    QList< QgsProviderSublayerDetails > querySublayers( const QString &uri, Qgis::SublayerQueryFlags flags = Qgis::SublayerQueryFlags() ) const override;
 };
 
 ///@endcond

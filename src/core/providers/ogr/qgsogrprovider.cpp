@@ -817,7 +817,7 @@ static OGRwkbGeometryType ogrWkbGeometryTypeFromName( const QString &typeName )
   return wkbUnknown;
 }
 
-QList< QgsProviderSublayerDetails > QgsOgrProviderUtils::querySubLayerList( int i, QgsOgrLayer *layer, const QString &driverName, SublayerQueryFlags flags, bool isSubLayer )
+QList< QgsProviderSublayerDetails > QgsOgrProviderUtils::querySubLayerList( int i, QgsOgrLayer *layer, const QString &driverName, Qgis::SublayerQueryFlags flags, bool isSubLayer )
 {
   QString layerName = QString::fromUtf8( layer->name() );
 
@@ -856,7 +856,7 @@ QList< QgsProviderSublayerDetails > QgsOgrProviderUtils::querySubLayerList( int 
 
   if ( slowGeomTypeRetrieval || wkbFlatten( layerGeomType ) != wkbUnknown )
   {
-    const long layerFeatureCount = flags & Qgis::SublayerQueryFlag::CountFeatures ? layer->GetApproxFeatureCount() : static_cast< long >( FeatureCountState::Uncounted );
+    const long layerFeatureCount = flags & Qgis::SublayerQueryFlag::CountFeatures ? layer->GetApproxFeatureCount() : static_cast< long >( Qgis::FeatureCountState::Uncounted );
 
     QgsProviderSublayerDetails details;
     details.setLayerNumber( i );
@@ -7696,7 +7696,7 @@ bool QgsOgrProviderMetadata::uriIsBlocklisted( const QString &uri ) const
   return false;
 }
 
-QList<QgsProviderSublayerDetails> QgsOgrProviderMetadata::querySublayers( const QString &uri, SublayerQueryFlags flags ) const
+QList<QgsProviderSublayerDetails> QgsOgrProviderMetadata::querySublayers( const QString &uri, Qgis::SublayerQueryFlags flags ) const
 {
   QStringList skippedLayerNames;
 

@@ -1000,7 +1000,7 @@ QgsProviderMetadata::ProviderCapabilities QgsMdalProviderMetadata::providerCapab
   return FileBasedUris;
 }
 
-QList<QgsProviderSublayerDetails> QgsMdalProviderMetadata::querySublayers( const QString &uri, SublayerQueryFlags ) const
+QList<QgsProviderSublayerDetails> QgsMdalProviderMetadata::querySublayers( const QString &uri, Qgis::SublayerQueryFlags ) const
 {
   if ( uri.isEmpty() )
     return {};

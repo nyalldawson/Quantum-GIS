@@ -3540,7 +3540,7 @@ QgsProviderMetadata::ProviderCapabilities QgsGdalProviderMetadata::providerCapab
   return FileBasedUris;
 }
 
-QList<QgsProviderSublayerDetails> QgsGdalProviderMetadata::querySublayers( const QString &uri, SublayerQueryFlags ) const
+QList<QgsProviderSublayerDetails> QgsGdalProviderMetadata::querySublayers( const QString &uri, Qgis::SublayerQueryFlags ) const
 {
   gdal::dataset_unique_ptr dataset;
 

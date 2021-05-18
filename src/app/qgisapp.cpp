@@ -7596,7 +7596,7 @@ bool QgisApp::openLayer( const QString &fileName, bool allowInteractive )
 
   CPLPopErrorHandler();
 
-  const QList< QgsProviderSublayerDetails > sublayers = QgsProviderRegistry::instance()->querySublayers( fileName, SublayerQueryFlag::ResolveGeometryType | SublayerQueryFlag::CountFeatures );
+  const QList< QgsProviderSublayerDetails > sublayers = QgsProviderRegistry::instance()->querySublayers( fileName, Qgis::SublayerQueryFlag::ResolveGeometryType | Qgis::SublayerQueryFlag::CountFeatures );
   if ( !sublayers.empty() )
   {
     if ( sublayers.size() == 1 )

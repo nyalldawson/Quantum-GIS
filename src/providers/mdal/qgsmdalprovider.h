@@ -146,7 +146,7 @@ class QgsMdalProviderMetadata: public QgsProviderMetadata
     QVariantMap decodeUri( const QString &uri ) const override;
     QString encodeUri( const QVariantMap &parts ) const override;
     ProviderCapabilities providerCapabilities() const override;
-    QList< QgsProviderSublayerDetails > querySublayers( const QString &uri, SublayerQueryFlags flags = SublayerQueryFlags() ) const override;
+    QList< QgsProviderSublayerDetails > querySublayers( const QString &uri, Qgis::SublayerQueryFlags flags = Qgis::SublayerQueryFlags() ) const override;
 };
 
 #endif //QGSMDALPROVIDER_H
