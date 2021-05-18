@@ -210,8 +210,9 @@ class CORE_EXPORT Qgis
      */
     enum class SublayerQueryFlag : int
     {
-      ResolveGeometryType = 1 << 0, //!< Attempt to resolve the geometry type for vector sublayers
-      CountFeatures = 1 << 1, //!< Count features in vector sublayers
+      FastScan = 1 << 0, //!< Indicates that the provider must scan for sublayers using the fastest possible approach -- e.g. by first checking that a uri has an extension which is known to be readable by the provider
+      ResolveGeometryType = 1 << 1, //!< Attempt to resolve the geometry type for vector sublayers
+      CountFeatures = 1 << 2, //!< Count features in vector sublayers
     };
     Q_DECLARE_FLAGS( SublayerQueryFlags, SublayerQueryFlag )
 

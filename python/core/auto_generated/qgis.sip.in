@@ -147,6 +147,7 @@ The development version
 
     enum class SublayerQueryFlag
     {
+      FastScan,
       ResolveGeometryType,
       CountFeatures,
     };
