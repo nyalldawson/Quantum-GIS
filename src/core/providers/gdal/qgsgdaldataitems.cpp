@@ -121,7 +121,6 @@ QgsDataItem *QgsGdalDataItemProvider::createDataItem( const QString &pathIn, Qgs
   static QString sFilterString;
   static QStringList sExtensions = QStringList();
   static QStringList sWildcards = QStringList();
-  static QMutex sBuildingFilters;
 
   QString path( pathIn );
   if ( path.isEmpty() )

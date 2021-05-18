@@ -3540,13 +3540,49 @@ QgsProviderMetadata::ProviderCapabilities QgsGdalProviderMetadata::providerCapab
   return FileBasedUris;
 }
 
-QList<QgsProviderSublayerDetails> QgsGdalProviderMetadata::querySublayers( const QString &uri, Qgis::SublayerQueryFlags ) const
+QList<QgsProviderSublayerDetails> QgsGdalProviderMetadata::querySublayers( const QString &uri, Qgis::SublayerQueryFlags flags ) const
 {
   gdal::dataset_unique_ptr dataset;
 
   QgsGdalProviderBase::registerGdalDrivers();
 
   CPLErrorReset();
+
+  if ( flags & Qgis::SublayerQueryFlag::FastScan )
+  {
+    // fast scan flag -- filter by matching known extensions
+    const QFileInfo info( uri );
+    QString suffix = info.suffix().toLower();
+
+    // get supported extensions
+    static std::once_flag initialized;
+    static QString sFilterString;
+    static QStringList sExtensions = QStringList();
+    static QStringList sWildcards = QStringList();
+    std::call_once( initialized, [ = ]
+    {
+      buildSupportedRasterFileFilterAndExtensions( sFilterString, sExtensions, sWildcards );
+      QgsDebugMsgLevel( QStringLiteral( "extensions: " ) + sExtensions.join( ' ' ), 2 );
+      QgsDebugMsgLevel( QStringLiteral( "wildcards: " ) + sWildcards.join( ' ' ), 2 );
+    } );
+
+    if ( !sExtensions.contains( suffix ) )
+    {
+      bool matches = false;
+      for ( const QString &wildcard : std::as_const( sWildcards ) )
+      {
+        const QRegularExpression rx( QRegularExpression::wildcardToRegularExpression( wildcard ), QRegularExpression::CaseInsensitiveOption );
+        const QRegularExpressionMatch match = rx.match( info.fileName() );
+        if ( match.hasMatch() )
+        {
+          matches = true;
+          break;
+        }
+      }
+      if ( !matches )
+        return {};
+    }
+  }
 
   QString gdalUri = uri;
 
