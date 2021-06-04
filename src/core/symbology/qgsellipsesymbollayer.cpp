@@ -831,13 +831,27 @@ QRectF QgsEllipseSymbolLayer::bounds( QPointF point, QgsSymbolRenderContext &con
 QgsMarkerSymbolBounds QgsEllipseSymbolLayer::symbolBounds( QPointF point, QgsSymbolRenderContext &context )
 {
   QgsMarkerSymbolBounds res;
-  res.setBoundingBox( bounds( point, context ) );
+  const QRectF box( bounds( point, context ) );
+  res.setBoundingBox( box );
 
   switch ( mShape )
   {
     case QgsEllipseSymbolLayer::Circle:
-      res.setShape( QgsMarkerSymbolBounds::Ellipse );
+    {
+      const QPointF center = box.center();
+      const double width = box.width();
+      const double height = box.height();
+
+      res.setCornerOffset( Qt::TopLeftCorner, QPointF( center.x() + width * 0.5 * std::cos( 135 * M_PI / 180.0 ),
+                           center.y() + height * std::sin( 135 * M_PI / 180.0 ) ) );
+      res.setCornerOffset( Qt::TopRightCorner, QPointF( center.x() + width * 0.5 * std::cos( 45 * M_PI / 180.0 ),
+                           center.y() + height * std::sin( 45 * M_PI / 180.0 ) ) );
+      res.setCornerOffset( Qt::BottomLeftCorner, QPointF( center.x() + width * 0.5 * std::cos( 225 * M_PI / 180.0 ),
+                           center.y() + height * std::sin( 225 * M_PI / 180.0 ) ) );
+      res.setCornerOffset( Qt::BottomRightCorner, QPointF( center.x() + width * 0.5 * std::cos( 315 * M_PI / 180.0 ),
+                           center.y() + height * std::sin( 315 * M_PI / 180.0 ) ) );
       break;
+    }
 
     case QgsEllipseSymbolLayer::Rectangle:
     case QgsEllipseSymbolLayer::Diamond:

@@ -2559,7 +2559,9 @@ std::unique_ptr<QgsLabelFeature> QgsPalLayerSettings::registerFeatureWithDetails
     //register marker symbol bounds. Use the transformed obstacleGeometry to do this,
     //as it's already been transformed into map units
     QgsMarkerSymbolBounds bounds = properties.markerBounds;
-    bounds.setBoundingBox( obstacleGeometry.boundingBox().toRectF() );
+    const QRectF obstacleRect = obstacleGeometry.boundingBox().toRectF();
+    bounds.setBoundingBox( obstacleRect );
+
     labelFeature->setMarkerSymbolBounds( bounds );
   }
 

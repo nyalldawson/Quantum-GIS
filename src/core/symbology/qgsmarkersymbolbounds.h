@@ -58,44 +58,93 @@ class CORE_EXPORT QgsMarkerSymbolBounds
      */
     void unite( const QgsMarkerSymbolBounds &other )
     {
+      const double topLeftX1 = mBoundingBox.left() + mBoundingBox.width() * ( 0.5 + mTopLeftOffset.x() * 0.5 );
+      const double topLeftX2 = other.mBoundingBox.left() + other.mBoundingBox.width() * ( 0.5 + other.mTopLeftOffset.x() * 0.5 );
+      const double topLeftY1 = mBoundingBox.top() - mBoundingBox.height() * ( 0.5 - mTopLeftOffset.y() * 0.5 );
+      const double topLeftY2 = other.mBoundingBox.top() - other.mBoundingBox.height() * ( 0.5 - other.mTopLeftOffset.y() * 0.5 );
+
       mBoundingBox = mBoundingBox.united( other.boundingBox() );
-      if ( other.shape() == Rectangle )
-        mShape = Rectangle;
+
+      mTopLeftOffset.setX( ( mBoundingBox.center().x() - std::min( topLeftX1, topLeftX2 ) ) / ( mBoundingBox.width() * 0.5 ) );
+      mTopLeftOffset.setY( ( mBoundingBox.center().y() - std::min( topLeftY1, topLeftY2 ) ) / ( mBoundingBox.height() * 0.5 ) );
+
+      mTopRightOffset.setX( std::max( mTopLeftOffset.x(), other.mTopLeftOffset.x() ) );
+      mTopRightOffset.setY( std::min( mTopLeftOffset.y(), other.mTopLeftOffset.y() ) );
+
+      mBottomLeftOffset.setX( std::min( mBottomLeftOffset.x(), other.mBottomLeftOffset.x() ) );
+      mBottomLeftOffset.setY( std::max( mBottomLeftOffset.y(), other.mBottomLeftOffset.y() ) );
+
+      mBottomRightOffset.setX( std::max( mBottomRightOffset.x(), other.mBottomRightOffset.x() ) );
+      mBottomRightOffset.setY( std::max( mBottomRightOffset.y(), other.mBottomRightOffset.y() ) );
     }
 
 #ifndef SIP_RUN
 
     /**
-     * Symbol shape.
+     * Returns the corner offset, which is the offset from the center of the symbol to the
+     * furthest actual marker content in the specified content.
      *
-     * \note Not available in Python bindings
+     * Conceptually this represents the point at which a label placed in that corner should
+     * be anchored to in order to be placed directly adjacent to the symbol at that corner.
+     *
+     * \note Not exposed to Python bindings. This is considered experimental API only.
+     *
+     * \see setCornerOffset()
      */
-    enum Shape
+    QPointF cornerOffset( Qt::Corner corner ) const
     {
-      Rectangle, //!< Rectangle
-      Ellipse, //!< Ellipse
-    };
+      switch ( corner )
+      {
+        case Qt::TopLeftCorner:
+          return mTopLeftOffset;
+        case Qt::TopRightCorner:
+          return mTopRightOffset;
+        case Qt::BottomLeftCorner:
+          return mBottomLeftOffset;
+        case Qt::BottomRightCorner:
+          return mBottomRightOffset;
+      }
+      return QPointF();
+    }
 
     /**
-     * Sets the marker bounds \a shape.
+     * Sets the \a offset for the specified \a corner, which is the offset from the center of the symbol to the
+     * furthest actual marker content in the specified content.
      *
-     * \note Not available in Python bindings
-     */
-    void setShape( Shape shape ) { mShape = shape; }
-
-    /**
-     * Returns the marker bounds shape.
+     * Conceptually this represents the point at which a label placed in that corner should
+     * be anchored to in order to be placed directly adjacent to the symbol at that corner.
      *
-     * \note Not available in Python bindings
+     * \note Not exposed to Python bindings. This is considered experimental API only.
+     *
+     * \see cornerOffset()
      */
-    Shape shape() const { return mShape; }
-
+    void setCornerOffset( Qt::Corner corner, QPointF offset )
+    {
+      switch ( corner )
+      {
+        case Qt::TopLeftCorner:
+          mTopLeftOffset = offset;
+          break;
+        case Qt::TopRightCorner:
+          mTopRightOffset = offset;
+          break;
+        case Qt::BottomLeftCorner:
+          mBottomLeftOffset = offset;
+          break;
+        case Qt::BottomRightCorner:
+          mBottomRightOffset = offset;
+          break;
+      }
+    }
 #endif
 
   private:
 
     QRectF mBoundingBox;
-    Shape mShape = Rectangle;
+    QPointF mTopLeftOffset{ -1, 1};
+    QPointF mTopRightOffset{ 1, 1};
+    QPointF mBottomLeftOffset{ -1, -1};
+    QPointF mBottomRightOffset{ 1, -1};
 
 };
 

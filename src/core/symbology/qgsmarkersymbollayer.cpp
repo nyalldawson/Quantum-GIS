@@ -1692,7 +1692,8 @@ QRectF QgsSimpleMarkerSymbolLayer::bounds( QPointF point, QgsSymbolRenderContext
 QgsMarkerSymbolBounds QgsSimpleMarkerSymbolLayer::symbolBounds( QPointF point, QgsSymbolRenderContext &context )
 {
   QgsMarkerSymbolBounds res;
-  res.setBoundingBox( bounds( point, context ) );
+  const QRectF box( bounds( point, context ) );
+  res.setBoundingBox( box );
 
   switch ( mShape )
   {
@@ -1700,8 +1701,17 @@ QgsMarkerSymbolBounds QgsSimpleMarkerSymbolLayer::symbolBounds( QPointF point, Q
     case QgsSimpleMarkerSymbolLayerBase::SemiCircle:
     case QgsSimpleMarkerSymbolLayerBase::ThirdCircle:
     case QgsSimpleMarkerSymbolLayerBase::QuarterCircle:
-      res.setShape( QgsMarkerSymbolBounds::Ellipse );
+    {
+      res.setCornerOffset( Qt::TopLeftCorner, QPointF( std::cos( 135 * M_PI / 180.0 ),
+                           std::sin( 135 * M_PI / 180.0 ) ) );
+      res.setCornerOffset( Qt::TopRightCorner, QPointF( std::cos( 45 * M_PI / 180.0 ),
+                           std::sin( 45 * M_PI / 180.0 ) ) );
+      res.setCornerOffset( Qt::BottomLeftCorner, QPointF( std::cos( 225 * M_PI / 180.0 ),
+                           std::sin( 225 * M_PI / 180.0 ) ) );
+      res.setCornerOffset( Qt::BottomRightCorner, QPointF( std::cos( 315 * M_PI / 180.0 ),
+                           std::sin( 315 * M_PI / 180.0 ) ) );
       break;
+    }
 
     case QgsSimpleMarkerSymbolLayerBase::Square:
     case QgsSimpleMarkerSymbolLayerBase::Diamond:

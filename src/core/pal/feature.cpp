@@ -446,10 +446,10 @@ void createCandidateAtOrderedPositionOverPoint( double &labelX, double &labelY, 
       alpha = 3 * M_PI_4;
       deltaX = -labelWidth + visualMargin.right();
       deltaY = -visualMargin.bottom();
-      if ( symbolBounds && symbolBounds->shape() == QgsMarkerSymbolBounds::Ellipse )
+      if ( symbolBounds && !symbolBounds->cornerOffset( Qt::TopLeftCorner ).isNull() )
       {
-        deltaX += symbolWidthOffset * std::cos( 135 * M_PI / 180.0 );
-        deltaY += symbolHeightOffset * std::sin( 135 * M_PI / 180.0 ) ;
+        deltaX += symbolWidthOffset * symbolBounds->cornerOffset( Qt::TopLeftCorner ).x();
+        deltaY += symbolHeightOffset * symbolBounds->cornerOffset( Qt::TopLeftCorner ).y();
       }
       else
       {
@@ -485,10 +485,10 @@ void createCandidateAtOrderedPositionOverPoint( double &labelX, double &labelY, 
       deltaX = - visualMargin.left();
       deltaY = -visualMargin.bottom();
 
-      if ( symbolBounds && symbolBounds->shape() == QgsMarkerSymbolBounds::Ellipse )
+      if ( symbolBounds && !symbolBounds->cornerOffset( Qt::TopRightCorner ).isNull() )
       {
-        deltaX += symbolWidthOffset * std::cos( 45 * M_PI / 180.0 );
-        deltaY += symbolHeightOffset * std::sin( 45 * M_PI / 180.0 ) ;
+        deltaX += symbolWidthOffset * symbolBounds->cornerOffset( Qt::TopRightCorner ).x();
+        deltaY += symbolHeightOffset * symbolBounds->cornerOffset( Qt::TopRightCorner ).y();
       }
       else
       {
@@ -518,10 +518,10 @@ void createCandidateAtOrderedPositionOverPoint( double &labelX, double &labelY, 
       deltaX = -labelWidth + visualMargin.right();
       deltaY = -labelHeight + visualMargin.top();
 
-      if ( symbolBounds && symbolBounds->shape() == QgsMarkerSymbolBounds::Ellipse )
+      if ( symbolBounds && !symbolBounds->cornerOffset( Qt::BottomLeftCorner ).isNull() )
       {
-        deltaX += symbolWidthOffset * std::cos( 225 * M_PI / 180.0 );
-        deltaY += symbolHeightOffset * std::sin( 225 * M_PI / 180.0 ) ;
+        deltaX += symbolWidthOffset * symbolBounds->cornerOffset( Qt::BottomLeftCorner ).x();
+        deltaY += symbolHeightOffset * symbolBounds->cornerOffset( Qt::BottomLeftCorner ).y();
       }
       else
       {
@@ -558,10 +558,10 @@ void createCandidateAtOrderedPositionOverPoint( double &labelX, double &labelY, 
       deltaX = -visualMargin.left();
       deltaY = -labelHeight + visualMargin.top();
 
-      if ( symbolBounds && symbolBounds->shape() == QgsMarkerSymbolBounds::Ellipse )
+      if ( symbolBounds && !symbolBounds->cornerOffset( Qt::BottomRightCorner ).isNull() )
       {
-        deltaX += symbolWidthOffset * std::cos( 315 * M_PI / 180.0 );
-        deltaY += symbolHeightOffset * std::sin( 315 * M_PI / 180.0 ) ;
+        deltaX += symbolWidthOffset * symbolBounds->cornerOffset( Qt::BottomRightCorner ).x();
+        deltaY += symbolHeightOffset * symbolBounds->cornerOffset( Qt::BottomRightCorner ).y();
       }
       else
       {

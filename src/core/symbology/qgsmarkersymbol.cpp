@@ -489,6 +489,10 @@ QgsMarkerSymbolBounds QgsMarkerSymbol::symbolBounds( QPointF point, QgsRenderCon
   {
     if ( layer->type() == Qgis::SymbolType::Marker )
     {
+      if ( !layer->enabled()
+           || ( layer->dataDefinedProperties().hasActiveProperties() && !layer->dataDefinedProperties().valueAsBool( QgsSymbolLayer::PropertyLayerEnabled, context.expressionContext(), true ) ) )
+        continue;
+
       QgsMarkerSymbolLayer *symbolLayer = static_cast< QgsMarkerSymbolLayer * >( layer );
       if ( bound.isNull() )
         bound = symbolLayer->symbolBounds( point, symbolContext );
