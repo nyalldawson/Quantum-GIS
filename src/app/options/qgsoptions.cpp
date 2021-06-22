@@ -103,6 +103,28 @@ QgsOptions::QgsOptions( QWidget *parent, Qt::WindowFlags fl, const QList<QgsOpti
 
 {
   setupUi( this );
+
+  mTreeModel = new QStandardItemModel( this );
+  mTreeModel->appendRow( createItem( tr( "General" ), tr( "General" ), QStringLiteral( "propertyicons/general.svg" ) ) );
+  mTreeModel->appendRow( createItem( tr( "System" ), tr( "System" ), QStringLiteral( "propertyicons/system.svg" ) ) );
+  mTreeModel->appendRow( createItem( tr( "CRS" ), tr( "CRS" ), QStringLiteral( "propertyicons/CRS.svg" ) ) );
+  mTreeModel->appendRow( createItem( tr( "Transformations" ), tr( "Coordinate transformations and operations" ), QStringLiteral( "transformation.svg" ) ) );
+  mTreeModel->appendRow( createItem( tr( "Data Sources" ), tr( "Data sources" ), QStringLiteral( "propertyicons/attributes.svg" ) ) );
+  mTreeModel->appendRow( createItem( tr( "Rendering" ), tr( "Rendering" ), QStringLiteral( "propertyicons/rendering.svg" ) ) );
+  mTreeModel->appendRow( createItem( tr( "Canvas & Legend" ), tr( "Canvas and legend" ), QStringLiteral( "propertyicons/overlay.svg" ) ) );
+  mTreeModel->appendRow( createItem( tr( "Map Tools" ), tr( "Map tools" ), QStringLiteral( "propertyicons/map_tools.svg" ) ) );
+  mTreeModel->appendRow( createItem( tr( "Colors" ), tr( "Colors" ), QStringLiteral( "propertyicons/colors.svg" ) ) );
+  mTreeModel->appendRow( createItem( tr( "Digitizing" ), tr( "Digitizing" ), QStringLiteral( "propertyicons/digitizing.svg" ) ) );
+  mTreeModel->appendRow( createItem( tr( "Layouts" ), tr( "Print layouts" ), QStringLiteral( "mIconLayout.svg" ) ) );
+  mTreeModel->appendRow( createItem( tr( "GDAL" ), tr( "GDAL" ), QStringLiteral( "propertyicons/gdal.svg" ) ) );
+  mTreeModel->appendRow( createItem( tr( "Variables" ), tr( "Variables" ), QStringLiteral( "mIconExpression.svg" ) ) );
+  mTreeModel->appendRow( createItem( tr( "Authentication" ), tr( "Authentication" ), QStringLiteral( "locked.svg" ) ) );
+  mTreeModel->appendRow( createItem( tr( "Network" ), tr( "Network" ), QStringLiteral( "propertyicons/network_and_proxy.svg" ) ) );
+  mTreeModel->appendRow( createItem( tr( "Locator" ), tr( "Locator" ), QStringLiteral( "search.svg" ) ) );
+  mTreeModel->appendRow( createItem( tr( "Acceleration" ), tr( "GPU acceleration" ), QStringLiteral( "mIconGPU.svg" ) ) );
+
+  mOptionsTreeView->setModel( mTreeModel );
+
   connect( cbxProjectDefaultNew, &QCheckBox::toggled, this, &QgsOptions::cbxProjectDefaultNew_toggled );
   connect( leLayerGlobalCrs, &QgsProjectionSelectionWidget::crsChanged, this, &QgsOptions::leLayerGlobalCrs_crsChanged );
   connect( lstRasterDrivers, &QTreeWidget::itemDoubleClicked, this, &QgsOptions::lstRasterDrivers_itemDoubleClicked );
@@ -158,7 +180,7 @@ QgsOptions::QgsOptions( QWidget *parent, Qt::WindowFlags fl, const QList<QgsOpti
   QStringList themes = QgsApplication::uiThemes().keys();
   cmbUITheme->addItems( themes );
 
-  // non-default themes are best rendered using the Fusion style, therefore changing themes must require a restart to
+// non-default themes are best rendered using the Fusion style, therefore changing themes must require a restart to
   lblUITheme->setText( QStringLiteral( "%1 <i>(%2)</i>" ).arg( lblUITheme->text(), tr( "QGIS restart required" ) ) );
 
   mEnableMacrosComboBox->addItem( tr( "Never" ), QVariant::fromValue( Qgis::PythonMacroMode::Never ) );
@@ -691,7 +713,7 @@ QgsOptions::QgsOptions( QWidget *parent, Qt::WindowFlags fl, const QList<QgsOpti
   mSimplifyMaximumScaleComboBox->updateScales( myScalesList );
   mSimplifyMaximumScaleComboBox->setScale( mSettings->value( QStringLiteral( "/qgis/simplifyMaxScale" ), 1 ).toFloat() );
 
-  // Magnifier
+// Magnifier
   double magnifierMin = 100 * QgsGuiUtils::CANVAS_MAGNIFICATION_MIN;
   double magnifierMax = 100 * QgsGuiUtils::CANVAS_MAGNIFICATION_MAX;
   double magnifierVal = 100 * mSettings->value( QStringLiteral( "/qgis/magnifier_factor_default" ), 1.0 ).toDouble();
@@ -702,14 +724,14 @@ QgsOptions::QgsOptions( QWidget *parent, Qt::WindowFlags fl, const QList<QgsOpti
   doubleSpinBoxMagnifierDefault->setValue( magnifierVal );
   doubleSpinBoxMagnifierDefault->setClearValue( 100 );
 
-  // Default local simplification algorithm
+// Default local simplification algorithm
   mSimplifyAlgorithmComboBox->addItem( tr( "Distance" ), static_cast<int>( QgsVectorSimplifyMethod::Distance ) );
   mSimplifyAlgorithmComboBox->addItem( tr( "SnapToGrid" ), static_cast<int>( QgsVectorSimplifyMethod::SnapToGrid ) );
   mSimplifyAlgorithmComboBox->addItem( tr( "Visvalingam" ), static_cast<int>( QgsVectorSimplifyMethod::Visvalingam ) );
   mSimplifyAlgorithmComboBox->setCurrentIndex( mSimplifyAlgorithmComboBox->findData( mSettings->enumValue( QStringLiteral( "/qgis/simplifyAlgorithm" ), QgsVectorSimplifyMethod::NoSimplification ) ) );
 
-  // Slightly awkward here at the settings value is true to use QImage,
-  // but the checkbox is true to use QPixmap
+// Slightly awkward here at the settings value is true to use QImage,
+// but the checkbox is true to use QPixmap
   chkAddedVisibility->setChecked( mSettings->value( QStringLiteral( "/qgis/new_layers_visible" ), true ).toBool() );
   cbxLegendClassifiers->setChecked( mSettings->value( QStringLiteral( "/qgis/showLegendClassifiers" ), false ).toBool() );
   cbxHideSplash->setChecked( mSettings->value( QStringLiteral( "/qgis/hideSplash" ), false ).toBool() );
@@ -727,22 +749,22 @@ QgsOptions::QgsOptions( QWidget *parent, Qt::WindowFlags fl, const QList<QgsOpti
 
   cmbLegendDoubleClickAction->setCurrentIndex( mSettings->value( QStringLiteral( "/qgis/legendDoubleClickAction" ), 0 ).toInt() );
 
-  // Legend symbol minimum / maximum values
+// Legend symbol minimum / maximum values
   mLegendSymbolMinimumSizeSpinBox->setClearValue( 0.0, tr( "none" ) );
   mLegendSymbolMaximumSizeSpinBox->setClearValue( 0.0, tr( "none" ) );
   mLegendSymbolMinimumSizeSpinBox->setValue( mSettings->value( QStringLiteral( "/qgis/legendsymbolMinimumSize" ), 0.1 ).toDouble() );
   mLegendSymbolMaximumSizeSpinBox->setValue( mSettings->value( QStringLiteral( "/qgis/legendsymbolMaximumSize" ), 20.0 ).toDouble() );
 
-  // WMS getLegendGraphic setting
+// WMS getLegendGraphic setting
   mLegendGraphicResolutionSpinBox->setValue( mSettings->value( QStringLiteral( "/qgis/defaultLegendGraphicResolution" ), 0 ).toInt() );
 
-  // Map Tips delay
+// Map Tips delay
   mMapTipsDelaySpinBox->setValue( mSettings->value( QStringLiteral( "qgis/mapTipsDelay" ), 850 ).toInt() );
   mMapTipsDelaySpinBox->setClearValue( 850 );
 
-  //
-  // Raster properties
-  //
+//
+// Raster properties
+//
   spnRed->setValue( mSettings->value( QStringLiteral( "/Raster/defaultRedBand" ), 1 ).toInt() );
   spnRed->setClearValue( 1 );
   spnGreen->setValue( mSettings->value( QStringLiteral( "/Raster/defaultGreenBand" ), 2 ).toInt() );
@@ -784,7 +806,7 @@ QgsOptions::QgsOptions( QWidget *parent, Qt::WindowFlags fl, const QList<QgsOpti
   mRasterCumulativeCutLowerDoubleSpinBox->setValue( 100.0 * mSettings->value( QStringLiteral( "/Raster/cumulativeCutLower" ), QString::number( QgsRasterMinMaxOrigin::CUMULATIVE_CUT_LOWER ) ).toDouble() );
   mRasterCumulativeCutUpperDoubleSpinBox->setValue( 100.0 * mSettings->value( QStringLiteral( "/Raster/cumulativeCutUpper" ), QString::number( QgsRasterMinMaxOrigin::CUMULATIVE_CUT_UPPER ) ).toDouble() );
 
-  //set the color for selections
+//set the color for selections
   int red = mSettings->value( QStringLiteral( "/qgis/default_selection_color_red" ), 255 ).toInt();
   int green = mSettings->value( QStringLiteral( "/qgis/default_selection_color_green" ), 255 ).toInt();
   int blue = mSettings->value( QStringLiteral( "/qgis/default_selection_color_blue" ), 0 ).toInt();
@@ -795,7 +817,7 @@ QgsOptions::QgsOptions( QWidget *parent, Qt::WindowFlags fl, const QList<QgsOpti
   pbnSelectionColor->setContext( QStringLiteral( "gui" ) );
   pbnSelectionColor->setDefaultColor( QColor( 255, 255, 0, 255 ) );
 
-  //set the default color for canvas background
+//set the default color for canvas background
   red = mSettings->value( QStringLiteral( "/qgis/default_canvas_color_red" ), 255 ).toInt();
   green = mSettings->value( QStringLiteral( "/qgis/default_canvas_color_green" ), 255 ).toInt();
   blue = mSettings->value( QStringLiteral( "/qgis/default_canvas_color_blue" ), 255 ).toInt();
@@ -804,7 +826,7 @@ QgsOptions::QgsOptions( QWidget *parent, Qt::WindowFlags fl, const QList<QgsOpti
   pbnCanvasColor->setContext( QStringLiteral( "gui" ) );
   pbnCanvasColor->setDefaultColor( Qt::white );
 
-  // set the default color for the measure tool
+// set the default color for the measure tool
   red = mSettings->value( QStringLiteral( "/qgis/default_measure_color_red" ), 222 ).toInt();
   green = mSettings->value( QStringLiteral( "/qgis/default_measure_color_green" ), 155 ).toInt();
   blue = mSettings->value( QStringLiteral( "/qgis/default_measure_color_blue" ), 67 ).toInt();
@@ -832,11 +854,11 @@ QgsOptions::QgsOptions( QWidget *parent, Qt::WindowFlags fl, const QList<QgsOpti
   mFileFormatQgzButton->setChecked( defaultProjectFileFormat == QgsProject::FileFormat::Qgz );
   mFileFormatQgsButton->setChecked( defaultProjectFileFormat == QgsProject::FileFormat::Qgs );
 
-  // templates
+// templates
   cbxProjectDefaultNew->setChecked( mSettings->value( QStringLiteral( "/qgis/newProjectDefault" ), QVariant( false ) ).toBool() );
   QString templateDirName = mSettings->value( QStringLiteral( "/qgis/projectTemplateDir" ),
                             QString( QgsApplication::qgisSettingsDirPath() + "project_templates" ) ).toString();
-  // make dir if it doesn't exist - should just be called once
+// make dir if it doesn't exist - should just be called once
   QDir templateDir;
   if ( ! templateDir.exists( templateDirName ) )
   {
@@ -1324,7 +1346,10 @@ void QgsOptions::checkPageWidgetNameMap()
 {
   const QMap< QString, int > pageNames = QgisApp::instance()->optionsPagesMap();
 
+#if 0
   Q_ASSERT_X( pageNames.count() == mOptionsListWidget->count(), "QgsOptions::checkPageWidgetNameMap()", "QgisApp::optionsPagesMap() is outdated, contains too many entries" );
+
+
   for ( int idx = 0; idx < mOptionsListWidget->count(); ++idx )
   {
     QWidget *currentPage = mOptionsStackedWidget->widget( idx );
@@ -1336,6 +1361,7 @@ void QgsOptions::checkPageWidgetNameMap()
       Q_ASSERT_X( pageNames.value( title ) == idx, "QgsOptions::checkPageWidgetNameMap()", QStringLiteral( "QgisApp::optionsPagesMap() is outdated, please update. %1 should be %2 not %3" ).arg( title ).arg( idx ).arg( pageNames.value( title ) ).toLocal8Bit().constData() );
     }
   }
+#endif
 }
 
 void QgsOptions::setCurrentPage( const QString &pageWidgetName )

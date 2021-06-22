@@ -35,10 +35,12 @@ class QPainter;
 class QStackedWidget;
 class QStyleOptionViewItem;
 class QSplitter;
+class QStandardItem;
+class QTreeView;
+class QStandardItemModel;
 
 class QgsFilterLineEdit;
 class QgsOptionsDialogHighlightWidget;
-
 
 /**
  * \ingroup gui
@@ -177,11 +179,20 @@ class GUI_EXPORT QgsOptionsDialogBase : public QDialog
      */
     void registerTextSearchWidgets();
 
+    /**
+     * Creates a new QStandardItem with the specified name, tooltip and icon.
+     *
+     * \since QGIS 3.22
+     */
+    QStandardItem *createItem( const QString &name, const QString &tooltip, const QString &icon ) SIP_SKIP;
+
     QList< QPair< QgsOptionsDialogHighlightWidget *, int > > mRegisteredSearchWidgets;
 
     QString mOptsKey;
     bool mInit;
     QListWidget *mOptListWidget = nullptr;
+    QTreeView *mOptTreeView = nullptr;
+    QStandardItemModel *mOptTreeModel = nullptr;
     QStackedWidget *mOptStackedWidget = nullptr;
     QSplitter *mOptSplitter = nullptr;
     QDialogButtonBox *mOptButtonBox = nullptr;

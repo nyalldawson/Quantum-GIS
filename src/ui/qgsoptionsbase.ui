@@ -61,7 +61,7 @@
         <widget class="QgsFilterLineEdit" name="mSearchLineEdit"/>
        </item>
        <item>
-        <widget class="QListWidget" name="mOptionsListWidget">
+        <widget class="QTreeView" name="mOptionsTreeView">
          <property name="minimumSize">
           <size>
            <width>58</width>
@@ -89,216 +89,6 @@
          <property name="textElideMode">
           <enum>Qt::ElideNone</enum>
          </property>
-         <property name="resizeMode">
-          <enum>QListView::Adjust</enum>
-         </property>
-         <property name="wordWrap">
-          <bool>true</bool>
-         </property>
-         <item>
-          <property name="text">
-           <string>General</string>
-          </property>
-          <property name="toolTip">
-           <string>General</string>
-          </property>
-          <property name="icon">
-           <iconset resource="../../images/images.qrc">
-            <normaloff>:/images/themes/default/propertyicons/general.svg</normaloff>:/images/themes/default/propertyicons/general.svg</iconset>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>System</string>
-          </property>
-          <property name="toolTip">
-           <string>System</string>
-          </property>
-          <property name="icon">
-           <iconset resource="../../images/images.qrc">
-            <normaloff>:/images/themes/default/propertyicons/system.svg</normaloff>:/images/themes/default/propertyicons/system.svg</iconset>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>CRS</string>
-          </property>
-          <property name="toolTip">
-           <string>CRS</string>
-          </property>
-          <property name="icon">
-           <iconset resource="../../images/images.qrc">
-            <normaloff>:/images/themes/default/propertyicons/CRS.svg</normaloff>:/images/themes/default/propertyicons/CRS.svg</iconset>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>Transformations</string>
-          </property>
-          <property name="toolTip">
-           <string>Coordinate transformations and operations</string>
-          </property>
-          <property name="icon">
-           <iconset resource="../../images/images.qrc">
-            <normaloff>:/images/themes/default/transformation.svg</normaloff>:/images/themes/default/transformation.svg</iconset>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>Data Sources</string>
-          </property>
-          <property name="toolTip">
-           <string>Data sources</string>
-          </property>
-          <property name="icon">
-           <iconset resource="../../images/images.qrc">
-            <normaloff>:/images/themes/default/propertyicons/attributes.svg</normaloff>:/images/themes/default/propertyicons/attributes.svg</iconset>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>Rendering</string>
-          </property>
-          <property name="toolTip">
-           <string>Rendering</string>
-          </property>
-          <property name="icon">
-           <iconset resource="../../images/images.qrc">
-            <normaloff>:/images/themes/default/propertyicons/rendering.svg</normaloff>:/images/themes/default/propertyicons/rendering.svg</iconset>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>Canvas &amp; Legend</string>
-          </property>
-          <property name="toolTip">
-           <string>Canvas and legend</string>
-          </property>
-          <property name="icon">
-           <iconset resource="../../images/images.qrc">
-            <normaloff>:/images/themes/default/propertyicons/overlay.svg</normaloff>:/images/themes/default/propertyicons/overlay.svg</iconset>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>Map Tools</string>
-          </property>
-          <property name="toolTip">
-           <string>Map tools</string>
-          </property>
-          <property name="icon">
-           <iconset resource="../../images/images.qrc">
-            <normaloff>:/images/themes/default/propertyicons/map_tools.svg</normaloff>:/images/themes/default/propertyicons/map_tools.svg</iconset>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>Colors</string>
-          </property>
-          <property name="toolTip">
-           <string>Colors</string>
-          </property>
-          <property name="icon">
-           <iconset resource="../../images/images.qrc">
-            <normaloff>:/images/themes/default/propertyicons/colors.svg</normaloff>:/images/themes/default/propertyicons/colors.svg</iconset>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>Digitizing</string>
-          </property>
-          <property name="toolTip">
-           <string>Digitizing</string>
-          </property>
-          <property name="icon">
-           <iconset resource="../../images/images.qrc">
-            <normaloff>:/images/themes/default/propertyicons/digitizing.svg</normaloff>:/images/themes/default/propertyicons/digitizing.svg</iconset>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>Layouts</string>
-          </property>
-          <property name="toolTip">
-           <string>Print layouts</string>
-          </property>
-          <property name="icon">
-           <iconset resource="../../images/images.qrc">
-            <normaloff>:/images/themes/default/mIconLayout.svg</normaloff>:/images/themes/default/mIconLayout.svg</iconset>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>GDAL</string>
-          </property>
-          <property name="toolTip">
-           <string>GDAL</string>
-          </property>
-          <property name="icon">
-           <iconset resource="../../images/images.qrc">
-            <normaloff>:/images/themes/default/propertyicons/gdal.svg</normaloff>:/images/themes/default/propertyicons/gdal.svg</iconset>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>Variables</string>
-          </property>
-          <property name="toolTip">
-           <string>Variables</string>
-          </property>
-          <property name="icon">
-           <iconset resource="../../images/images.qrc">
-            <normaloff>:/images/themes/default/mIconExpression.svg</normaloff>:/images/themes/default/mIconExpression.svg</iconset>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>Authentication</string>
-          </property>
-          <property name="toolTip">
-           <string>Authentication</string>
-          </property>
-          <property name="icon">
-           <iconset resource="../../images/images.qrc">
-            <normaloff>:/images/themes/default/locked.svg</normaloff>:/images/themes/default/locked.svg</iconset>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>Network</string>
-          </property>
-          <property name="toolTip">
-           <string>Network</string>
-          </property>
-          <property name="icon">
-           <iconset resource="../../images/images.qrc">
-            <normaloff>:/images/themes/default/propertyicons/network_and_proxy.svg</normaloff>:/images/themes/default/propertyicons/network_and_proxy.svg</iconset>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>Locator</string>
-          </property>
-          <property name="toolTip">
-           <string>Locator</string>
-          </property>
-          <property name="icon">
-           <iconset resource="../../images/images.qrc">
-            <normaloff>:/images/themes/default/search.svg</normaloff>:/images/themes/default/search.svg</iconset>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>Acceleration</string>
-          </property>
-          <property name="toolTip">
-           <string>Configure GPU for processing algorithms</string>
-          </property>
-          <property name="icon">
-           <iconset resource="../../images/images.qrc">
-            <normaloff>:/images/themes/default/mIconGPU.svg</normaloff>:/images/themes/default/mIconGPU.svg</iconset>
-          </property>
-         </item>
         </widget>
        </item>
       </layout>
@@ -360,9 +150,9 @@
               <property name="geometry">
                <rect>
                 <x>0</x>
-                <y>-536</y>
-                <width>856</width>
-                <height>1223</height>
+                <y>0</y>
+                <width>843</width>
+                <height>1054</height>
                </rect>
               </property>
               <layout class="QVBoxLayout" name="verticalLayout_28">
@@ -1171,8 +961,8 @@
                <rect>
                 <x>0</x>
                 <y>0</y>
-                <width>617</width>
-                <height>1135</height>
+                <width>586</width>
+                <height>1087</height>
                </rect>
               </property>
               <layout class="QVBoxLayout" name="verticalLayout_22">
@@ -1710,8 +1500,8 @@
                <rect>
                 <x>0</x>
                 <y>0</y>
-                <width>673</width>
-                <height>575</height>
+                <width>609</width>
+                <height>535</height>
                </rect>
               </property>
               <layout class="QGridLayout" name="gridLayout_15">
@@ -1954,8 +1744,8 @@
                <rect>
                 <x>0</x>
                 <y>0</y>
-                <width>648</width>
-                <height>118</height>
+                <width>599</width>
+                <height>111</height>
                </rect>
               </property>
               <layout class="QVBoxLayout" name="verticalLayout_47">
@@ -2037,8 +1827,8 @@
                <rect>
                 <x>0</x>
                 <y>0</y>
-                <width>702</width>
-                <height>895</height>
+                <width>636</width>
+                <height>776</height>
                </rect>
               </property>
               <layout class="QVBoxLayout" name="verticalLayout_27">
@@ -2436,8 +2226,8 @@
                <rect>
                 <x>0</x>
                 <y>0</y>
-                <width>772</width>
-                <height>1396</height>
+                <width>713</width>
+                <height>1198</height>
                </rect>
               </property>
               <layout class="QGridLayout" name="gridLayout_22">
@@ -3241,8 +3031,8 @@
                <rect>
                 <x>0</x>
                 <y>0</y>
-                <width>523</width>
-                <height>435</height>
+                <width>509</width>
+                <height>375</height>
                </rect>
               </property>
               <layout class="QVBoxLayout" name="verticalLayout_25">
@@ -3686,8 +3476,8 @@
                <rect>
                 <x>0</x>
                 <y>0</y>
-                <width>678</width>
-                <height>850</height>
+                <width>614</width>
+                <height>724</height>
                </rect>
               </property>
               <layout class="QVBoxLayout" name="verticalLayout_30">
@@ -4203,8 +3993,8 @@ The bigger the number, the faster zooming with the mouse wheel will be.</string>
                <rect>
                 <x>0</x>
                 <y>0</y>
-                <width>155</width>
-                <height>320</height>
+                <width>139</width>
+                <height>255</height>
                </rect>
               </property>
               <layout class="QHBoxLayout" name="horizontalLayout_46">
@@ -4383,8 +4173,8 @@ The bigger the number, the faster zooming with the mouse wheel will be.</string>
                <rect>
                 <x>0</x>
                 <y>0</y>
-                <width>608</width>
-                <height>1229</height>
+                <width>548</width>
+                <height>1058</height>
                </rect>
               </property>
               <layout class="QVBoxLayout" name="verticalLayout_31">
@@ -5086,8 +4876,8 @@ The bigger the number, the faster zooming with the mouse wheel will be.</string>
                <rect>
                 <x>0</x>
                 <y>0</y>
-                <width>546</width>
-                <height>606</height>
+                <width>474</width>
+                <height>556</height>
                </rect>
               </property>
               <layout class="QVBoxLayout" name="verticalLayout_39">
@@ -5367,8 +5157,8 @@ The bigger the number, the faster zooming with the mouse wheel will be.</string>
                <rect>
                 <x>0</x>
                 <y>0</y>
-                <width>498</width>
-                <height>455</height>
+                <width>447</width>
+                <height>431</height>
                </rect>
               </property>
               <layout class="QVBoxLayout" name="verticalLayout_6">
@@ -5639,8 +5429,8 @@ The bigger the number, the faster zooming with the mouse wheel will be.</string>
                <rect>
                 <x>0</x>
                 <y>0</y>
-                <width>712</width>
-                <height>828</height>
+                <width>660</width>
+                <height>699</height>
                </rect>
               </property>
               <layout class="QVBoxLayout" name="verticalLayout_33">
@@ -6120,8 +5910,8 @@ The bigger the number, the faster zooming with the mouse wheel will be.</string>
                  <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
 &lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
 p, li { white-space: pre-wrap; }
-&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Noto Sans'; font-size:12pt; font-weight:400; font-style:normal;&quot;&gt;
-&lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-size:10pt;&quot;&gt;&lt;br /&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Fira Sans'; font-size:11pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-family:'Noto Sans'; font-size:10pt;&quot;&gt;&lt;br /&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                 </property>
                </widget>
               </item>
@@ -6308,7 +6098,7 @@ p, li { white-space: pre-wrap; }
  </customwidgets>
  <tabstops>
   <tabstop>mSearchLineEdit</tabstop>
-  <tabstop>mOptionsListWidget</tabstop>
+  <tabstop>mOptionsTreeView</tabstop>
   <tabstop>mOptionsScrollArea_01</tabstop>
   <tabstop>grpLocale</tabstop>
   <tabstop>cboTranslation</tabstop>
@@ -6538,24 +6328,9 @@ p, li { white-space: pre-wrap; }
  </tabstops>
  <resources>
   <include location="../../images/images.qrc"/>
+  <include location="../../images/images.qrc"/>
  </resources>
  <connections>
-  <connection>
-   <sender>mOptionsListWidget</sender>
-   <signal>currentRowChanged(int)</signal>
-   <receiver>mOptionsStackedWidget</receiver>
-   <slot>setCurrentIndex(int)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>144</x>
-     <y>196</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>790</x>
-     <y>43</y>
-    </hint>
-   </hints>
-  </connection>
   <connection>
    <sender>chkMaxThreads</sender>
    <signal>toggled(bool)</signal>
