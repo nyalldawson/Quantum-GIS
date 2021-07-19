@@ -147,7 +147,7 @@ QVariantMap QgsServiceAreaFromLayerAlgorithm::processAlgorithm( const QVariantMa
     idxStart = graph->findVertex( snappedPoints.at( i ) );
     origPoint = points.at( i ).toString();
 
-    QgsGraphAnalyzer::dijkstra( graph.get(), idxStart, 0, &tree, &costs );
+    QgsGraphAnalyzer::dijkstra( graph.get(), idxStart, 0, -1, &tree, &costs );
 
     QgsMultiPointXY areaPoints;
     QgsMultiPolylineXY lines;

@@ -340,7 +340,7 @@ void TestQgsNetworkAnalysis::dijkkjkjkskkjsktra()
   // both directions
   QVector<int> resultTree;
   QVector<double> resultCost;
-  QgsGraphAnalyzer::dijkstra( graph.get(), startVertexIdx, 0, &resultTree, &resultCost );
+  QgsGraphAnalyzer::dijkstra( graph.get(), startVertexIdx, 0, -1, &resultTree, &resultCost );
 
   int point_0_0_idx = graph->findVertex( QgsPointXY( 0, 0 ) );
   QVERIFY( point_0_0_idx != -1 );
@@ -389,7 +389,7 @@ void TestQgsNetworkAnalysis::dijkkjkjkskkjsktra()
   QVERIFY( startVertexIdx != -1 );
   resultTree.clear();
   resultCost.clear();
-  QgsGraphAnalyzer::dijkstra( graph.get(), startVertexIdx, 0, &resultTree, &resultCost );
+  QgsGraphAnalyzer::dijkstra( graph.get(), startVertexIdx, 0, -1, &resultTree, &resultCost );
   point_0_0_idx = graph->findVertex( QgsPointXY( 0, 0 ) );
   QVERIFY( point_0_0_idx != -1 );
   point_10_0_idx = graph->findVertex( QgsPointXY( 10, 0 ) );
@@ -432,7 +432,7 @@ void TestQgsNetworkAnalysis::dijkkjkjkskkjsktra()
   QVERIFY( startVertexIdx != -1 );
   resultTree.clear();
   resultCost.clear();
-  QgsGraphAnalyzer::dijkstra( graph.get(), startVertexIdx, 0, &resultTree, &resultCost );
+  QgsGraphAnalyzer::dijkstra( graph.get(), startVertexIdx, 0, -1, &resultTree, &resultCost );
   point_0_0_idx = graph->findVertex( QgsPointXY( 0, 0 ) );
   QVERIFY( point_0_0_idx != -1 );
   point_10_0_idx = graph->findVertex( QgsPointXY( 10, 0 ) );
@@ -510,7 +510,7 @@ void TestQgsNetworkAnalysis::testRouteFail()
   // both directions
   QVector<int> resultTree;
   QVector<double> resultCost;
-  QgsGraphAnalyzer::dijkstra( graph.get(), startVertexIdx, 0, &resultTree, &resultCost );
+  QgsGraphAnalyzer::dijkstra( graph.get(), startVertexIdx, 0, -1, &resultTree, &resultCost );
 
   QCOMPARE( resultTree.at( startVertexIdx ), -1 );
   QCOMPARE( resultCost.at( startVertexIdx ), 0.0 );
@@ -567,7 +567,7 @@ void TestQgsNetworkAnalysis::testRouteFail2()
   // both directions
   QVector<int> resultTree;
   QVector<double> resultCost;
-  QgsGraphAnalyzer::dijkstra( graph.get(), startVertexIdx, 0, &resultTree, &resultCost );
+  QgsGraphAnalyzer::dijkstra( graph.get(), startVertexIdx, 0, -1, &resultTree, &resultCost );
 
   QCOMPARE( resultTree.at( startVertexIdx ), -1 );
   QCOMPARE( resultCost.at( startVertexIdx ), 0.0 );

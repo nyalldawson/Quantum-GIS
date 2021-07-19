@@ -38,17 +38,18 @@ class ANALYSIS_EXPORT QgsGraphAnalyzer
      * \param source source graph
      * \param startVertexIdx index of the start vertex
      * \param criterionNum index of the optimization strategy
+     * \param endVertexIdx optional index of desired end vertex. If specified the algorithm will be terminated as soon as the shortest path to this vertex is found, potentially saving a lot of unwanted computation.
      * \param resultTree array that represents shortest path tree. resultTree[ vertexIndex ] == inboundingArcIndex if vertex reachable, otherwise resultTree[ vertexIndex ] == -1.
      * Note that the startVertexIdx will also have a value of -1 and may need special handling by callers.
      * \param resultCost array of the paths costs
      */
-    static void SIP_PYALTERNATIVETYPE( SIP_PYLIST ) dijkstra( const QgsGraph *source, int startVertexIdx, int criterionNum, QVector<int> *resultTree = nullptr, QVector<double> *resultCost = nullptr );
+    static void SIP_PYALTERNATIVETYPE( SIP_PYLIST ) dijkstra( const QgsGraph *source, int startVertexIdx, int criterionNum, int endVertexIdx = -1, QVector<int> *resultTree = nullptr, QVector<double> *resultCost = nullptr );
 
 #ifdef SIP_RUN
     % MethodCode
     QVector< int > treeResult;
     QVector< double > costResult;
-    QgsGraphAnalyzer::dijkstra( a0, a1, a2, &treeResult, &costResult );
+    QgsGraphAnalyzer::dijkstra( a0, a1, a2, a3, &treeResult, &costResult );
 
     PyObject *l1 = PyList_New( treeResult.size() );
     if ( l1 == NULL )

@@ -86,7 +86,7 @@ QVariantMap QgsShortestPathPointToPointAlgorithm::processAlgorithm( const QVaria
 
   QVector< int > tree;
   QVector< double > costs;
-  QgsGraphAnalyzer::dijkstra( graph.get(), idxStart, 0, &tree, &costs );
+  QgsGraphAnalyzer::dijkstra( graph.get(), idxStart, 0, idxEnd, &tree, &costs );
 
   if ( tree.at( idxEnd ) == -1 )
   {

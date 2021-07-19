@@ -22,7 +22,7 @@
 #include "qgsgraph.h"
 #include "qgsgraphanalyzer.h"
 
-void QgsGraphAnalyzer::dijkstra( const QgsGraph *source, int startPointIdx, int criterionNum, QVector<int> *resultTree, QVector<double> *resultCost )
+void QgsGraphAnalyzer::dijkstra( const QgsGraph *source, int startPointIdx, int criterionNum, int endVertexIdx, QVector<int> *resultTree, QVector<double> *resultCost )
 {
   if ( startPointIdx < 0 || startPointIdx >= source->vertexCount() )
   {
@@ -58,7 +58,12 @@ void QgsGraphAnalyzer::dijkstra( const QgsGraph *source, int startPointIdx, int 
   {
     QMultiMap< double, int >::iterator it = vertexQueue.begin();
     double curCost = it.key();
-    int curVertex = it.value();
+    const int curVertex = it.value();
+
+    // potential shortcut if end vertex was specified
+    if ( endVertexIdx != -1 && curVertex == endVertexIdx )
+      break;
+
     vertexQueue.erase( it );
 
     // edge index list
@@ -90,7 +95,7 @@ QgsGraph *QgsGraphAnalyzer::shortestTree( const QgsGraph *source, int startVerte
   QgsGraph *treeResult = new QgsGraph();
   QVector<int> tree;
 
-  QgsGraphAnalyzer::dijkstra( source, startVertexIdx, criterionNum, &tree );
+  QgsGraphAnalyzer::dijkstra( source, startVertexIdx, criterionNum, -1, &tree );
 
   // sourceVertexIdx2resultVertexIdx
   QVector<int> source2result( tree.size(), -1 );
