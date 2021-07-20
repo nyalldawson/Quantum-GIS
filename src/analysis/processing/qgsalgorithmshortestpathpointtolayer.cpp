@@ -93,7 +93,7 @@ QVariantMap QgsShortestPathPointToLayerAlgorithm::processAlgorithm( const QVaria
 
   QVector< int > tree;
   QVector< double > costs;
-  QgsGraphAnalyzer::dijkstra( graph.get(), idxStart, 0, -1, &tree, &costs );
+  QgsGraphAnalyzer::dijkstra( graph.get(), idxStart, 0, {}, &tree, &costs );
 
   QVector<QgsPointXY> route;
   double cost;

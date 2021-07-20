@@ -23,14 +23,14 @@ points using different strategies with Dijkstra algorithm
 %End
   public:
 
-    static SIP_PYLIST  dijkstra( const QgsGraph *source, int startVertexIdx, int criterionNum, int endVertexIdx = -1, QVector<int> *resultTree = 0, QVector<double> *resultCost = 0 );
+    static SIP_PYLIST  dijkstra( const QgsGraph *source, int startVertexIdx, int criterionNum, const QSet< int > &endVertexIndexes = QSet< int >(), QVector<int> *resultTree = 0, QVector<double> *resultCost = 0 );
 %Docstring
 Solve shortest path problem using Dijkstra algorithm
 
 :param source: source graph
 :param startVertexIdx: index of the start vertex
 :param criterionNum: index of the optimization strategy
-:param endVertexIdx: optional index of desired end vertex. If specified the algorithm will be terminated as soon as the shortest path to this vertex is found, potentially saving a lot of unwanted computation.
+:param endVertexIndexes: optional set of desired end vertex indices. If specified the algorithm will be terminated as soon as the shortest path to all these vertices are found, potentially saving a lot of unwanted computation.
 :param resultTree: array that represents shortest path tree. resultTree[ vertexIndex ] == inboundingArcIndex if vertex reachable, otherwise resultTree[ vertexIndex ] == -1.
                    Note that the startVertexIdx will also have a value of -1 and may need special handling by callers.
 :param resultCost: array of the paths costs
@@ -39,7 +39,7 @@ Solve shortest path problem using Dijkstra algorithm
 %MethodCode
     QVector< int > treeResult;
     QVector< double > costResult;
-    QgsGraphAnalyzer::dijkstra( a0, a1, a2, a3, &treeResult, &costResult );
+    QgsGraphAnalyzer::dijkstra( a0, a1, a2, *a3, &treeResult, &costResult );
 
     PyObject *l1 = PyList_New( treeResult.size() );
     if ( l1 == NULL )

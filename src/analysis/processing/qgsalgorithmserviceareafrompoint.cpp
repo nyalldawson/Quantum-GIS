@@ -108,7 +108,7 @@ QVariantMap QgsServiceAreaFromPointAlgorithm::processAlgorithm( const QVariantMa
 
   QVector< int > tree;
   QVector< double > costs;
-  QgsGraphAnalyzer::dijkstra( graph.get(), idxStart, 0, -1, &tree, &costs );
+  QgsGraphAnalyzer::dijkstra( graph.get(), idxStart, 0, {}, &tree, &costs );
 
   QgsMultiPointXY points;
   QgsMultiPolylineXY lines;

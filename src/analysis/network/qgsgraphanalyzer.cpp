@@ -22,7 +22,7 @@
 #include "qgsgraph.h"
 #include "qgsgraphanalyzer.h"
 
-void QgsGraphAnalyzer::dijkstra( const QgsGraph *source, int startPointIdx, int criterionNum, int endVertexIdx, QVector<int> *resultTree, QVector<double> *resultCost )
+void QgsGraphAnalyzer::dijkstra( const QgsGraph *source, int startPointIdx, int criterionNum, const QSet< int > &endVertexIndexes, QVector<int> *resultTree, QVector<double> *resultCost )
 {
   if ( startPointIdx < 0 || startPointIdx >= source->vertexCount() )
   {
@@ -54,15 +54,23 @@ void QgsGraphAnalyzer::dijkstra( const QgsGraph *source, int startPointIdx, int 
   QMultiMap< double, int > vertexQueue;
   vertexQueue.insert( 0.0, startPointIdx );
 
+  const bool usingEndVertexShortcut = !endVertexIndexes.empty();
+  QSet< int > endVertexQueue = endVertexIndexes;
+
   while ( !vertexQueue.empty() )
   {
     QMultiMap< double, int >::iterator it = vertexQueue.begin();
     double curCost = it.key();
     const int curVertex = it.value();
 
-    // potential shortcut if end vertex was specified
-    if ( endVertexIdx != -1 && curVertex == endVertexIdx )
-      break;
+    // potential shortcut if target end vertices were specified
+    if ( usingEndVertexShortcut )
+    {
+      endVertexQueue.remove( curVertex );
+      if ( endVertexQueue.empty() )
+        // we've traversed to all target end vertices, can abort processing now
+        break;
+    }
 
     vertexQueue.erase( it );
 
@@ -95,7 +103,7 @@ QgsGraph *QgsGraphAnalyzer::shortestTree( const QgsGraph *source, int startVerte
   QgsGraph *treeResult = new QgsGraph();
   QVector<int> tree;
 
-  QgsGraphAnalyzer::dijkstra( source, startVertexIdx, criterionNum, -1, &tree );
+  QgsGraphAnalyzer::dijkstra( source, startVertexIdx, criterionNum, {}, &tree );
 
   // sourceVertexIdx2resultVertexIdx
   QVector<int> source2result( tree.size(), -1 );

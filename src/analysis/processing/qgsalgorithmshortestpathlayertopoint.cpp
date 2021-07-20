@@ -111,7 +111,7 @@ QVariantMap QgsShortestPathLayerToPointAlgorithm::processAlgorithm( const QVaria
     }
 
     idxStart = graph->findVertex( snappedPoints[i] );
-    QgsGraphAnalyzer::dijkstra( graph.get(), idxStart, 0, idxEnd, &tree, &costs );
+    QgsGraphAnalyzer::dijkstra( graph.get(), idxStart, 0, {idxEnd}, &tree, &costs );
 
     if ( tree.at( idxEnd ) == -1 )
     {
