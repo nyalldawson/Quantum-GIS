@@ -50,19 +50,16 @@ void QgsGraphAnalyzer::dijkstra( const QgsGraph *source, int startPointIdx, int 
     resultTree->insert( resultTree->begin(), source->vertexCount(), -1 );
   }
 
-  // QMultiMap< cost, vertexIdx > not_begin
-  // I use it and don't create any struct or class
-  QMultiMap< double, int > not_begin;
-  QMultiMap< double, int >::iterator it;
+  // used as a priority queue where the keys are the cost and values are the vertex ID
+  QMultiMap< double, int > vertexQueue;
+  vertexQueue.insert( 0.0, startPointIdx );
 
-  not_begin.insert( 0.0, startPointIdx );
-
-  while ( !not_begin.empty() )
+  while ( !vertexQueue.empty() )
   {
-    it = not_begin.begin();
+    QMultiMap< double, int >::iterator it = vertexQueue.begin();
     double curCost = it.key();
     int curVertex = it.value();
-    not_begin.erase( it );
+    vertexQueue.erase( it );
 
     // edge index list
     const QgsGraphEdgeIds &outgoingEdges = source->vertex( curVertex ).outgoingEdges();
@@ -71,14 +68,14 @@ void QgsGraphAnalyzer::dijkstra( const QgsGraph *source, int startPointIdx, int 
       const QgsGraphEdge &arc = source->edge( edgeId );
       double cost = arc.cost( criterionNum ).toDouble() + curCost;
 
-      if ( cost < ( *result )[ arc.toVertex()] )
+      if ( cost < ( *result ).at( arc.toVertex() ) )
       {
         ( *result )[ arc.toVertex()] = cost;
         if ( resultTree )
         {
           ( *resultTree )[ arc.toVertex()] = edgeId;
         }
-        not_begin.insert( cost, arc.toVertex() );
+        vertexQueue.insert( cost, arc.toVertex() );
       }
     }
   }
